@@ -178,7 +178,8 @@
       "name": "Add Contact Phone",
       "description": "Agrega información de contacto telefónico del pasajero o agencia.",
       "syntax": [
-        "AP{city} {phone}-{type}"
+        "AP{city} {phone}-{type}",
+        "AP+{codigo pais y telefono}"
       ],
       "tokens": {
         "city": "^([A-Z]{3}) ",
@@ -188,7 +189,7 @@
       "handler": "ADD_CONTACT",
       "examples": [
         "APBOG 573001234567-M",
-        "APMIA 13055551234-A"
+        "AP+573001234567"
       ],
       "errors": {
         "INVALID_FORMAT": "FORMAT ERROR - PHONE"
@@ -315,17 +316,20 @@
       "code": "XE",
       "category": "Cancelation",
       "name": "Cancel Element",
-      "description": "Cancela un elemento específico de la reserva por su número de línea.",
+      "description": "Borra celdas de la reserva: una (XE1), un rango (XE1-3) o varias (XE4,8).",
       "syntax": [
-        "XE{lineNumber}"
+        "XE{celda}",
+        "XE{desde}-{hasta}",
+        "XE{celda},{celda}"
       ],
       "tokens": {
-        "lineNumber": "^(\\d{1,2})"
+        "lineNumber": "^([0-9,-]+)"
       },
       "handler": "CANCEL_ELEMENT",
       "examples": [
-        "XE2",
-        "XE4"
+        "XE1",
+        "XE1-3",
+        "XE4,8"
       ],
       "errors": {
         "INVALID_LINE": "CHECK LINE NUMBER"
@@ -425,18 +429,19 @@
       "code": "SR",
       "category": "Services",
       "name": "Special Service Request (SSR)",
-      "description": "Registra solicitudes especiales (comida vegetariana, silla de ruedas, infantes, etc.).",
+      "description": "Solicitudes especiales y contactos de seguridad: comidas (VGML), sillas (WCHR), correo (CTCE- con // en vez de @) y telefono (CTCM-).",
       "syntax": [
         "SR {code}"
       ],
       "tokens": {
-        "code": "^([A-Z]{4})"
+        "code": "^([A-Z]{2,4})"
       },
       "handler": "ADD_SSR",
       "examples": [
         "SR VGML",
         "SR WCHR",
-        "SR INFT"
+        "SR CTCE-JUAN//GMAIL.COM",
+        "SR CTCM-573001234567"
       ],
       "errors": {
         "INVALID_CODE": "CHECK SERVICE CODE"
@@ -457,7 +462,7 @@
       "handler": "ADD_OSI",
       "examples": [
         "OS AV PASAJERO VIP",
-        "OS IB CLIENTE FRECUENTE"
+        "OS YY HFBB"
       ],
       "errors": {}
     },
@@ -533,6 +538,152 @@
       ],
       "errors": {
         "FORMAT_ERROR": "FORMAT ERROR - REMARK"
+      }
+    },
+    {
+      "code": "FQN",
+      "category": "Pricing",
+      "name": "Fare Components / Penalidades del Ticket",
+      "description": "Muestra las condiciones del ticket (reembolsos en CANCELLATIONS, cambios en CHANGES). Ej: FQN1*PE. Navega con MD/MU.",
+      "syntax": [
+        "FQN{nroTicket}*PE"
+      ],
+      "tokens": {
+        "ticket": "^(d{1,2})",
+        "pe": "(?:[*](PE))?"
+      },
+      "handler": "SHOW_FARE_RULES",
+      "examples": [
+        "FQN1*PE"
+      ],
+      "normalize": "compact",
+      "errors": {
+        "NO_TICKET": "NO FARE COMPONENTS - CHECK TICKET NUMBER"
+      }
+    },
+    {
+      "code": "MN",
+      "category": "Schedules",
+      "name": "Dia Siguiente",
+      "description": "Se mueve al dia siguiente en el itinerario de vuelos mostrado (SN/AN).",
+      "syntax": [
+        "MN"
+      ],
+      "tokens": {},
+      "handler": "MOVE_NEXT_DAY",
+      "examples": [
+        "MN"
+      ],
+      "errors": {
+        "NO_DISPLAY": "NO DISPLAY - RUN SN/AN FIRST"
+      }
+    },
+    {
+      "code": "MY",
+      "category": "Schedules",
+      "name": "Dia Anterior",
+      "description": "Se mueve al dia anterior en el itinerario de vuelos mostrado (SN/AN).",
+      "syntax": [
+        "MY"
+      ],
+      "tokens": {},
+      "handler": "MOVE_PREV_DAY",
+      "examples": [
+        "MY"
+      ],
+      "errors": {
+        "NO_DISPLAY": "NO DISPLAY - RUN SN/AN FIRST"
+      }
+    },
+    {
+      "code": "MO",
+      "category": "Schedules",
+      "name": "Dia Original",
+      "description": "Vuelve al dia original del itinerario de vuelos mostrado (SN/AN).",
+      "syntax": [
+        "MO"
+      ],
+      "tokens": {},
+      "handler": "MOVE_ORIG_DAY",
+      "examples": [
+        "MO"
+      ],
+      "errors": {
+        "NO_DISPLAY": "NO DISPLAY - RUN SN/AN FIRST"
+      }
+    },
+    {
+      "code": "MD",
+      "category": "System",
+      "name": "Pagina Siguiente",
+      "description": "Avanza a la pagina siguiente en pantallas largas (FQN, FXX).",
+      "syntax": [
+        "MD"
+      ],
+      "tokens": {},
+      "handler": "PAGE_DOWN",
+      "examples": [
+        "MD"
+      ],
+      "errors": {
+        "NO_PAGES": "NO MORE PAGES"
+      }
+    },
+    {
+      "code": "MU",
+      "category": "System",
+      "name": "Pagina Anterior",
+      "description": "Retrocede a la pagina anterior en pantallas largas (FQN, FXX).",
+      "syntax": [
+        "MU"
+      ],
+      "tokens": {},
+      "handler": "PAGE_UP",
+      "examples": [
+        "MU"
+      ],
+      "errors": {
+        "NO_PAGES": "ALREADY ON FIRST PAGE"
+      }
+    },
+    {
+      "code": "TKXL",
+      "category": "Ticketing",
+      "name": "Plazo de Confirmacion (Time Limit)",
+      "description": "Fija el plazo de confirmacion de la cita/reserva, normalmente 24 hrs despues. Ej: TKXL 24JUL.",
+      "syntax": [
+        "TKXL{date}"
+      ],
+      "tokens": {
+        "date": "^(d{1,2}[A-Z]{3})"
+      },
+      "handler": "SET_TICKETING",
+      "examples": [
+        "TKXL 24JUL",
+        "TKXL24JUL"
+      ],
+      "normalize": "compact",
+      "errors": {
+        "INVALID_FORMAT": "FORMAT ERROR - TKXL"
+      }
+    },
+    {
+      "code": "APE",
+      "category": "Contact",
+      "name": "Correo de Confirmacion",
+      "description": "Agrega el correo electronico de confirmacion del pasajero (con @).",
+      "syntax": [
+        "APE-{correo}"
+      ],
+      "tokens": {
+        "email": "^-(.+)"
+      },
+      "handler": "ADD_CONTACT",
+      "examples": [
+        "APE-JUAN@GMAIL.COM"
+      ],
+      "errors": {
+        "INVALID_FORMAT": "FORMAT ERROR - EMAIL"
       }
     }
   ]

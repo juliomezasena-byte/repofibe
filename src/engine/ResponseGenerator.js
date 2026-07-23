@@ -87,6 +87,16 @@ export class ResponseGenerator {
       return `${result.message}\nRM: ${result.data.text}`;
     }
 
+    // 7. Pantallas paginadas (FQN*PE, navegables con MD/MU)
+    if (result.type === 'PAGED') {
+      const d = result.data;
+      return [
+        d.page,
+        ``,
+        `--- PAGE ${d.index + 1}/${d.total} ---  MD: SIGUIENTE  MU: ANTERIOR`
+      ].join('\n');
+    }
+
     // 2. Ayuda (HE)
     if (result.type === 'HELP') {
       return this.formatHelp(result.topic);

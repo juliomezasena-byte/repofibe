@@ -116,6 +116,32 @@ probarTolerancia('DAN SANTO DOMINGO -> SDQ', ['DAN SANTO DOMINGO'],
 probarTolerancia('DAN WASHINGTON -> WAS', ['DAN WASHINGTON'],
   (r) => r.success && r.data.code === 'WAS' ? null : `respondió: ${JSON.stringify(r.data || r.error)}`);
 
+// ── Comandos nuevos del Material de Apoyo ──
+probarTolerancia('MN avanza un día (12APR -> 13APR)', ['SN 12 APR MEX SDQ', 'MN'],
+  (r) => r.success && r.data.date === '13APR' ? null : `fecha: ${JSON.stringify(r.data?.date || r.error)}`);
+probarTolerancia('MY retrocede y MO vuelve al original', ['SN 12 APR MEX SDQ', 'MN', 'MN', 'MO'],
+  (r) => r.success && r.data.date === '12APR' ? null : `fecha: ${JSON.stringify(r.data?.date || r.error)}`);
+probarTolerancia('MN cruza fin de mes (30APR -> 1MAY)', ['SN 30 APR MEX SDQ', 'MN'],
+  (r) => r.success && r.data.date === '1MAY' ? null : `fecha: ${JSON.stringify(r.data?.date || r.error)}`);
+probarTolerancia('FQN1*PE muestra penalidades paginadas', ['FQN1*PE'],
+  (r, s) => r.success && r.type === 'PAGED' && /CANCELLATIONS/.test(r.data.page) && s.viewedPenalties ? null : 'sin página de penalidades');
+probarTolerancia('MD/MU navegan páginas de FQN', ['FQN1*PE', 'MD'],
+  (r) => r.success && r.data.index === 1 && /CHANGES/.test(r.data.page) ? null : `página: ${JSON.stringify(r.data || r.error)}`);
+probarTolerancia('MU en primera página -> error honesto', ['FQN1*PE', 'MU'],
+  (r) => !r.success && /FIRST PAGE/.test(r.error) ? null : 'no avisó que ya estaba en la primera página');
+probarTolerancia('TKXL 24JUL fija plazo', ['TKXL 24JUL'],
+  (r, s) => r.success && /TKXL/.test(s.ticketing || '') ? null : `ticketing: ${s.ticketing}`);
+probarTolerancia('APE- correo de confirmación', ['APE-ANA@GMAIL.COM'],
+  (r, s) => r.success && s.contacts.length === 1 && /ANA@GMAIL.COM/.test(s.contacts[0].text) ? null : 'correo no registrado');
+probarTolerancia('SR CTCE- seguridad del correo', ['SR CTCE-ANA//GMAIL.COM'],
+  (r, s) => r.success && s.ssrs.length === 1 && /CTCE/.test(s.ssrs[0]) ? null : 'CTCE no registrado');
+probarTolerancia('NM niño (CHD/fecha) conserva el nombre completo', ['NM1PEREZ/JUAN(CHD/10MAY18)'],
+  (r, s) => r.success && s.passengers.length === 1 && s.passengers[0].name === 'PEREZ/JUAN(CHD/10MAY18)' ? null : `nombre: ${JSON.stringify(s.passengers)}`);
+probarTolerancia('XE1-3 borra el rango', ['NM1AAA/UNO', 'NM1BBB/DOS', 'NM1CCC/TRES', 'XE1-3'],
+  (r, s) => r.success && s.passengers.length === 0 ? null : `quedaron: ${s.passengers.length}`);
+probarTolerancia('XE con lista (XE1,3) borra solo esas', ['NM1AAA/UNO', 'NM1BBB/DOS', 'NM1CCC/TRES', 'XE1,3'],
+  (r, s) => r.success && s.passengers.length === 1 && /BBB/.test(s.passengers[0].name) ? null : `quedaron: ${JSON.stringify(s.passengers)}`);
+
 console.log(`\n==========================================`);
 console.log(`Resumen QA: ${passedScenarios}/${scenarios.length} escenarios superados.`);
 console.log(`Tolerancia: ${toleranceFailures === 0 ? 'OK' : toleranceFailures + ' fallos'}`);

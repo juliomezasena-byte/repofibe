@@ -204,6 +204,28 @@ export class EvaluationEngine {
       }
     }
 
+    // 16b. Movimiento entre días (MN/MY/MO)
+    if (target.usedMoveDay) {
+      totalChecks++;
+      if (state.usedMoveDay) {
+        checksPassed++;
+        feedback.push(`[OK] Navegaste entre días del itinerario (MN/MY/MO).`);
+      } else {
+        feedback.push(`[PENDIENTE] Muévete entre días con MN (siguiente), MY (anterior) o MO (original).`);
+      }
+    }
+
+    // 16c. Penalidades del ticket (FQN*PE)
+    if (target.viewedPenalties) {
+      totalChecks++;
+      if (state.viewedPenalties) {
+        checksPassed++;
+        feedback.push(`[OK] Consultaste las condiciones del ticket (FQN*PE).`);
+      } else {
+        feedback.push(`[PENDIENTE] Consulta reembolsos y cambios con FQN1*PE.`);
+      }
+    }
+
     // 17. Notas de reserva (RM)
     if (target.hasRemarks) {
       totalChecks++;

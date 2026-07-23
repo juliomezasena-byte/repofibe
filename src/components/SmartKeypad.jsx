@@ -5,8 +5,9 @@ export const SmartKeypad = ({ onKeyPress, onBackspace, onSubmit }) => {
   const symbols = ['/', '-', '*', '(', ')', ',', '.'];
   // Comandos del manual de clase primero, luego el resto del ciclo PNR.
   const verbs = [
-    'DAN', 'DAC', 'FQC', 'SN', 'AN', 'SS', 'NM', 'FXX', 'FXP',
-    'DF', 'RM', 'AP', 'TK', 'RF', 'ER', 'RT', 'XE', 'TTP', 'HE'
+    'DAN', 'DAC', 'FQC', 'SN', 'MN', 'MY', 'MO', 'AN', 'SS', 'NM',
+    'FXX', 'FXP', 'FQN', 'MD', 'MU', 'DF', 'RM', 'AP', 'APE', 'SR',
+    'TK', 'TKXL', 'RF', 'ER', 'RT', 'XE', 'TTP', 'HE'
   ];
 
   return (

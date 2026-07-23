@@ -18,7 +18,16 @@
         "hasReceivedFrom": true,
         "isTransacted": true
       },
-      "suggestedFlow": ["SN 12 APR MEX SDQ", "SS1Y1", "NM1GARCIA/CARLOS MR", "APMEX 525512345678-M", "TK OK", "FXX/FF-OPTIMA/RAD*CH*IN,BOG", "RF CARLOS", "ER"]
+      "suggestedFlow": [
+        "SN 12 APR MEX SDQ",
+        "SS1Y1",
+        "NM1GARCIA/CARLOS MR",
+        "APMEX 525512345678-M",
+        "TK OK",
+        "FXX/FF-OPTIMA/RAD*CH*IN,BOG",
+        "RF CARLOS",
+        "ER"
+      ]
     },
     {
       "id": "scenario-2",
@@ -38,7 +47,16 @@
         "hasReceivedFrom": true,
         "isTransacted": true
       },
-      "suggestedFlow": ["AN15DECMADBCN", "SS2Y1", "NM2PEREZ/JUAN MR/MARIA MRS", "APMAD 34912345678-A", "TK OK", "FXX", "RF JUAN", "ER"]
+      "suggestedFlow": [
+        "AN15DECMADBCN",
+        "SS2Y1",
+        "NM2PEREZ/JUAN MR/MARIA MRS",
+        "APMAD 34912345678-A",
+        "TK OK",
+        "FXX",
+        "RF JUAN",
+        "ER"
+      ]
     },
     {
       "id": "scenario-3",
@@ -48,9 +66,28 @@
       "initialState": {
         "pnr": {
           "code": "K8X9P2",
-          "passengers": [{ "id": 1, "name": "MARTINEZ/LUCIA MS" }],
-          "segments": [{ "id": 1, "flight": "AV0026", "class": "Y", "date": "25NOV", "route": "BOG-MIA", "status": "HK1" }],
-          "contacts": [{ "id": 1, "text": "APBOG 5711111111-H" }],
+          "passengers": [
+            {
+              "id": 1,
+              "name": "MARTINEZ/LUCIA MS"
+            }
+          ],
+          "segments": [
+            {
+              "id": 1,
+              "flight": "AV0026",
+              "class": "Y",
+              "date": "25NOV",
+              "route": "BOG-MIA",
+              "status": "HK1"
+            }
+          ],
+          "contacts": [
+            {
+              "id": 1,
+              "text": "APBOG 5711111111-H"
+            }
+          ],
           "ticketing": "TK OK",
           "receivedFrom": "LUCIA"
         }
@@ -62,7 +99,13 @@
         "hasReceivedFrom": true,
         "isTransacted": true
       },
-      "suggestedFlow": ["RT", "XE3", "APBOG 573009998877-M", "RF LUCIA", "ER"]
+      "suggestedFlow": [
+        "RT",
+        "XE3",
+        "APBOG 573009998877-M",
+        "RF LUCIA",
+        "ER"
+      ]
     },
     {
       "id": "scenario-4",
@@ -73,7 +116,9 @@
       "targetState": {
         "isClean": true
       },
-      "suggestedFlow": ["IG"]
+      "suggestedFlow": [
+        "IG"
+      ]
     },
     {
       "id": "scenario-5",
@@ -83,9 +128,28 @@
       "initialState": {
         "pnr": {
           "code": "TST123",
-          "passengers": [{ "id": 1, "name": "RODRIGUEZ/PEDRO MR" }],
-          "segments": [{ "id": 1, "flight": "AA1124", "class": "Y", "date": "25NOV", "route": "BOG-MIA", "status": "HK1" }],
-          "contacts": [{ "id": 1, "text": "APBOG 573112223344-M" }],
+          "passengers": [
+            {
+              "id": 1,
+              "name": "RODRIGUEZ/PEDRO MR"
+            }
+          ],
+          "segments": [
+            {
+              "id": 1,
+              "flight": "AA1124",
+              "class": "Y",
+              "date": "25NOV",
+              "route": "BOG-MIA",
+              "status": "HK1"
+            }
+          ],
+          "contacts": [
+            {
+              "id": 1,
+              "text": "APBOG 573112223344-M"
+            }
+          ],
           "ticketing": "TK OK",
           "receivedFrom": "PEDRO"
         }
@@ -94,7 +158,11 @@
         "hasTst": true,
         "isTransacted": true
       },
-      "suggestedFlow": ["FXP", "RF PEDRO", "ER"]
+      "suggestedFlow": [
+        "FXP",
+        "RF PEDRO",
+        "ER"
+      ]
     },
     {
       "id": "scenario-6",
@@ -104,9 +172,28 @@
       "initialState": {
         "pnr": {
           "code": "SRV456",
-          "passengers": [{ "id": 1, "name": "SILVA/ANA MS" }],
-          "segments": [{ "id": 1, "flight": "IB6588", "class": "Y", "date": "15DEC", "route": "MAD-BCN", "status": "HK1" }],
-          "contacts": [{ "id": 1, "text": "APMAD 34600000000-M" }],
+          "passengers": [
+            {
+              "id": 1,
+              "name": "SILVA/ANA MS"
+            }
+          ],
+          "segments": [
+            {
+              "id": 1,
+              "flight": "IB6588",
+              "class": "Y",
+              "date": "15DEC",
+              "route": "MAD-BCN",
+              "status": "HK1"
+            }
+          ],
+          "contacts": [
+            {
+              "id": 1,
+              "text": "APMAD 34600000000-M"
+            }
+          ],
           "ticketing": "TK OK"
         }
       },
@@ -114,7 +201,11 @@
         "hasSsr": true,
         "isTransacted": true
       },
-      "suggestedFlow": ["SR VGML", "RF ANA", "ER"]
+      "suggestedFlow": [
+        "SR VGML",
+        "RF ANA",
+        "ER"
+      ]
     },
     {
       "id": "scenario-7",
@@ -124,9 +215,28 @@
       "initialState": {
         "pnr": {
           "code": "OSI789",
-          "passengers": [{ "id": 1, "name": "LOPEZ/MARIO MR" }],
-          "segments": [{ "id": 1, "flight": "AV0026", "class": "J", "date": "25NOV", "route": "BOG-MIA", "status": "HK1" }],
-          "contacts": [{ "id": 1, "text": "APBOG 573223344555-M" }],
+          "passengers": [
+            {
+              "id": 1,
+              "name": "LOPEZ/MARIO MR"
+            }
+          ],
+          "segments": [
+            {
+              "id": 1,
+              "flight": "AV0026",
+              "class": "J",
+              "date": "25NOV",
+              "route": "BOG-MIA",
+              "status": "HK1"
+            }
+          ],
+          "contacts": [
+            {
+              "id": 1,
+              "text": "APBOG 573223344555-M"
+            }
+          ],
           "ticketing": "TK OK"
         }
       },
@@ -134,7 +244,11 @@
         "hasOsi": true,
         "isTransacted": true
       },
-      "suggestedFlow": ["OS AV PASAJERO VIP", "RF MARIO", "ER"]
+      "suggestedFlow": [
+        "OS AV PASAJERO VIP",
+        "RF MARIO",
+        "ER"
+      ]
     },
     {
       "id": "scenario-8",
@@ -144,18 +258,42 @@
       "initialState": {
         "pnr": {
           "code": "TKT999",
-          "passengers": [{ "id": 1, "name": "HERNANDEZ/LUIS MR" }],
-          "segments": [{ "id": 1, "flight": "AV0026", "class": "Y", "date": "25NOV", "route": "BOG-MIA", "status": "HK1" }],
-          "contacts": [{ "id": 1, "text": "APBOG 573001112233-M" }],
+          "passengers": [
+            {
+              "id": 1,
+              "name": "HERNANDEZ/LUIS MR"
+            }
+          ],
+          "segments": [
+            {
+              "id": 1,
+              "flight": "AV0026",
+              "class": "Y",
+              "date": "25NOV",
+              "route": "BOG-MIA",
+              "status": "HK1"
+            }
+          ],
+          "contacts": [
+            {
+              "id": 1,
+              "text": "APBOG 573001112233-M"
+            }
+          ],
           "ticketing": "TK OK",
-          "tst": { "priceUSD": 450, "currency": "USD" },
+          "tst": {
+            "priceUSD": 450,
+            "currency": "USD"
+          },
           "isTransacted": true
         }
       },
       "targetState": {
         "isTicketed": true
       },
-      "suggestedFlow": ["TTP"]
+      "suggestedFlow": [
+        "TTP"
+      ]
     },
     {
       "id": "scenario-9",
@@ -166,7 +304,10 @@
       "targetState": {
         "viewedHelp": true
       },
-      "suggestedFlow": ["HE AN", "HE NM"]
+      "suggestedFlow": [
+        "HE AN",
+        "HE NM"
+      ]
     },
     {
       "id": "scenario-10",
@@ -186,7 +327,17 @@
         "hasTst": true,
         "isTicketed": true
       },
-      "suggestedFlow": ["AN20DECMEXBOG", "SS1Y1", "NM1RAMIREZ/DIEGO MR", "APMEX 525512345678-M", "TK OK", "FXP", "RF DIEGO", "ER", "TTP"]
+      "suggestedFlow": [
+        "AN20DECMEXBOG",
+        "SS1Y1",
+        "NM1RAMIREZ/DIEGO MR",
+        "APMEX 525512345678-M",
+        "TK OK",
+        "FXP",
+        "RF DIEGO",
+        "ER",
+        "TTP"
+      ]
     },
     {
       "id": "scenario-11",
@@ -199,7 +350,11 @@
         "hasDecoded": true,
         "hasConverted": true
       },
-      "suggestedFlow": ["DAN LIMA", "DAC BOG", "FQC35USD/COP"]
+      "suggestedFlow": [
+        "DAN LIMA",
+        "DAC BOG",
+        "FQC35USD/COP"
+      ]
     },
     {
       "id": "scenario-12",
@@ -219,7 +374,17 @@
         "hasReceivedFrom": true,
         "isTransacted": true
       },
-      "suggestedFlow": ["SN 12 APR MEX SDQ", "AN13MARLIMBOG", "SS1Y1", "NM1PEREZ/JUAN(CHD/10MAY18)", "APBOG 573001112233-M", "TK OK", "FXX/FF-OPTIMA/RAD*CH*IN,BOG", "RF PAREJA", "ER"]
+      "suggestedFlow": [
+        "SN 12 APR MEX SDQ",
+        "AN13MARLIMBOG",
+        "SS1Y1",
+        "NM1PEREZ/JUAN(CHD/10MAY18)",
+        "APBOG 573001112233-M",
+        "TK OK",
+        "FXX/FF-OPTIMA/RAD*CH*IN,BOG",
+        "RF PAREJA",
+        "ER"
+      ]
     },
     {
       "id": "scenario-13",
@@ -230,7 +395,10 @@
       "targetState": {
         "usedDf": true
       },
-      "suggestedFlow": ["DF 2200000;1000000;860000; 240000*3", "HE DF"]
+      "suggestedFlow": [
+        "DF 2200000;1000000;860000; 240000*3",
+        "HE DF"
+      ]
     },
     {
       "id": "scenario-14",
@@ -240,9 +408,28 @@
       "initialState": {
         "pnr": {
           "code": "RM9999",
-          "passengers": [{ "id": 1, "name": "GARCIA/CARLOS MR" }],
-          "segments": [{ "id": 1, "flight": "AV0026", "class": "Y", "date": "25NOV", "route": "BOG-MIA", "status": "HK1" }],
-          "contacts": [{ "id": 1, "text": "APBOG 573001234567-M" }],
+          "passengers": [
+            {
+              "id": 1,
+              "name": "GARCIA/CARLOS MR"
+            }
+          ],
+          "segments": [
+            {
+              "id": 1,
+              "flight": "AV0026",
+              "class": "Y",
+              "date": "25NOV",
+              "route": "BOG-MIA",
+              "status": "HK1"
+            }
+          ],
+          "contacts": [
+            {
+              "id": 1,
+              "text": "APBOG 573001234567-M"
+            }
+          ],
           "ticketing": "TK OK"
         }
       },
@@ -251,7 +438,13 @@
         "hasReceivedFrom": true,
         "isTransacted": true
       },
-      "suggestedFlow": ["RM *22JUL26* PAX AVDO AD:2200000 CH:1000000 IN:860000; GG 240000 COP", "RM *22JUL26* TTL 12900000 COP", "RM *22JUL26* FC1,2 TKT REEMB, CHG NO PENTY + DF + GG", "RF CARLOS", "ER"]
+      "suggestedFlow": [
+        "RM *22JUL26* PAX AVDO AD:2200000 CH:1000000 IN:860000; GG 240000 COP",
+        "RM *22JUL26* TTL 12900000 COP",
+        "RM *22JUL26* FC1,2 TKT REEMB, CHG NO PENTY + DF + GG",
+        "RF CARLOS",
+        "ER"
+      ]
     },
     {
       "id": "scenario-15",
@@ -271,7 +464,135 @@
         "hasReceivedFrom": true,
         "isTransacted": true
       },
-      "suggestedFlow": ["FQC 35USD/DOP", "SN 12 APR MEX SDQ", "SS2C1", "NM2PEREZ/JUAN MR/MARIA(CHD)", "APSDQ 18095551234-M", "TK OK", "FXX/FF-BUSFLEX/RAD*CH, SDQ", "RF CLIENTE", "ER"]
+      "suggestedFlow": [
+        "FQC 35USD/DOP",
+        "SN 12 APR MEX SDQ",
+        "SS2C1",
+        "NM2PEREZ/JUAN MR/MARIA(CHD)",
+        "APSDQ 18095551234-M",
+        "TK OK",
+        "FXX/FF-BUSFLEX/RAD*CH, SDQ",
+        "RF CLIENTE",
+        "ER"
+      ]
+    },
+    {
+      "id": "scenario-16",
+      "title": "Nivel 16: Moverse entre Días del Itinerario (MN/MY/MO)",
+      "difficulty": "Principiante",
+      "description": "PASAJEROS (PAXS): Consulta de agencia.\nRUTA: Ciudad de México (MEX) ➔ Santo Domingo (SDQ).\nTAREA: Consulta los horarios del 12 APR (SN 12 APR MEX SDQ), muévete al día siguiente con MN, regresa al día anterior con MY y vuelve al día original con MO. Observa cómo cambia la fecha del encabezado en cada pantalla.",
+      "initialState": {
+        "searchDate": "12APR",
+        "searchOrigin": "MEX",
+        "searchDestination": "SDQ"
+      },
+      "targetState": {
+        "usedMoveDay": true
+      },
+      "suggestedFlow": [
+        "SN 12 APR MEX SDQ",
+        "MN",
+        "MY",
+        "MO"
+      ]
+    },
+    {
+      "id": "scenario-17",
+      "title": "Nivel 17: Penalidades del Ticket y Paginación (FQN1*PE + MD/MU)",
+      "difficulty": "Intermedio",
+      "description": "PASAJEROS (PAXS): 1 ADT (Luis Hernández MR) con TST grabado.\nTAREA: El cliente pregunta si su tiquete se puede cancelar o cambiar y si tiene gasto de penalidad. Consulta los FARE COMPONENTS con FQN1*PE (CANCELLATIONS = reembolsos, CHANGES = cambios), avanza a la página siguiente con MD, regresa con MU, y registra la condición como nota final (RM *23JUL26* FC1,2 TKT REEMB, CHG NO PENTY + DF + GG).",
+      "initialState": {
+        "pnr": {
+          "code": "PEN001",
+          "passengers": [
+            {
+              "id": 1,
+              "name": "HERNANDEZ/LUIS MR"
+            }
+          ],
+          "segments": [
+            {
+              "id": 1,
+              "flight": "AM0674",
+              "class": "Y",
+              "date": "12APR",
+              "route": "MEX-SDQ",
+              "status": "HK1"
+            }
+          ],
+          "contacts": [
+            {
+              "id": 1,
+              "text": "APMEX 525512345678-M"
+            }
+          ],
+          "ticketing": "TK OK",
+          "tst": {
+            "priceUSD": 520,
+            "currency": "USD",
+            "fareBasis": "YFLEX"
+          }
+        }
+      },
+      "targetState": {
+        "viewedPenalties": true,
+        "hasRemarks": 1,
+        "hasReceivedFrom": true,
+        "isTransacted": true
+      },
+      "suggestedFlow": [
+        "FQN1*PE",
+        "MD",
+        "MU",
+        "RM *23JUL26* FC1,2 TKT REEMB, CHG NO PENTY + DF + GG",
+        "RF LUIS",
+        "ER"
+      ]
+    },
+    {
+      "id": "scenario-18",
+      "title": "Nivel 18: Confirmación y Seguridad de Contacto + Plazo (APE / CTCE / CTCM / TKXL)",
+      "difficulty": "Avanzado",
+      "description": "PASAJEROS (PAXS): 1 ADT (Ana Silva MS) con vuelo vendido.\nTAREA: Registra el correo de confirmación (APE-ANA@GMAIL.COM), la seguridad del correo (SR CTCE-ANA//GMAIL.COM), el teléfono con código de país (AP+573001112233), la seguridad del teléfono (SR CTCM-573001112233), fija el plazo de confirmación de 24 hrs (TKXL 24JUL), indica que el cliente paga por la página (OS YY HFBB), recibido RF ANA y guarda con ER.",
+      "initialState": {
+        "pnr": {
+          "code": "CTC001",
+          "passengers": [
+            {
+              "id": 1,
+              "name": "SILVA/ANA MS"
+            }
+          ],
+          "segments": [
+            {
+              "id": 1,
+              "flight": "AM0674",
+              "class": "Y",
+              "date": "12APR",
+              "route": "MEX-SDQ",
+              "status": "HK1"
+            }
+          ]
+        }
+      },
+      "targetState": {
+        "hasPhone": true,
+        "hasSsr": true,
+        "hasOsi": true,
+        "hasTicketing": true,
+        "hasReceivedFrom": true,
+        "isTransacted": true
+      },
+      "suggestedFlow": [
+        "APE-ANA@GMAIL.COM",
+        "SR CTCE-ANA//GMAIL.COM",
+        "AP+573001112233",
+        "SR CTCM-573001112233",
+        "TKXL 24JUL",
+        "OS YY HFBB",
+        "RF ANA",
+        "ER"
+      ]
     }
   ]
 }

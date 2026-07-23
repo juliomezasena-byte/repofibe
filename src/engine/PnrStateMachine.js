@@ -28,7 +28,10 @@ export class PnrStateMachine {
       hasEncoded: false,
       hasDecoded: false,
       hasConverted: false,
-      usedDf: false
+      usedDf: false,
+      usedMoveDay: false,
+      viewedPenalties: false,
+      pagedDisplay: null
     };
   }
 
@@ -128,6 +131,24 @@ export class PnrStateMachine {
       case 'ADD_REMARK':
         return this.handleAddRemark(params, rawInput);
 
+      case 'MOVE_NEXT_DAY':
+        return this.handleMoveDay(1, flightsCatalog);
+
+      case 'MOVE_PREV_DAY':
+        return this.handleMoveDay(-1, flightsCatalog);
+
+      case 'MOVE_ORIG_DAY':
+        return this.handleMoveDay(0, flightsCatalog);
+
+      case 'SHOW_FARE_RULES':
+        return this.handleFareComponents(params);
+
+      case 'PAGE_DOWN':
+        return this.handlePaging(1);
+
+      case 'PAGE_UP':
+        return this.handlePaging(-1);
+
       case 'SHOW_HELP':
         this.state.viewedHelp = true;
         return { success: true, type: 'HELP', topic: params.topic };
@@ -219,8 +240,15 @@ export class PnrStateMachine {
     }
 
     const count = parseInt((match && match[1]) || '1', 10) || 1;
-    const [surname, ...rest] = body.split('/');
-    const firstNames = rest.join('/').split('/').map(s => s.trim()).filter(Boolean);
+
+    // Las barras dentro de paréntesis pertenecen al detalle del pasajero
+    // (CHD/10MAY18) o (INFPEREZ/ANA/01JAN25) y NO separan pasajeros.
+    const MASK = String.fromCharCode(1);
+    const masked = body.replace(/\([^)]*\)/g, (g) => g.replace(/\//g, MASK));
+    const [surname, ...rest] = masked.split('/');
+    const firstNames = rest
+      .map((s) => s.replace(new RegExp(MASK, 'g'), '/').trim())
+      .filter(Boolean);
 
     const added = firstNames.slice(0, count).map((firstName) => {
       const passenger = {
@@ -295,52 +323,43 @@ export class PnrStateMachine {
   }
 
   handleCancelElement(params) {
-    const line = parseInt(params.lineNumber || '0', 10);
-    if (!line) {
+    // Del manual: XE1 (una celda), XE1-3 (rango), XE4,8 (lista).
+    const spec = (params.lineNumber || '').trim();
+    let lines = [];
+
+    if (/^\d{1,2}$/.test(spec)) {
+      lines = [parseInt(spec, 10)];
+    } else if (/^\d{1,2}-\d{1,2}$/.test(spec)) {
+      const [from, to] = spec.split('-').map((n) => parseInt(n, 10));
+      if (from > to) return { success: false, error: 'CHECK LINE RANGE' };
+      for (let i = from; i <= to; i++) lines.push(i);
+    } else if (/^\d{1,2}(,\d{1,2})+$/.test(spec)) {
+      lines = spec.split(',').map((n) => parseInt(n, 10));
+    } else {
       return { success: false, error: 'CHECK LINE NUMBER' };
     }
 
-    let deleted = false;
-    // Mapear elementos por su orden visual en PNR
-    // 1..passengers, then segments, then contacts
-    let currentIndex = 1;
+    // Mapa visual del PNR: 1..pasajeros, luego segmentos, luego contactos.
+    const elementos = [
+      ...this.state.passengers.map((_, i) => ({ tipo: 'passengers', idx: i })),
+      ...this.state.segments.map((_, i) => ({ tipo: 'segments', idx: i })),
+      ...this.state.contacts.map((_, i) => ({ tipo: 'contacts', idx: i }))
+    ];
 
-    for (let i = 0; i < this.state.passengers.length; i++) {
-      if (currentIndex === line) {
-        this.state.passengers.splice(i, 1);
-        deleted = true;
-        break;
-      }
-      currentIndex++;
-    }
-
-    if (!deleted) {
-      for (let i = 0; i < this.state.segments.length; i++) {
-        if (currentIndex === line) {
-          this.state.segments.splice(i, 1);
-          deleted = true;
-          break;
-        }
-        currentIndex++;
-      }
-    }
-
-    if (!deleted) {
-      for (let i = 0; i < this.state.contacts.length; i++) {
-        if (currentIndex === line) {
-          this.state.contacts.splice(i, 1);
-          deleted = true;
-          break;
-        }
-        currentIndex++;
-      }
-    }
-
-    if (!deleted) {
+    const invalidas = lines.filter((l) => l < 1 || l > elementos.length);
+    if (invalidas.length > 0) {
       return { success: false, error: 'CHECK LINE NUMBER' };
     }
 
-    return { success: true, message: `ELEMENT ${line} CANCELLED` };
+    // Borrar de mayor a menor para que los índices no se corran.
+    const ordenadas = [...new Set(lines)].sort((a, b) => b - a);
+    for (const l of ordenadas) {
+      const el = elementos[l - 1];
+      this.state[el.tipo].splice(el.idx, 1);
+    }
+
+    const listado = [...new Set(lines)].sort((a, b) => a - b).join(',');
+    return { success: true, message: `ELEMENT ${listado} CANCELLED` };
   }
 
   handlePrice(storeTst = false) {
@@ -557,6 +576,93 @@ export class PnrStateMachine {
         totalSum
       }
     };
+  }
+
+  /**
+   * MN (+1) / MY (-1) / MO (original): moverse entre días del itinerario mostrado.
+   */
+  handleMoveDay(delta, flightsCatalog) {
+    const la = this.state.lastAvailability;
+    if (!la) {
+      return { success: false, error: 'NO DISPLAY - RUN SN/AN FIRST' };
+    }
+
+    const MESES = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    const shiftDate = (dateStr, days) => {
+      const m = (dateStr || '').replace(/\s+/g, '').match(/^(\d{1,2})([A-Z]{3})$/);
+      if (!m || MESES.indexOf(m[2]) < 0) return dateStr;
+      const d = new Date(2026, MESES.indexOf(m[2]), parseInt(m[1], 10) + days);
+      return `${d.getDate()}${MESES[d.getMonth()]}`;
+    };
+
+    const originalDate = la.originalDate || la.date;
+    const newDate = delta === 0 ? originalDate : shiftDate(la.date, delta);
+
+    const result = this.handleAvailability(
+      { origin: la.origin, destination: la.destination, date: newDate },
+      flightsCatalog
+    );
+    // Conservar el día original para que MO pueda regresar
+    this.state.lastAvailability.originalDate = originalDate;
+    this.state.usedMoveDay = true;
+    return result;
+  }
+
+  /**
+   * FQN{n}*PE: fare components / condiciones del ticket (reembolsos y cambios).
+   * Genera una pantalla paginada navegable con MD/MU.
+   */
+  handleFareComponents(params) {
+    const ticketNum = parseInt(params.ticket || '1', 10);
+    const fare = this.state.tst;
+    const base = fare ? `${fare.currency} ${fare.priceUSD}.00` : 'USD 450.00';
+
+    const pages = [
+      [
+        `FQN${ticketNum}*PE - FARE COMPONENTS TKT ${ticketNum}`,
+        `FC1  ${base}  FARE BASIS ${fare?.fareBasis || 'YFLEX'}`,
+        ``,
+        `CANCELLATIONS:`,
+        `  BEFORE DEPARTURE - REFUND PERMITTED`,
+        `  CHARGE: GG + DF APLICAN`,
+        `  AFTER DEPARTURE  - REFUND NOT PERMITTED`
+      ].join('\n'),
+      [
+        `FQN${ticketNum}*PE - FARE COMPONENTS TKT ${ticketNum} (CONT.)`,
+        `CHANGES:`,
+        `  BEFORE DEPARTURE - CHANGES PERMITTED`,
+        `  PENALTY: NO PENTY + DF + GG`,
+        `  AFTER DEPARTURE  - CHANGES WITH PENALTY`,
+        ``,
+        `NOTA: REGISTRA LAS CONDICIONES CON RM *FECHA* FC1,2 ...`
+      ].join('\n')
+    ];
+
+    this.state.pagedDisplay = { pages, index: 0 };
+    this.state.viewedPenalties = true;
+
+    return { success: true, type: 'PAGED', data: { page: pages[0], index: 0, total: pages.length } };
+  }
+
+  /**
+   * MD (+1) / MU (-1): navegar entre páginas de la última pantalla larga.
+   */
+  handlePaging(delta) {
+    const pd = this.state.pagedDisplay;
+    if (!pd || !pd.pages || pd.pages.length === 0) {
+      return { success: false, error: 'NO PAGED DISPLAY - RUN FQN/FXX FIRST' };
+    }
+
+    const newIndex = pd.index + delta;
+    if (newIndex >= pd.pages.length) {
+      return { success: false, error: 'NO MORE PAGES' };
+    }
+    if (newIndex < 0) {
+      return { success: false, error: 'ALREADY ON FIRST PAGE' };
+    }
+
+    pd.index = newIndex;
+    return { success: true, type: 'PAGED', data: { page: pd.pages[newIndex], index: newIndex, total: pd.pages.length } };
   }
 
   handleAddRemark(params, rawInput) {
