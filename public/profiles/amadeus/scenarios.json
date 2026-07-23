@@ -4,7 +4,7 @@
       "id": "scenario-1",
       "title": "Nivel 1: Consulta de Vuelos SN 12 APR MEX SDQ (Guía de Clase)",
       "difficulty": "Principiante",
-      "description": "PASAJEROS (PAXS): 1 ADT (Adulto: Carlos García MR).\nRUTA: Ciudad de México (MEX) ➔ Santo Domingo (SDQ).\nFECHA SALIDA: 12 APR.\nTAREA: Revisa los horarios con la notación de clase (SN 12 APR MEX SDQ), vende 1 puesto en clase Y (SS1Y1), ingresa nombre (NM1GARCIA/CARLOS MR), teléfono (APMEX 525512345678-M), opción TK OK, facturar tarifa (FXX/FF-OPTIMA/RAD*CH*IN,BOG), recibido RF CARLOS y guarda con ER.",
+      "description": "PASAJEROS (PAXS): 1 ADT (Adulto: Carlos García MR). El cliente llama desde República Dominicana (oficina SDQ).\nRUTA: Ciudad de México (MEX) ➔ Santo Domingo (SDQ).\nFECHA SALIDA: 12 APR.\nTAREA: Revisa los horarios (SN 12 APR MEX SDQ), vende 1 puesto en clase Y (SS1Y1), ingresa nombre (NM1GARCIA/CARLOS MR), teléfono (APMEX 525512345678-M), opción TK OK, factura la tarifa del adulto (FXX/FF-OPTIMA/RAD,SDQ), recibido RF CARLOS y guarda con ER.",
       "initialState": {
         "searchDate": "12APR",
         "searchOrigin": "MEX",
@@ -16,7 +16,8 @@
         "hasPhone": true,
         "hasTicketing": true,
         "hasReceivedFrom": true,
-        "isTransacted": true
+        "isTransacted": true,
+        "usedFxx": true
       },
       "suggestedFlow": [
         "SN 12 APR MEX SDQ",
@@ -24,7 +25,7 @@
         "NM1GARCIA/CARLOS MR",
         "APMEX 525512345678-M",
         "TK OK",
-        "FXX/FF-OPTIMA/RAD*CH*IN,BOG",
+        "FXX/FF-OPTIMA/RAD,SDQ",
         "RF CARLOS",
         "ER"
       ]
@@ -45,7 +46,8 @@
         "hasPhone": true,
         "hasTicketing": true,
         "hasReceivedFrom": true,
-        "isTransacted": true
+        "isTransacted": true,
+        "usedFxx": true
       },
       "suggestedFlow": [
         "AN15DECMADBCN",
@@ -88,14 +90,14 @@
               "text": "APBOG 5711111111-H"
             }
           ],
-          "ticketing": "TK OK",
-          "receivedFrom": "LUCIA"
+          "ticketing": "TK OK"
         }
       },
       "targetState": {
         "passengersCount": 1,
         "segmentsCount": 1,
         "hasPhone": true,
+        "forbiddenContactText": "5711111111",
         "hasReceivedFrom": true,
         "isTransacted": true
       },
@@ -111,13 +113,33 @@
       "id": "scenario-4",
       "title": "Nivel 4: Ignorar Modificaciones en Área de Trabajo (IG)",
       "difficulty": "Principiante",
-      "description": "PASAJEROS: Área de trabajo sucia con errores.\nTAREA: Limpia el terminal ignorando las modificaciones no guardadas mediante el comando IG.",
-      "initialState": {},
+      "description": "PASAJEROS (PAXS): Área de trabajo sucia: hay un pasajero mal escrito y un vuelo vendido por error que NO se deben guardar.\nTAREA: Limpia el terminal ignorando todas las modificaciones no guardadas con el comando IG. Verifica con RT que el área quedó limpia.",
+      "initialState": {
+        "pnr": {
+          "passengers": [
+            {
+              "id": 1,
+              "name": "ERRROR/PASAJERO MAL"
+            }
+          ],
+          "segments": [
+            {
+              "id": 1,
+              "flight": "AV0026",
+              "class": "Z",
+              "date": "01JAN",
+              "route": "BOG-MIA",
+              "status": "HK9"
+            }
+          ]
+        }
+      },
       "targetState": {
         "isClean": true
       },
       "suggestedFlow": [
-        "IG"
+        "IG",
+        "RT"
       ]
     },
     {
@@ -302,7 +324,7 @@
       "description": "TAREA: Revisa el manual de ayuda para consultar la sintaxis del comando de disponibilidad AN y del comando de nombres NM usando HE AN y HE NM.",
       "initialState": {},
       "targetState": {
-        "viewedHelp": true
+        "helpTopicsCount": 2
       },
       "suggestedFlow": [
         "HE AN",
@@ -358,31 +380,31 @@
     },
     {
       "id": "scenario-12",
-      "title": "Nivel 12: Reserva Facturada por Cabina con Niños e Infantes (FXX/FF-...)",
+      "title": "Nivel 12: Reserva Familiar 1 ADT + 1 CHD con Tarifa de Niño (LIM-BOG)",
       "difficulty": "Avanzado",
-      "description": "PASAJEROS (PAXS): 1 ADT (Adulto) + 1 CHD (Niño: Juan Pérez).\nRUTA: Lima (LIM) ➔ Bogotá (BOG).\nFECHA SALIDA: 13MAR.\nCABINA: Turista (Clase Y).\nTAREA: Consulta horarios (SN 12 APR MEX SDQ), disponibilidad (AN13MARLIMBOG), vende 1 puesto (SS1Y1), ingresa niño (NM1PEREZ/JUAN(CHD/10MAY18)), contacto (APBOG 573001112233-M), TK OK, facturar tarifa según cabina (FXX/FF-OPTIMA/RAD*CH*IN,BOG), recibido RF PAREJA y guarda con ER.",
+      "description": "PASAJEROS (PAXS): 1 ADT (Carlos Pérez MR) + 1 CHD (Niño: Juan, nacido 10MAY18). El cliente llama desde Colombia (oficina BOG).\nRUTA: Lima (LIM) ➔ Bogotá (BOG).\nFECHA SALIDA: 13MAR.\nCABINA: Turista (Clase Y).\nTAREA: Consulta horarios (SN 13 MAR LIM BOG), vende 2 puestos (SS2Y1), ingresa adulto y niño (NM2PEREZ/CARLOS MR/JUAN(CHD/10MAY18)), contacto (APBOG 573001112233-M), TK OK, factura con tarifa de niño (FXX/FF-OPTIMA/RAD*CH,BOG), recibido RF CARLOS y guarda con ER.",
       "initialState": {
         "searchDate": "13MAR",
         "searchOrigin": "LIM",
         "searchDestination": "BOG"
       },
       "targetState": {
-        "passengersCount": 1,
+        "passengersCount": 2,
         "segmentsCount": 1,
         "hasPhone": true,
         "hasTicketing": true,
+        "usedFxx": true,
         "hasReceivedFrom": true,
         "isTransacted": true
       },
       "suggestedFlow": [
-        "SN 12 APR MEX SDQ",
-        "AN13MARLIMBOG",
-        "SS1Y1",
-        "NM1PEREZ/JUAN(CHD/10MAY18)",
+        "SN 13 MAR LIM BOG",
+        "SS2Y1",
+        "NM2PEREZ/CARLOS MR/JUAN(CHD/10MAY18)",
         "APBOG 573001112233-M",
         "TK OK",
-        "FXX/FF-OPTIMA/RAD*CH*IN,BOG",
-        "RF PAREJA",
+        "FXX/FF-OPTIMA/RAD*CH,BOG",
+        "RF CARLOS",
         "ER"
       ]
     },
@@ -462,7 +484,9 @@
         "hasPhone": true,
         "hasTicketing": true,
         "hasReceivedFrom": true,
-        "isTransacted": true
+        "isTransacted": true,
+        "hasConverted": true,
+        "usedFxx": true
       },
       "suggestedFlow": [
         "FQC 35USD/DOP",
@@ -538,7 +562,8 @@
         "viewedPenalties": true,
         "hasRemarks": 1,
         "hasReceivedFrom": true,
-        "isTransacted": true
+        "isTransacted": true,
+        "usedPaging": true
       },
       "suggestedFlow": [
         "FQN1*PE",
@@ -581,7 +606,9 @@
         "hasOsi": true,
         "hasTicketing": true,
         "hasReceivedFrom": true,
-        "isTransacted": true
+        "isTransacted": true,
+        "contactsCount": 2,
+        "ssrCount": 2
       },
       "suggestedFlow": [
         "APE-ANA@GMAIL.COM",
@@ -591,6 +618,97 @@
         "TKXL 24JUL",
         "OS YY HFBB",
         "RF ANA",
+        "ER"
+      ]
+    },
+    {
+      "id": "scenario-19",
+      "title": "Nivel 19: Borrado de Celdas por Rango y Lista (XE1-3 / XE4,8)",
+      "difficulty": "Intermedio",
+      "description": "PASAJEROS (PAXS): 1 ADT (Carlos García MR).\nPROBLEMA: El PNR tiene TRES notas erróneas en las líneas 4, 5 y 6.\nTAREA: Abre la reserva (RT), borra las tres notas de una sola vez con el rango XE4-6 (el guion dice \"desde esta celda hasta esta\"), registra la nota correcta (RM *23JUL26* TTL 4780000 COP), recibido RF CARLOS y guarda con ER. Recuerda: XE4,8 con coma borraría solo las celdas 4 y 8.",
+      "initialState": {
+        "pnr": {
+          "code": "XER123",
+          "passengers": [
+            {
+              "id": 1,
+              "name": "GARCIA/CARLOS MR"
+            }
+          ],
+          "segments": [
+            {
+              "id": 1,
+              "flight": "AV0026",
+              "class": "Y",
+              "date": "25NOV",
+              "route": "BOG-MIA",
+              "status": "HK1"
+            }
+          ],
+          "contacts": [
+            {
+              "id": 1,
+              "text": "APBOG 573001234567-M"
+            }
+          ],
+          "remarks": [
+            {
+              "id": 1,
+              "text": "*23JUL26* NOTA ERRONEA UNO"
+            },
+            {
+              "id": 2,
+              "text": "*23JUL26* NOTA ERRONEA DOS"
+            },
+            {
+              "id": 3,
+              "text": "*23JUL26* NOTA ERRONEA TRES"
+            }
+          ],
+          "ticketing": "TK OK"
+        }
+      },
+      "targetState": {
+        "forbiddenRemarkText": "ERRONEA",
+        "hasRemarks": 1,
+        "hasReceivedFrom": true,
+        "isTransacted": true
+      },
+      "suggestedFlow": [
+        "RT",
+        "XE4-6",
+        "RM *23JUL26* TTL 4780000 COP",
+        "RF CARLOS",
+        "ER"
+      ]
+    },
+    {
+      "id": "scenario-20",
+      "title": "Nivel 20: Adulto con Infante en Brazos (NM con INF + Tarifa de Infante)",
+      "difficulty": "Avanzado",
+      "description": "PASAJEROS (PAXS): 1 ADT (Carlos García MR) + 1 INF (Infante: Sofía, nacida 01JAN25, viaja en brazos del adulto — no ocupa puesto). El cliente llama desde Colombia (oficina BOG).\nRUTA: Lima (LIM) ➔ Bogotá (BOG).\nFECHA SALIDA: 13MAR.\nTAREA: Disponibilidad (AN13MARLIMBOG), vende 1 puesto (SS1Y1), ingresa adulto con su infante (NM1GARCIA/CARLOS MR(INFGARCIA/SOFIA/01JAN25)), contacto (APBOG 573004445566-M), TK OK, factura con tarifa de infante (FXX/FF-OPTIMA/RAD*IN,BOG), recibido RF CARLOS y guarda con ER.",
+      "initialState": {
+        "searchDate": "13MAR",
+        "searchOrigin": "LIM",
+        "searchDestination": "BOG"
+      },
+      "targetState": {
+        "passengersCount": 1,
+        "segmentsCount": 1,
+        "hasPhone": true,
+        "hasTicketing": true,
+        "usedFxx": true,
+        "hasReceivedFrom": true,
+        "isTransacted": true
+      },
+      "suggestedFlow": [
+        "AN13MARLIMBOG",
+        "SS1Y1",
+        "NM1GARCIA/CARLOS MR(INFGARCIA/SOFIA/01JAN25)",
+        "APBOG 573004445566-M",
+        "TK OK",
+        "FXX/FF-OPTIMA/RAD*IN,BOG",
+        "RF CARLOS",
         "ER"
       ]
     }

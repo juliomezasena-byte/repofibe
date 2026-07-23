@@ -31,6 +31,9 @@ export class PnrStateMachine {
       usedDf: false,
       usedMoveDay: false,
       viewedPenalties: false,
+      usedFxx: false,
+      usedPaging: false,
+      helpTopics: [],
       pagedDisplay: null
     };
   }
@@ -151,6 +154,7 @@ export class PnrStateMachine {
 
       case 'SHOW_HELP':
         this.state.viewedHelp = true;
+        this.state.helpTopics.push((params.topic || 'GENERAL').toUpperCase());
         return { success: true, type: 'HELP', topic: params.topic };
 
       case 'ISSUE_TICKET':
@@ -440,6 +444,9 @@ export class PnrStateMachine {
       };
     }
 
+    // Bandera pedagógica: el estudiante facturó (FXX o FXP)
+    this.state.usedFxx = true;
+
     return {
       success: true,
       priceUSD: totalPrice,
@@ -701,6 +708,7 @@ export class PnrStateMachine {
     }
 
     pd.index = newIndex;
+    this.state.usedPaging = true;
     return { success: true, type: 'PAGED', data: { page: pd.pages[newIndex], index: newIndex, total: pd.pages.length } };
   }
 

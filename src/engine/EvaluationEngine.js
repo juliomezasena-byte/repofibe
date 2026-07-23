@@ -226,6 +226,86 @@ export class EvaluationEngine {
       }
     }
 
+    // 16d. Facturación ejecutada (FXX/FXP)
+    if (target.usedFxx) {
+      totalChecks++;
+      if (state.usedFxx) {
+        checksPassed++;
+        feedback.push(`[OK] Tarifa facturada (FXX/FXP).`);
+      } else {
+        feedback.push(`[PENDIENTE] Factura la tarifa con FXX (Ej: FXX/FF-OPTIMA/RAD,SDQ).`);
+      }
+    }
+
+    // 16e. Navegación de páginas (MD/MU)
+    if (target.usedPaging) {
+      totalChecks++;
+      if (state.usedPaging) {
+        checksPassed++;
+        feedback.push(`[OK] Navegaste entre páginas (MD/MU).`);
+      } else {
+        feedback.push(`[PENDIENTE] Avanza y retrocede páginas con MD y MU.`);
+      }
+    }
+
+    // 16f. Cantidad mínima de contactos (confirmación + seguridad)
+    if (target.contactsCount !== undefined) {
+      totalChecks++;
+      if (contacts.length >= target.contactsCount) {
+        checksPassed++;
+        feedback.push(`[OK] Contactos registrados (${contacts.length}/${target.contactsCount}).`);
+      } else {
+        feedback.push(`[PENDIENTE] Faltan contactos (${contacts.length}/${target.contactsCount}).`);
+      }
+    }
+
+    // 16g. Cantidad mínima de SSR
+    if (target.ssrCount !== undefined) {
+      totalChecks++;
+      if (ssrs.length >= target.ssrCount) {
+        checksPassed++;
+        feedback.push(`[OK] Solicitudes SR registradas (${ssrs.length}/${target.ssrCount}).`);
+      } else {
+        feedback.push(`[PENDIENTE] Faltan solicitudes SR (${ssrs.length}/${target.ssrCount}).`);
+      }
+    }
+
+    // 16h. Consultas de ayuda por tema (HE {comando})
+    if (target.helpTopicsCount !== undefined) {
+      totalChecks++;
+      const topics = new Set((state.helpTopics || []).filter((t) => t !== 'GENERAL'));
+      if (topics.size >= target.helpTopicsCount) {
+        checksPassed++;
+        feedback.push(`[OK] Consultaste la ayuda de ${topics.size} comandos.`);
+      } else {
+        feedback.push(`[PENDIENTE] Consulta la ayuda de ${target.helpTopicsCount} comandos distintos (Ej: HE AN, HE NM).`);
+      }
+    }
+
+    // 16i. Texto prohibido en contactos (el dato erróneo debe desaparecer)
+    if (target.forbiddenContactText) {
+      totalChecks++;
+      const sigue = contacts.some((c) => (c.text || '').includes(target.forbiddenContactText));
+      if (!sigue) {
+        checksPassed++;
+        feedback.push(`[OK] El contacto erróneo fue eliminado (XE).`);
+      } else {
+        feedback.push(`[PENDIENTE] El teléfono erróneo sigue en el PNR — bórralo con XE.`);
+      }
+    }
+
+    // 16j. Texto prohibido en remarks (las notas erróneas deben desaparecer)
+    if (target.forbiddenRemarkText) {
+      totalChecks++;
+      const sigue = (state.remarks || []).some((r) => (r.text || '').includes(target.forbiddenRemarkText));
+      if (!sigue) {
+        checksPassed++;
+        feedback.push(`[OK] Las notas erróneas fueron eliminadas (XE).`);
+      } else {
+        feedback.push(`[PENDIENTE] Quedan notas erróneas en el PNR — bórralas con XE (rango o lista).`);
+      }
+    }
+
     // 17. Notas de reserva (RM)
     if (target.hasRemarks) {
       totalChecks++;

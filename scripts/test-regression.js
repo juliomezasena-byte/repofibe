@@ -31,7 +31,14 @@ scenarios.forEach((scen) => {
     fsm.setState(scen.initialState.pnr);
   }
 
+  // Anti auto-completado: ningún escenario puede arrancar hecho (o casi).
+  const evalInicial = evalEngine.evaluate(scen, fsm.getState());
   let flowErrors = 0;
+  if (evalInicial.completed || evalInicial.score >= 80) {
+    console.error(`  [ERROR INICIO] Arranca en ${evalInicial.score}% (completado: ${evalInicial.completed}) sin ejecutar comandos.`);
+    flowErrors++;
+  }
+
   scen.suggestedFlow.forEach((cmd) => {
     const parseResult = parser.parse(cmd);
     if (!parseResult.success) {
