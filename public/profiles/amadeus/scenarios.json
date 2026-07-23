@@ -2,13 +2,13 @@
   "scenarios": [
     {
       "id": "scenario-1",
-      "title": "Nivel 1: Reserva Individual Solo Ida (BOG-MIA)",
+      "title": "Nivel 1: Consulta de Vuelos SN 12 APR MEX SDQ (Guía de Clase)",
       "difficulty": "Principiante",
-      "description": "PASAJEROS: 1 ADT (Adulto: Carlos García MR).\nRUTA: Bogotá (BOG) -> Miami (MIA).\nFECHA SALIDA: 25NOV.\nCABINA: Turista (Clase Y).\nTAREA: Consulta disponibilidad (AN25NOVBOGMIA), vende 1 asiento en línea 1 (SS1Y1), registra nombre (NM1GARCIA/CARLOS MR), teléfono (APBOG 573001234567-M), emisión TK OK, recibido de RF CARLOS y guarda con ER.",
+      "description": "PASAJEROS (PAXS): 1 ADT (Adulto: Carlos García MR).\nRUTA: Ciudad de México (MEX) ➔ Santo Domingo (SDQ).\nFECHA SALIDA: 12 APR.\nTAREA: Revisa los horarios con la notación de clase (SN 12 APR MEX SDQ), vende 1 puesto en clase Y (SS1Y1), ingresa nombre (NM1GARCIA/CARLOS MR), teléfono (APMEX 525512345678-M), opción TK OK, facturar tarifa (FXX/FF-OPTIMA/RAD*CH*IN,BOG), recibido RF CARLOS y guarda con ER.",
       "initialState": {
-        "searchDate": "25NOV",
-        "searchOrigin": "BOG",
-        "searchDestination": "MIA"
+        "searchDate": "12APR",
+        "searchOrigin": "MEX",
+        "searchDestination": "SDQ"
       },
       "targetState": {
         "passengersCount": 1,
@@ -18,13 +18,13 @@
         "hasReceivedFrom": true,
         "isTransacted": true
       },
-      "suggestedFlow": ["AN25NOVBOGMIA", "SS1Y1", "NM1GARCIA/CARLOS MR", "APBOG 573001234567-M", "TK OK", "RF CARLOS", "ER"]
+      "suggestedFlow": ["SN 12 APR MEX SDQ", "SS1Y1", "NM1GARCIA/CARLOS MR", "APMEX 525512345678-M", "TK OK", "FXX/FF-OPTIMA/RAD*CH*IN,BOG", "RF CARLOS", "ER"]
     },
     {
       "id": "scenario-2",
       "title": "Nivel 2: Reserva Doble Pasajeros Adultos (MAD-BCN)",
       "difficulty": "Principiante",
-      "description": "PASAJEROS: 2 ADT (Adultos: Juan Pérez MR y María Pérez MRS).\nRUTA: Madrid (MAD) -> Barcelona (BCN).\nFECHA SALIDA: 15DEC.\nCABINA: Turista (Clase Y).\nTAREA: Revisa disponibilidad (AN15DECBCNMAD), vende 2 asientos (SS2Y1), registra nombres (NM2PEREZ/JUAN MR/MARIA MRS), contacto (APMAD 34912345678-A), cotización informativa (FXX), recibido RF JUAN y guarda con ER.",
+      "description": "PASAJEROS (PAXS): 2 ADT (Adultos: Juan Pérez MR y María Pérez MRS).\nRUTA: Madrid (MAD) ➔ Barcelona (BCN).\nFECHA SALIDA: 15DEC.\nCABINA: Turista (Clase Y).\nTAREA: Revisa disponibilidad (AN15DECBCNMAD), vende 2 puestos (SS2Y1), registra nombres (NM2PEREZ/JUAN MR/MARIA MRS), contacto (APMAD 34912345678-A), cotización (FXX), recibido RF JUAN y guarda con ER.",
       "initialState": {
         "searchDate": "15DEC",
         "searchOrigin": "MAD",
@@ -44,7 +44,7 @@
       "id": "scenario-3",
       "title": "Nivel 3: Modificación y Cancelación de Elemento (XE)",
       "difficulty": "Intermedio",
-      "description": "PASAJEROS: 1 ADT (Lucía Martínez MS).\nRUTA: Bogotá (BOG) -> Miami (MIA) (25NOV).\nPROBLEMA: El PNR activo tiene un teléfono erróneo en la línea 3.\nTAREA: Abre la reserva (RT), cancela la línea 3 con XE3, agrega el celular actualizado y guarda el PNR con ER.",
+      "description": "PASAJEROS (PAXS): 1 ADT (Lucía Martínez MS).\nRUTA: Bogotá (BOG) ➔ Miami (MIA) (25NOV).\nPROBLEMA: El PNR activo tiene un teléfono erróneo en la línea 3.\nTAREA: Abre la reserva (RT), cancela la línea 3 con XE3, agrega el celular actualizado y guarda el PNR con ER.",
       "initialState": {
         "pnr": {
           "code": "K8X9P2",
@@ -79,7 +79,7 @@
       "id": "scenario-5",
       "title": "Nivel 5: Cotización Formal con Registro TST (FXP)",
       "difficulty": "Intermedio",
-      "description": "PASAJEROS: 1 ADT (Pedro Rodríguez MR).\nRUTA: Bogotá (BOG) -> Miami (MIA) (25NOV).\nTAREA: Cotiza la reserva activa generando el registro de tarifa TST mediante FXP, registra recibido de RF PEDRO y guarda con ER.",
+      "description": "PASAJEROS (PAXS): 1 ADT (Pedro Rodríguez MR).\nRUTA: Bogotá (BOG) ➔ Miami (MIA) (25NOV).\nTAREA: Cotiza la reserva activa generando el registro de tarifa TST mediante FXP, registra recibido de RF PEDRO y guarda con ER.",
       "initialState": {
         "pnr": {
           "code": "TST123",
@@ -100,7 +100,7 @@
       "id": "scenario-6",
       "title": "Nivel 6: Servicio Especial de Comida Vegetariana (SR VGML)",
       "difficulty": "Intermedio",
-      "description": "PASAJEROS: 1 ADT (Ana Silva MS).\nRUTA: Madrid (MAD) -> Barcelona (BCN) (15DEC).\nTAREA: Agrega la solicitud de comida vegetariana usando el comando SR VGML, registra recibido de RF ANA y guarda con ER.",
+      "description": "PASAJEROS (PAXS): 1 ADT (Ana Silva MS).\nRUTA: Madrid (MAD) ➔ Barcelona (BCN) (15DEC).\nTAREA: Agrega la solicitud de comida vegetariana usando el comando SR VGML, registra recibido de RF ANA y guarda con ER.",
       "initialState": {
         "pnr": {
           "code": "SRV456",
@@ -120,7 +120,7 @@
       "id": "scenario-7",
       "title": "Nivel 7: Información de Servicio OSI Frecuente (OS AV)",
       "difficulty": "Intermedio",
-      "description": "PASAJEROS: 1 ADT (Mario López MR).\nRUTA: Bogotá (BOG) -> Miami (MIA) (25NOV).\nCABINA: Business (Clase J).\nTAREA: Agrega nota OSI para Avianca sobre pasajero frecuente VIP (OS AV PASAJERO VIP), ingresa RF MARIO y guarda con ER.",
+      "description": "PASAJEROS (PAXS): 1 ADT (Mario López MR).\nRUTA: Bogotá (BOG) ➔ Miami (MIA) (25NOV).\nCABINA: Business (Clase J).\nTAREA: Agrega nota OSI para Avianca sobre pasajero frecuente VIP (OS AV PASAJERO VIP), ingresa RF MARIO y guarda con ER.",
       "initialState": {
         "pnr": {
           "code": "OSI789",
@@ -140,7 +140,7 @@
       "id": "scenario-8",
       "title": "Nivel 8: Emisión de Tiquete Electrónico (TTP)",
       "difficulty": "Avanzado",
-      "description": "PASAJEROS: 1 ADT (Luis Hernández MR).\nESTADO: PNR con registro TST grabado.\nTAREA: Con la cotización lista, ejecuta el comando de emisión de tiquete electrónico TTP.",
+      "description": "PASAJEROS (PAXS): 1 ADT (Luis Hernández MR).\nESTADO: PNR con registro TST grabado.\nTAREA: Con la cotización lista, ejecuta el comando de emisión de tiquete electrónico TTP.",
       "initialState": {
         "pnr": {
           "code": "TKT999",
@@ -172,7 +172,7 @@
       "id": "scenario-10",
       "title": "Nivel 10: Reto de Reserva y Emisión Completa (MEX-BOG)",
       "difficulty": "Avanzado",
-      "description": "PASAJEROS: 1 ADT (Diego Ramírez MR).\nRUTA: Ciudad de México (MEX) -> Bogotá (BOG).\nFECHA SALIDA: 20DEC.\nCABINA: Turista (Clase Y).\nTAREA: Disponibilidad AN20DECMEXBOG, venta SS1Y1, nombre NM1RAMIREZ/DIEGO MR, contacto APMEX 525512345678-M, opción TK OK, cotización FXP, recibido RF DIEGO, guarda con ER y emite con TTP.",
+      "description": "PASAJEROS (PAXS): 1 ADT (Diego Ramírez MR).\nRUTA: Ciudad de México (MEX) ➔ Bogotá (BOG).\nFECHA SALIDA: 20DEC.\nCABINA: Turista (Clase Y).\nTAREA: Disponibilidad AN20DECMEXBOG, venta SS1Y1, nombre NM1RAMIREZ/DIEGO MR, contacto APMEX 525512345678-M, opción TK OK, cotización FXP, recibido RF DIEGO, guarda con ER y emite con TTP.",
       "initialState": {
         "searchDate": "20DEC",
         "searchOrigin": "MEX",
@@ -192,7 +192,7 @@
       "id": "scenario-11",
       "title": "Nivel 11: Codificación IATA (DAN/DAC) y Conversión de Gastos (FQC)",
       "difficulty": "Principiante",
-      "description": "PASAJEROS: Consulta de agencia.\nTAREA: Codifica el aeropuerto de Lima (DAN LIMA), decodifica el código IATA de Bogotá (DAC BOG) y calcula la conversión de $35 USD de gastos de gestión a COP (FQC35USD/COP).",
+      "description": "PASAJEROS (PAXS): Consulta de agencia.\nTAREA: Codifica el aeropuerto de Lima (DAN LIMA), decodifica el código IATA de Bogotá (DAC BOG) y calcula la conversión de $35 USD de gastos de gestión a COP (FQC35USD/COP).",
       "initialState": {},
       "targetState": {
         "viewedHelp": true
@@ -201,9 +201,9 @@
     },
     {
       "id": "scenario-12",
-      "title": "Nivel 12: Reserva Familiar con Niños (1 ADT + 1 CHD) y Tarifa Especial",
+      "title": "Nivel 12: Reserva Facturada por Cabina con Niños e Infantes (FXX/FF-...)",
       "difficulty": "Avanzado",
-      "description": "PASAJEROS: 1 ADT (Adulto) + 1 CHD (Niño: Juan Pérez).\nRUTA: Lima (LIM) -> Bogotá (BOG).\nFECHA SALIDA: 13MAR.\nCABINA: Turista (Clase Y).\nTAREA: Revisa programación neutral (SN13MARLIMCOP), disponibilidad (AN13MARLIMBOG), vende 1 asiento (SS1Y1), ingresa niño NM1PEREZ/JUAN(CHD/10MAY18), contacto APBOG 573001112233-M, TK OK, cotiza tarifa de niño (FXX/R,CH), recibido RF PAREJA y guarda con ER.",
+      "description": "PASAJEROS (PAXS): 1 ADT (Adulto) + 1 CHD (Niño: Juan Pérez).\nRUTA: Lima (LIM) ➔ Bogotá (BOG).\nFECHA SALIDA: 13MAR.\nCABINA: Turista (Clase Y).\nTAREA: Consulta horarios (SN 12 APR MEX SDQ), disponibilidad (AN13MARLIMBOG), vende 1 puesto (SS1Y1), ingresa niño (NM1PEREZ/JUAN(CHD/10MAY18)), contacto (APBOG 573001112233-M), TK OK, facturar tarifa según cabina (FXX/FF-OPTIMA/RAD*CH*IN,BOG), recibido RF PAREJA y guarda con ER.",
       "initialState": {
         "searchDate": "13MAR",
         "searchOrigin": "LIM",
@@ -217,7 +217,7 @@
         "hasReceivedFrom": true,
         "isTransacted": true
       },
-      "suggestedFlow": ["SN13MARLIMCOP", "AN13MARLIMBOG", "SS1Y1", "NM1PEREZ/JUAN(CHD/10MAY18)", "APBOG 573001112233-M", "TK OK", "FXX/R,CH", "RF PAREJA", "ER"]
+      "suggestedFlow": ["SN 12 APR MEX SDQ", "AN13MARLIMBOG", "SS1Y1", "NM1PEREZ/JUAN(CHD/10MAY18)", "APBOG 573001112233-M", "TK OK", "FXX/FF-OPTIMA/RAD*CH*IN,BOG", "RF PAREJA", "ER"]
     }
   ]
 }

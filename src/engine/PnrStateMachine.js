@@ -467,6 +467,8 @@ export class PnrStateMachine {
       ];
     }
 
+    this.state.lastAvailability = { date, origin, destination, flights: matches };
+
     return {
       success: true,
       type: 'SCHEDULE',
