@@ -200,8 +200,8 @@ body {
   line-height: 1.45;
   color: var(--crt-green);
   overflow-y: auto;
-  white-space: pre-wrap;
-  word-break: break-word;
+  overflow-x: auto;
+  white-space: pre;
   background: radial-gradient(circle at center, rgba(0, 255, 102, 0.02) 0%, transparent 80%);
 }
 
