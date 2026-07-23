@@ -390,11 +390,18 @@ export class PnrStateMachine {
       return { success: false, error: 'CHECK LINE NUMBER' };
     }
 
-    // Mapa visual del PNR: 1..pasajeros, luego segmentos, luego contactos.
+    // Mapa visual del PNR — DEBE coincidir con el orden en que formatPnr
+    // numera las líneas: pasajeros, segmentos, contactos, SSRs, OSIs,
+    // remarks y ticketing. (Bug hallado por el profesor: XE3,4 sobre dos
+    // remarks fallaba porque los remarks no estaban en este mapa.)
     const elementos = [
       ...this.state.passengers.map((_, i) => ({ tipo: 'passengers', idx: i })),
       ...this.state.segments.map((_, i) => ({ tipo: 'segments', idx: i })),
-      ...this.state.contacts.map((_, i) => ({ tipo: 'contacts', idx: i }))
+      ...this.state.contacts.map((_, i) => ({ tipo: 'contacts', idx: i })),
+      ...this.state.ssrs.map((_, i) => ({ tipo: 'ssrs', idx: i })),
+      ...this.state.osis.map((_, i) => ({ tipo: 'osis', idx: i })),
+      ...this.state.remarks.map((_, i) => ({ tipo: 'remarks', idx: i })),
+      ...(this.state.ticketing ? [{ tipo: 'ticketing' }] : [])
     ];
 
     const invalidas = lines.filter((l) => l < 1 || l > elementos.length);
@@ -406,7 +413,11 @@ export class PnrStateMachine {
     const ordenadas = [...new Set(lines)].sort((a, b) => b - a);
     for (const l of ordenadas) {
       const el = elementos[l - 1];
-      this.state[el.tipo].splice(el.idx, 1);
+      if (el.tipo === 'ticketing') {
+        this.state.ticketing = null;
+      } else {
+        this.state[el.tipo].splice(el.idx, 1);
+      }
     }
 
     const listado = [...new Set(lines)].sort((a, b) => a - b).join(',');

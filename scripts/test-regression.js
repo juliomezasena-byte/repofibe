@@ -142,6 +142,25 @@ probarTolerancia('XE1-3 borra el rango', ['NM1AAA/UNO', 'NM1BBB/DOS', 'NM1CCC/TR
 probarTolerancia('XE con lista (XE1,3) borra solo esas', ['NM1AAA/UNO', 'NM1BBB/DOS', 'NM1CCC/TRES', 'XE1,3'],
   (r, s) => r.success && s.passengers.length === 1 && /BBB/.test(s.passengers[0].name) ? null : `quedaron: ${JSON.stringify(s.passengers)}`);
 
+// ── Bug del profesor: XE debe borrar CUALQUIER línea visible del PNR ──
+probarTolerancia('Caso del profesor: XE3,4 borra los dos remarks',
+  ['AN20APRSDQMEX', 'SS1V1', 'NM1GARCIA/CARLOS MR', 'RM HOLA', 'RM HALO', 'XE3,4'],
+  (r, s) => {
+    if (!r.success) return `XE3,4 falló: ${r.error}`;
+    if (s.remarks.length !== 0) return `quedaron ${s.remarks.length} remarks`;
+    if (s.passengers.length !== 1 || s.segments.length !== 1) return 'borró pasajero o segmento por error';
+    return null;
+  });
+probarTolerancia('XE borra un remark individual (línea visual)',
+  ['NM1GARCIA/CARLOS MR', 'RM NOTA UNO', 'XE2'],
+  (r, s) => r.success && s.remarks.length === 0 && s.passengers.length === 1 ? null : `remarks: ${s.remarks.length}`);
+probarTolerancia('XE borra la línea de ticketing',
+  ['NM1GARCIA/CARLOS MR', 'TK OK', 'XE2'],
+  (r, s) => r.success && s.ticketing === null && s.passengers.length === 1 ? null : `ticketing: ${s.ticketing}`);
+probarTolerancia('XE borra un SSR por su línea',
+  ['NM1GARCIA/CARLOS MR', 'SR VGML', 'XE2'],
+  (r, s) => r.success && s.ssrs.length === 0 ? null : `ssrs: ${s.ssrs.length}`);
+
 // ── Escalera de clases RBD completa y escalas (como en clase) ──
 probarTolerancia('SN muestra escalera completa de clases (>=15 letras)', ['SN 12 APR MEX SDQ'],
   (r) => {
