@@ -54,7 +54,7 @@ export class PnrStateMachine {
   /**
    * Procesa la intención derivada del DslParser.
    */
-  process(parsedCommand, flightsCatalog = []) {
+  process(parsedCommand, flightsCatalog = [], locationsCatalog = []) {
     if (!parsedCommand || !parsedCommand.success) {
       return { success: false, error: parsedCommand?.error || 'FORMAT ERROR' };
     }
@@ -63,10 +63,10 @@ export class PnrStateMachine {
 
     switch (handler) {
       case 'ENCODE_CITY':
-        return this.handleEncodeCity(params, rawInput);
+        return this.handleEncodeCity(params, rawInput, locationsCatalog);
 
       case 'DECODE_CITY':
-        return this.handleDecodeCity(params, rawInput);
+        return this.handleDecodeCity(params, rawInput, locationsCatalog);
 
       case 'CONVERT_CURRENCY':
         return this.handleConvertCurrency(params, rawInput);
@@ -396,36 +396,37 @@ export class PnrStateMachine {
     };
   }
 
-  handleEncodeCity(params, rawInput) {
-    const query = rawInput.replace(/^DAN\s*/, '').trim().toUpperCase();
-    const dictionary = {
-      'LIMA': { code: 'LIM', city: 'LIMA', country: 'PERU' },
-      'BOGOTA': { code: 'BOG', city: 'BOGOTA', country: 'COLOMBIA' },
-      'MADRID': { code: 'MAD', city: 'MADRID', country: 'SPAIN' },
-      'MIAMI': { code: 'MIA', city: 'MIAMI', country: 'UNITED STATES' },
-      'MEXICO': { code: 'MEX', city: 'MEXICO CITY', country: 'MEXICO' },
-      'BARCELONA': { code: 'BCN', city: 'BARCELONA', country: 'SPAIN' },
-      'SANTO DOMINGO': { code: 'SDQ', city: 'SANTO DOMINGO', country: 'DOMINICAN REPUBLIC' }
-    };
+  handleEncodeCity(params, rawInput, locationsCatalog = []) {
+    // DAN {ciudad}: nombre (con o sin espacios múltiples) -> código IATA.
+    const query = rawInput.replace(/^DAN\s*/i, '').trim().toUpperCase().replace(/\s+/g, ' ');
+    if (!query) {
+      return { success: false, error: 'FORMAT ERROR - CITY NAME' };
+    }
 
-    const match = dictionary[query] || { code: query.slice(0, 3), city: query, country: 'INTERNATIONAL' };
+    // Prioridad: ciudad exacta > empieza por > contiene (así "DAN WASHIN" también resuelve)
+    const match =
+      locationsCatalog.find((l) => l.city === query) ||
+      locationsCatalog.find((l) => l.city.startsWith(query)) ||
+      locationsCatalog.find((l) => l.city.includes(query));
+
+    if (!match) {
+      return { success: false, error: `NO MATCH FOR CITY NAME - ${query}` };
+    }
+
     this.state.hasEncoded = true;
     return { success: true, type: 'ENCODE_CITY', data: match };
   }
 
-  handleDecodeCity(params, rawInput) {
-    const code = rawInput.replace(/^DAC\s*/, '').trim().toUpperCase();
-    const dictionary = {
-      'LIM': { code: 'LIM', name: 'LIMA / JORGE CHAVEZ INTL', country: 'PERU' },
-      'BOG': { code: 'BOG', name: 'BOGOTA / EL DORADO INTL', country: 'COLOMBIA' },
-      'MAD': { code: 'MAD', name: 'MADRID / ADOLFO SUAREZ BARAJAS', country: 'SPAIN' },
-      'MIA': { code: 'MIA', name: 'MIAMI / MIAMI INTL', country: 'UNITED STATES' },
-      'MEX': { code: 'MEX', name: 'MEXICO CITY / BENITO JUAREZ INTL', country: 'MEXICO' },
-      'BCN': { code: 'BCN', name: 'BARCELONA / EL PRAT INTL', country: 'SPAIN' },
-      'SDQ': { code: 'SDQ', name: 'SANTO DOMINGO / LAS AMERICAS INTL', country: 'DOMINICAN REPUBLIC' }
-    };
+  handleDecodeCity(params, rawInput, locationsCatalog = []) {
+    // DAC {iata}: código de 3 letras -> nombre real. Código desconocido = error
+    // honesto (como Amadeus), nunca datos inventados.
+    const code = rawInput.replace(/^DAC\s*/i, '').trim().toUpperCase();
+    const match = locationsCatalog.find((l) => l.code === code);
 
-    const match = dictionary[code] || { code, name: `${code} AIRPORT`, country: 'GLOBAL' };
+    if (!match) {
+      return { success: false, error: `CHECK IATA CITY CODE - NO MATCH FOR ${code}` };
+    }
+
     this.state.hasDecoded = true;
     return { success: true, type: 'DECODE_CITY', data: match };
   }

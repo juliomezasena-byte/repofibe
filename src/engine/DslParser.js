@@ -49,7 +49,15 @@ export class DslParser {
       };
     }
 
-    const payload = input.slice(matchedSpec.code.length).trim();
+    let payload = input.slice(matchedSpec.code.length).trim();
+
+    // Tolerancia a espacios/uniones (como Amadeus real): los comandos
+    // estructurados declaran "normalize": "compact" en el DSL y el parser
+    // elimina todo espacio antes de extraer tokens (SS 3 J 3 === SS3J3).
+    if (matchedSpec.normalize === 'compact') {
+      payload = payload.replace(/\s+/g, '');
+    }
+
     const parsedParams = {};
 
     // 2. Extraer parámetros utilizando los patrones Regex/Tokens definidos en el DSL

@@ -1,11 +1,12 @@
-const CACHE_NAME = 'cryptic-trainer-v1';
+const CACHE_NAME = 'cryptic-trainer-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
   '/profiles/amadeus/commands_meta.json',
   '/profiles/amadeus/flights.json',
-  '/profiles/amadeus/scenarios.json'
+  '/profiles/amadeus/scenarios.json',
+  '/profiles/amadeus/locations.json'
 ];
 
 self.addEventListener('install', (evt) => {
@@ -32,10 +33,21 @@ self.addEventListener('activate', (evt) => {
   self.clients.claim();
 });
 
+// Estrategia network-first: online siempre se sirve lo más reciente
+// (y se refresca el caché); el caché solo responde cuando no hay red.
 self.addEventListener('fetch', (evt) => {
+  if (evt.request.method !== 'GET') return;
+
   evt.respondWith(
-    caches.match(evt.request).then((cachedResponse) => {
-      return cachedResponse || fetch(evt.request);
-    })
+    fetch(evt.request)
+      .then((response) => {
+        const copy = response.clone();
+        caches
+          .open(CACHE_NAME)
+          .then((cache) => cache.put(evt.request, copy))
+          .catch(() => {});
+        return response;
+      })
+      .catch(() => caches.match(evt.request))
   );
 });

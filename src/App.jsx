@@ -10,6 +10,7 @@ import { ScenarioSelector } from './components/ScenarioSelector';
 export function App() {
   const [profileConfig, setProfileConfig] = useState(null);
   const [flightsCatalog, setFlightsCatalog] = useState([]);
+  const [locationsCatalog, setLocationsCatalog] = useState([]);
   const [scenarios, setScenarios] = useState([]);
   const [activeScenarioId, setActiveScenarioId] = useState('scenario-1');
   const [history, setHistory] = useState([]);
@@ -27,19 +28,22 @@ export function App() {
   useEffect(() => {
     async function loadProfile() {
       try {
-        const [cmdRes, flightRes, scenRes] = await Promise.all([
+        const [cmdRes, flightRes, scenRes, locRes] = await Promise.all([
           fetch('/profiles/amadeus/commands_meta.json'),
           fetch('/profiles/amadeus/flights.json'),
-          fetch('/profiles/amadeus/scenarios.json')
+          fetch('/profiles/amadeus/scenarios.json'),
+          fetch('/profiles/amadeus/locations.json')
         ]);
 
         const cmdData = await cmdRes.json();
         const flightData = await flightRes.json();
         const scenData = await scenRes.json();
+        const locData = await locRes.json();
 
         setProfileConfig(cmdData);
         setFlightsCatalog(flightData.flights || []);
         setScenarios(scenData.scenarios || []);
+        setLocationsCatalog(locData.locations || []);
       } catch (err) {
         console.error('Error cargando perfil Amadeus DSL:', err);
       }
@@ -89,7 +93,7 @@ export function App() {
       return;
     }
 
-    const processResult = pnrFsm.process(parseResult, flightsCatalog);
+    const processResult = pnrFsm.process(parseResult, flightsCatalog, locationsCatalog);
     const pnrState = pnrFsm.getState();
     const output = responseGen.formatResponse(processResult, pnrState);
 

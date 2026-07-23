@@ -1,5 +1,54 @@
 # Plan de Correcciones — Cryptic Trainer GDS (Amadeus)
 
+---
+
+# V2 — Feedback de David (23-jul) + Material de Apoyo nuevo
+
+> Fuentes: chat de WhatsApp con David Sena + `MATERIAL DE APOYO DE COMANDOS AMADEUS (1).docx`.
+
+## FASE V2-1 — 🔴 Tolerancia a espacios/uniones (feedback de David) — EJECUTAR YA
+
+Amadeus real lee `DACWAS` y `DAC WAS` igual; el propio material escribe `SS 3 J 3`.
+**Fix:** flag `"normalize": "compact"` en el DSL para comandos estructurados
+(SN, AN, SS, FQC, DAC, XE, RT, TK): el parser elimina TODOS los espacios del
+payload antes de extraer tokens. Los comandos de texto libre (NM, AP, RF, RM,
+OS, DAN, DF, FXX) conservan sus espacios.
+
+## FASE V2-2 — 🔴 Diccionario IATA real (feedback de David) — EJECUTAR YA
+
+`DAC WAS` debe decir **WASHINGTON**, no "WAS AIRPORT / GLOBAL".
+**Fix:** nuevo `public/profiles/amadeus/locations.json` con ~65 ciudades reales
+(Colombia, México, Caribe, Centro/Sudamérica, USA, Europa). DAN/DAC consultan
+ese catálogo (data-driven, igual que flights.json). Código desconocido →
+error honesto "CHECK IATA CITY CODE - NO MATCH" (como Amadeus), nunca datos inventados.
+
+## FASE V2-3 — 🟠 Comandos nuevos del Material de Apoyo (pendiente de GO)
+
+| Comando | Función |
+|---------|---------|
+| `MN` / `MY` / `MO` | Día siguiente / anterior / original en el itinerario |
+| `MD` / `MU` | Avanzar / retroceder páginas (FQN, FXX) |
+| `XE1-3`, `XE4,8` | Borrar rango o lista de celdas |
+| `FQN{n}*PE` | Fare components / penalidades del ticket |
+| `TKXL {fecha}` | Plazo de confirmación (24 hrs) |
+| `APE-{correo}` | Confirmación al correo |
+| `SR CTCE-{correo //}` | Seguridad del correo |
+| `AP+{código país y tel}` | Confirmación de teléfono |
+| `SR CTCM-{código y tel}` | Seguridad del teléfono |
+| `OS YY HFBB` | Cliente paga por la página |
+| `NM1 X/Y (CHD/fecha)` / `(INF.../fecha)` | Niño / infante con fecha de nacimiento |
+
++ Escenarios nuevos que practiquen estos comandos + teclas en el keypad.
+
+## FASE V2-4 — Tests de tolerancia — EJECUTAR YA
+
+Casos en la suite: `SN12APRMEXSDQ` ≡ `SN 12 APR MEX SDQ`, `SS3J3` ≡ `SS 3 J 3`,
+`FQC 35 USD/DOP` ≡ `FQC35USD/DOP`, `DAC WAS` → WASHINGTON, `dacwas` → WASHINGTON.
+
+## FASE V2-5 — Build + deploy + commit — EJECUTAR YA
+
+---
+
 > Fuente de verdad: **`COMANDOS DE AMADEUS.docx`** (manual de clase).
 > Estado auditado: HEAD `430c3e6` (perfil `amadeus` v1.2.0, 15 escenarios).
 

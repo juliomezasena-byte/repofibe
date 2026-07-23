@@ -19,10 +19,15 @@
         "destination": "\\s?([A-Z]{3})"
       },
       "handler": "QUERY_SCHEDULE",
-      "examples": ["SN 12 APR MEX SDQ", "SN13MARLIMCOP", "SN25NOVBOGMIA"],
+      "examples": [
+        "SN 12 APR MEX SDQ",
+        "SN13MARLIMCOP",
+        "SN25NOVBOGMIA"
+      ],
       "errors": {
         "INVALID_CITY": "CHECK CITY CODES"
-      }
+      },
+      "normalize": "compact"
     },
     {
       "code": "DAN",
@@ -36,7 +41,11 @@
         "cityName": "^(.+)"
       },
       "handler": "ENCODE_CITY",
-      "examples": ["DAN LIMA", "DAN BOGOTA", "DAN MADRID"],
+      "examples": [
+        "DAN LIMA",
+        "DAN BOGOTA",
+        "DAN MADRID"
+      ],
       "errors": {
         "NOT_FOUND": "NO MATCH FOR CITY NAME"
       }
@@ -53,10 +62,15 @@
         "cityCode": "^([A-Z]{3})"
       },
       "handler": "DECODE_CITY",
-      "examples": ["DAC LIM", "DAC BOG", "DAC MAD"],
+      "examples": [
+        "DAC LIM",
+        "DAC BOG",
+        "DAC MAD"
+      ],
       "errors": {
         "INVALID_CODE": "CHECK IATA CITY CODE"
-      }
+      },
+      "normalize": "compact"
     },
     {
       "code": "FQC",
@@ -72,10 +86,14 @@
         "toCurrency": "^([A-Z]{3})"
       },
       "handler": "CONVERT_CURRENCY",
-      "examples": ["FQC35USD/COP", "FQC100EUR/USD"],
+      "examples": [
+        "FQC35USD/COP",
+        "FQC100EUR/USD"
+      ],
       "errors": {
         "INVALID_CURRENCY": "CHECK CURRENCY CODE"
-      }
+      },
+      "normalize": "compact"
     },
     {
       "code": "AN",
@@ -94,11 +112,15 @@
         "airline": "(?:/A([A-Z0-9]{2}))?"
       },
       "handler": "QUERY_AVAILABILITY",
-      "examples": ["AN25NOVBOGMIA", "AN 12 APR MEX SDQ"],
+      "examples": [
+        "AN25NOVBOGMIA",
+        "AN 12 APR MEX SDQ"
+      ],
       "errors": {
         "INVALID_CITY": "CHECK CITY CODES",
         "NO_FLIGHTS": "NO DIRECT FLIGHTS / CHECK DATES"
-      }
+      },
+      "normalize": "compact"
     },
     {
       "code": "SS",
@@ -114,11 +136,16 @@
         "line": "^(\\d{1,2})"
       },
       "handler": "SELL_SEGMENT",
-      "examples": ["SS1Y1", "SS2C3", "SS1J1"],
+      "examples": [
+        "SS1Y1",
+        "SS2C3",
+        "SS1J1"
+      ],
       "errors": {
         "NO_AVAILABILITY": "CLASS CLOSED / NO SEATS AVAILABLE",
         "INVALID_LINE": "CHECK LINE NUMBER"
-      }
+      },
+      "normalize": "compact"
     },
     {
       "code": "NM",
@@ -136,7 +163,10 @@
         "title": "(?: (MR|MRS|MS|MISS))?"
       },
       "handler": "ADD_NAME",
-      "examples": ["NM1GARCIA/CARLOS MR", "NM2PEREZ/JUAN MR/MARIA MRS"],
+      "examples": [
+        "NM1GARCIA/CARLOS MR",
+        "NM2PEREZ/JUAN MR/MARIA MRS"
+      ],
       "errors": {
         "INVALID_FORMAT": "FORMAT ERROR - NAME",
         "DUPLICATE_NAME": "CHECK PASSENGER NAME"
@@ -156,7 +186,10 @@
         "type": "^([A-Z]{1})"
       },
       "handler": "ADD_CONTACT",
-      "examples": ["APBOG 573001234567-M", "APMIA 13055551234-A"],
+      "examples": [
+        "APBOG 573001234567-M",
+        "APMIA 13055551234-A"
+      ],
       "errors": {
         "INVALID_FORMAT": "FORMAT ERROR - PHONE"
       }
@@ -174,10 +207,14 @@
         "option": "^(OK|TL\\d{1,2}[A-Z]{3})"
       },
       "handler": "SET_TICKETING",
-      "examples": ["TK OK", "TK TL25NOV"],
+      "examples": [
+        "TK OK",
+        "TK TL25NOV"
+      ],
       "errors": {
         "INVALID_FORMAT": "FORMAT ERROR - TK"
-      }
+      },
+      "normalize": "compact"
     },
     {
       "code": "RF",
@@ -191,7 +228,10 @@
         "person": "^(.+)"
       },
       "handler": "SET_RECEIVED_FROM",
-      "examples": ["RF CARLOS", "RF CLIENTE"],
+      "examples": [
+        "RF CARLOS",
+        "RF CLIENTE"
+      ],
       "errors": {
         "MISSING_PARAM": "FORMAT ERROR - RECEIVED FROM"
       }
@@ -201,10 +241,14 @@
       "category": "PNR Lifecycle",
       "name": "End and Redisplay",
       "description": "Guarda la reserva actual (crea PNR) y la vuelve a mostrar en pantalla.",
-      "syntax": ["ER"],
+      "syntax": [
+        "ER"
+      ],
       "tokens": {},
       "handler": "END_AND_REDISPLAY",
-      "examples": ["ER"],
+      "examples": [
+        "ER"
+      ],
       "errors": {
         "NEED_NAME": "NEED NAME",
         "NEED_ITINERARY": "NEED ITINERARY",
@@ -218,10 +262,14 @@
       "category": "PNR Lifecycle",
       "name": "End Transact",
       "description": "Guarda la reserva activa y limpia la pantalla del terminal.",
-      "syntax": ["ET"],
+      "syntax": [
+        "ET"
+      ],
       "tokens": {},
       "handler": "END_TRANSACT",
-      "examples": ["ET"],
+      "examples": [
+        "ET"
+      ],
       "errors": {
         "NEED_PRINT": "CHECK MANDATORY PNR ELEMENTS (PRINT)"
       }
@@ -231,10 +279,14 @@
       "category": "PNR Lifecycle",
       "name": "Ignore Transaction",
       "description": "Ignora las modificaciones no guardadas y limpia el área de trabajo.",
-      "syntax": ["IG"],
+      "syntax": [
+        "IG"
+      ],
       "tokens": {},
       "handler": "IGNORE_TRANSACTION",
-      "examples": ["IG"],
+      "examples": [
+        "IG"
+      ],
       "errors": {}
     },
     {
@@ -250,10 +302,14 @@
         "pnrCode": "^([A-Z0-9]{6})"
       },
       "handler": "REDISPLAY_PNR",
-      "examples": ["RT", "RTK8X9P2"],
+      "examples": [
+        "RT",
+        "RTK8X9P2"
+      ],
       "errors": {
         "NOT_FOUND": "PNR NOT FOUND"
-      }
+      },
+      "normalize": "compact"
     },
     {
       "code": "XE",
@@ -267,20 +323,28 @@
         "lineNumber": "^(\\d{1,2})"
       },
       "handler": "CANCEL_ELEMENT",
-      "examples": ["XE2", "XE4"],
+      "examples": [
+        "XE2",
+        "XE4"
+      ],
       "errors": {
         "INVALID_LINE": "CHECK LINE NUMBER"
-      }
+      },
+      "normalize": "compact"
     },
     {
       "code": "XI",
       "category": "Cancelation",
       "name": "Cancel Itinerary",
       "description": "Cancela todos los segmentos de vuelo de la reserva activa.",
-      "syntax": ["XI"],
+      "syntax": [
+        "XI"
+      ],
       "tokens": {},
       "handler": "CANCEL_ITINERARY",
-      "examples": ["XI"],
+      "examples": [
+        "XI"
+      ],
       "errors": {
         "NO_ITINERARY": "NO ITINERARY TO CANCEL"
       }
@@ -300,7 +364,11 @@
         "params": "^(.+)"
       },
       "handler": "PRICE_INFORMATIVE",
-      "examples": ["FXX", "FXX/FF-OPTIMA/RAD*CH*IN,BOG", "FXX/R,CH"],
+      "examples": [
+        "FXX",
+        "FXX/FF-OPTIMA/RAD*CH*IN,BOG",
+        "FXX/R,CH"
+      ],
       "errors": {
         "NO_ITINERARY": "NO ITINERARY TO PRICE"
       }
@@ -320,7 +388,11 @@
         "params": "^(.+)"
       },
       "handler": "PRICE_AND_STORE",
-      "examples": ["FXP", "FXP/FF-OPTIMA/RAD*CH*IN,BOG", "FXP/R,CH"],
+      "examples": [
+        "FXP",
+        "FXP/FF-OPTIMA/RAD*CH*IN,BOG",
+        "FXP/R,CH"
+      ],
       "errors": {
         "NO_ITINERARY": "NO ITINERARY TO PRICE",
         "NO_NAMES": "NEED PASSENGER NAME"
@@ -339,7 +411,14 @@
         "topic": "^([A-Z0-9]+)"
       },
       "handler": "SHOW_HELP",
-      "examples": ["HE", "HE AN", "HE NM", "HE SN", "HE SS", "HE FXX"],
+      "examples": [
+        "HE",
+        "HE AN",
+        "HE NM",
+        "HE SN",
+        "HE SS",
+        "HE FXX"
+      ],
       "errors": {}
     },
     {
@@ -354,7 +433,11 @@
         "code": "^([A-Z]{4})"
       },
       "handler": "ADD_SSR",
-      "examples": ["SR VGML", "SR WCHR", "SR INFT"],
+      "examples": [
+        "SR VGML",
+        "SR WCHR",
+        "SR INFT"
+      ],
       "errors": {
         "INVALID_CODE": "CHECK SERVICE CODE"
       }
@@ -372,7 +455,10 @@
         "text": "^(.+)"
       },
       "handler": "ADD_OSI",
-      "examples": ["OS AV PASAJERO VIP", "OS IB CLIENTE FRECUENTE"],
+      "examples": [
+        "OS AV PASAJERO VIP",
+        "OS IB CLIENTE FRECUENTE"
+      ],
       "errors": {}
     },
     {
@@ -380,10 +466,14 @@
       "category": "Ticketing",
       "name": "Issue Ticket",
       "description": "Simula la emisión del tiquete electrónico para reservas con TST.",
-      "syntax": ["TTP"],
+      "syntax": [
+        "TTP"
+      ],
       "tokens": {},
       "handler": "ISSUE_TICKET",
-      "examples": ["TTP"],
+      "examples": [
+        "TTP"
+      ],
       "errors": {
         "NO_TST": "NO TST PRESENT FOR ISSUANCE",
         "NEED_OK": "CHECK TICKETING ELEMENT"
@@ -394,10 +484,14 @@
       "category": "System",
       "name": "Sign Out",
       "description": "Cierra la sesión activa en el terminal.",
-      "syntax": ["SO"],
+      "syntax": [
+        "SO"
+      ],
       "tokens": {},
       "handler": "SIGN_OUT",
-      "examples": ["SO"],
+      "examples": [
+        "SO"
+      ],
       "errors": {}
     },
     {
@@ -412,7 +506,10 @@
         "expression": "^(.+)"
       },
       "handler": "SUM_FARES",
-      "examples": ["DF 2*200000;1000000;860000;240000*3", "DF 500000;250000;100000*2"],
+      "examples": [
+        "DF 2*200000;1000000;860000;240000*3",
+        "DF 500000;250000;100000*2"
+      ],
       "errors": {
         "FORMAT_ERROR": "FORMAT ERROR - DF EXPRESSION"
       }
@@ -430,7 +527,10 @@
         "text": "^(.+)"
       },
       "handler": "ADD_REMARK",
-      "examples": ["RM *22JUL26* ADT 2200000, CHD 1000000, INF 860000, GG 240000 COP", "RM *22JUL26* TTL 12900000 COP"],
+      "examples": [
+        "RM *22JUL26* ADT 2200000, CHD 1000000, INF 860000, GG 240000 COP",
+        "RM *22JUL26* TTL 12900000 COP"
+      ],
       "errors": {
         "FORMAT_ERROR": "FORMAT ERROR - REMARK"
       }
