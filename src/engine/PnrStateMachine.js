@@ -175,6 +175,11 @@ export class PnrStateMachine {
 
     const flight = this.state.lastAvailability.flights.find(f => f.line === lineNum) || this.state.lastAvailability.flights[0];
 
+    const classStatus = flight.classes ? flight.classes[bookingClass] : 9;
+    if (classStatus === 0 || classStatus === 'C' || classStatus === 'X') {
+      return { success: false, error: `CLASS ${bookingClass} CLOSED / NO SEATS AVAILABLE` };
+    }
+
     const segment = {
       id: this.state.segments.length + 1,
       flight: `${flight.airline}${flight.flightNumber}`,
