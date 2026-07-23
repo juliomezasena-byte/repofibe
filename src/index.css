@@ -326,6 +326,40 @@ body {
   border-top: 1px solid var(--border-color);
   padding: 10px 14px;
   gap: 10px;
+  position: relative;
+}
+
+/* Cursor de bloque CRT: solo con input vacío (placeholder visible).
+   Los <input> no soportan ::before/::after, así que el pseudo-elemento
+   vive en la prompt-bar y se activa con :has(). Se posiciona justo
+   tras el símbolo ">" (14px padding + 1ch del glifo mono). */
+.terminal-prompt-bar:has(.cmd-input:placeholder-shown)::after {
+  content: '';
+  position: absolute;
+  left: calc(14px + 1ch + 3px);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0.6em;
+  height: 1.2em;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  background: var(--crt-green);
+  box-shadow: 0 0 8px var(--crt-green-glow);
+  animation: crt-blink 1s steps(1, end) infinite;
+  pointer-events: none;
+}
+
+@keyframes crt-blink {
+  50%, 100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .terminal-prompt-bar:has(.cmd-input:placeholder-shown)::after {
+    animation: none;
+    opacity: 1;
+  }
 }
 
 .prompt-symbol {
@@ -348,7 +382,7 @@ body {
 }
 
 .cmd-input::placeholder {
-  color: #334155;
+  color: #5b6b7e;
 }
 
 /* SmartKeypad Flotante (Móvil) */
