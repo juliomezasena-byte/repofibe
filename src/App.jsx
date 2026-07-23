@@ -124,25 +124,28 @@ export function App() {
           <span className="brand-tag">GDS AMADEUS PWA</span>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button
-            onClick={() => setActiveTab('sim')}
-            className={`keypad-btn ${activeTab === 'sim' ? 'tab-active' : ''}`}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-          >
-            <Layout size={14} /> Simulador
-          </button>
-          <button
-            onClick={() => setActiveTab('quiz')}
-            className={`keypad-btn ${activeTab === 'quiz' ? 'tab-active' : ''}`}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-          >
-            <Brain size={14} /> Teoría
-          </button>
+        <div className="header-controls">
+          <div className="seg-control" role="tablist" aria-label="Modo de la aplicación">
+            <button
+              role="tab"
+              aria-selected={activeTab === 'sim'}
+              onClick={() => setActiveTab('sim')}
+              className={`seg-btn ${activeTab === 'sim' ? 'seg-active' : ''}`}
+            >
+              <Layout size={14} /> Simulador
+            </button>
+            <button
+              role="tab"
+              aria-selected={activeTab === 'quiz'}
+              onClick={() => setActiveTab('quiz')}
+              className={`seg-btn ${activeTab === 'quiz' ? 'seg-active' : ''}`}
+            >
+              <Brain size={14} /> Teoría
+            </button>
+          </div>
           <button
             onClick={() => { setActiveTab('sim'); handleExecuteCommand('HE'); }}
-            className="keypad-btn"
-            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            className="ghost-btn"
           >
             <BookOpen size={14} /> Manual (HE)
           </button>

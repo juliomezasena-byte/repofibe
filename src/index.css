@@ -86,6 +86,79 @@ body {
   white-space: nowrap;
 }
 
+/* Controles del header: segmented control + boton ghost */
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  min-width: 0;
+}
+
+.seg-control {
+  display: flex;
+  background: #0e1724;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.seg-btn {
+  flex: 1 1 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 6px 14px;
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  border-radius: 6px;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.seg-btn:hover {
+  color: var(--text-light);
+}
+
+.seg-btn.seg-active {
+  background: var(--crt-cyan);
+  color: #000;
+}
+
+.ghost-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 6px 12px;
+  background: transparent;
+  color: var(--crt-cyan);
+  border: 1px solid #1e2d42;
+  border-radius: 6px;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ghost-btn:active,
+.ghost-btn:hover {
+  border-color: var(--crt-cyan);
+  color: var(--crt-cyan);
+}
+
 /* Grid Principal Terminal & Panel Escenarios */
 .main-layout {
   display: grid;
@@ -136,6 +209,27 @@ body {
 
   .terminal-header > div {
     white-space: nowrap;
+  }
+
+  /* Ningún control del header toca el borde físico ni se corta */
+  .header-controls {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .seg-control {
+    flex: 1 1 auto;
+    max-width: 320px;
+  }
+
+  .seg-btn {
+    padding: 6px 8px;
+    font-size: 0.8rem;
+  }
+
+  .ghost-btn {
+    padding: 6px 10px;
+    font-size: 0.8rem;
   }
 }
 
@@ -662,10 +756,4 @@ body {
 
 .quiz-card-back {
   color: var(--crt-cyan);
-}
-
-.keypad-btn.tab-active {
-  background: var(--crt-cyan);
-  color: #000;
-  border-color: var(--crt-cyan);
 }
