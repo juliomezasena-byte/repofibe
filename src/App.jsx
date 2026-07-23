@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { TerminalSquare, BookOpen, Download } from 'lucide-react';
+import { TerminalSquare, BookOpen, GraduationCap, Layout, HelpCircle } from 'lucide-react';
 import { DslParser } from './engine/DslParser';
 import { PnrStateMachine } from './engine/PnrStateMachine';
 import { ResponseGenerator } from './engine/ResponseGenerator';
 import { EvaluationEngine } from './engine/EvaluationEngine';
 import { Terminal } from './components/Terminal';
 import { ScenarioSelector } from './components/ScenarioSelector';
+import { VisualHelper } from './components/VisualHelper';
+import { GdsDictionary } from './components/GdsDictionary';
 
 export function App() {
   const [profileConfig, setProfileConfig] = useState(null);
@@ -13,6 +15,11 @@ export function App() {
   const [scenarios, setScenarios] = useState([]);
   const [activeScenarioId, setActiveScenarioId] = useState('scenario-1');
   const [history, setHistory] = useState([]);
+  
+  // Estado UX de Estudiante
+  const [activeTab, setActiveTab] = useState('simulator'); // 'simulator' | 'mission' | 'dictionary'
+  const [learningMode, setLearningMode] = useState(true); // true = Modo Estudiante Guiado
+  const [currentInput, setCurrentInput] = useState('');
 
   // Instancias de los motores del simulador
   const pnrFsm = useMemo(() => new PnrStateMachine(), []);
@@ -111,34 +118,85 @@ export function App() {
 
   return (
     <div className="app-container">
-      <header className="app-header">
-        <div className="brand-section">
-          <TerminalSquare className="brand-icon" />
-          <h1 className="brand-title">Cryptic Trainer</h1>
-          <span className="brand-tag">GDS AMADEUS PWA</span>
+      {/* Navegación Superior */}
+      <header className="top-navbar">
+        <div className="brand-badge">
+          <div className="brand-icon-wrapper">
+            <TerminalSquare size={22} className="text-primary-cyan" />
+          </div>
+          <div>
+            <div className="brand-text-title">Cryptic Trainer</div>
+            <div className="brand-subtitle">Simulador GDS Amadeus PWA</div>
+          </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
+        {/* Pestañas de Navegación */}
+        <div className="nav-tabs">
           <button
-            onClick={() => handleExecuteCommand('HE')}
-            className="keypad-btn"
-            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            className={`nav-tab-btn ${activeTab === 'simulator' ? 'active' : ''}`}
+            onClick={() => setActiveTab('simulator')}
           >
-            <BookOpen size={14} /> Manual (HE)
+            <Layout size={16} /> Terminal & Simulador
+          </button>
+
+          <button
+            className={`nav-tab-btn ${activeTab === 'mission' ? 'active' : ''}`}
+            onClick={() => setActiveTab('mission')}
+          >
+            <GraduationCap size={16} /> Misión Actual
+          </button>
+
+          <button
+            className={`nav-tab-btn ${activeTab === 'dictionary' ? 'active' : ''}`}
+            onClick={() => setActiveTab('dictionary')}
+          >
+            <HelpCircle size={16} /> Diccionario GDS
           </button>
         </div>
+
+        {/* Botón Modo Estudiante / Guiado */}
+        <button
+          className="mode-toggle-btn"
+          onClick={() => setLearningMode(!learningMode)}
+          title="Alterna el Asistente Guiado de Sintaxis para estudiantes"
+        >
+          <GraduationCap size={16} />
+          <span>{learningMode ? 'Modo Estudiante (Guiado)' : 'Modo Examen (Terminal Pura)'}</span>
+        </button>
       </header>
 
-      <main className="main-layout">
-        <Terminal onExecuteCommand={handleExecuteCommand} history={history} />
+      {/* Grid Principal */}
+      <main className="main-grid">
+        {activeTab === 'dictionary' ? (
+          <GdsDictionary />
+        ) : (
+          <>
+            <div className="simulator-area">
+              {/* Asistente Guiado de Sintaxis en Modo Estudiante */}
+              {learningMode && (
+                <VisualHelper currentInput={currentInput} dslParser={dslParser} />
+              )}
 
-        <ScenarioSelector
-          scenarios={scenarios}
-          activeScenarioId={activeScenarioId}
-          onSelectScenario={handleSelectScenario}
-          evaluationResult={evaluationResult}
-          onResetScenario={handleResetScenario}
-        />
+              <Terminal
+                onExecuteCommand={handleExecuteCommand}
+                history={history}
+                onInputChange={setCurrentInput}
+                inputVal={currentInput}
+                setInputVal={setCurrentInput}
+              />
+            </div>
+
+            <div className="sidebar-wrapper">
+              <ScenarioSelector
+                scenarios={scenarios}
+                activeScenarioId={activeScenarioId}
+                onSelectScenario={handleSelectScenario}
+                evaluationResult={evaluationResult}
+                onResetScenario={handleResetScenario}
+              />
+            </div>
+          </>
+        )}
       </main>
     </div>
   );

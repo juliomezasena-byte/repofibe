@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { SmartKeypad } from './SmartKeypad';
 
-export const Terminal = ({ onExecuteCommand, history }) => {
-  const [inputVal, setInputVal] = useState('');
+export const Terminal = ({ onExecuteCommand, history, onInputChange, inputVal, setInputVal }) => {
   const screenRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -19,10 +18,18 @@ export const Terminal = ({ onExecuteCommand, history }) => {
 
     onExecuteCommand(inputVal);
     setInputVal('');
+    if (onInputChange) onInputChange('');
+  };
+
+  const handleInputChange = (val) => {
+    setInputVal(val);
+    if (onInputChange) onInputChange(val);
   };
 
   const handleKeypadPress = (text) => {
-    setInputVal((prev) => prev + text);
+    const newVal = inputVal + text;
+    setInputVal(newVal);
+    if (onInputChange) onInputChange(newVal);
     if (inputRef.current) {
       inputRef.current.focus();
     }
@@ -64,7 +71,7 @@ export const Terminal = ({ onExecuteCommand, history }) => {
           type="text"
           className="cmd-input"
           value={inputVal}
-          onChange={(e) => setInputVal(e.target.value)}
+          onChange={(e) => handleInputChange(e.target.value)}
           placeholder="INGRESE COMANDO (EJ: AN25NOVBOGMIA)..."
           autoCorrect="off"
           autoCapitalize="characters"
