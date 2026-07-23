@@ -1,0 +1,193 @@
+{
+  "scenarios": [
+    {
+      "id": "scenario-1",
+      "title": "Nivel 1: Creación de PNR Básico (BOG-MIA)",
+      "difficulty": "Principiante",
+      "description": "El cliente Carlos García desea reservar un vuelo de Bogotá (BOG) a Miami (MIA) para el 25 de Noviembre en clase Económica (Y). Registra el nombre, la reserva del vuelo, teléfono de contacto en Bogotá y la confirmación TK OK. Finaliza con ER.",
+      "initialState": {
+        "searchDate": "25NOV",
+        "searchOrigin": "BOG",
+        "searchDestination": "MIA"
+      },
+      "targetState": {
+        "passengersCount": 1,
+        "passengerNames": ["GARCIA/CARLOS MR"],
+        "segmentsCount": 1,
+        "hasPhone": true,
+        "hasTicketing": true,
+        "hasReceivedFrom": true,
+        "isTransacted": true
+      },
+      "suggestedFlow": ["AN25NOVBOGMIA", "SS1Y1", "NM1GARCIA/CARLOS MR", "APBOG 573001234567-M", "TK OK", "RF CARLOS", "ER"]
+    },
+    {
+      "id": "scenario-2",
+      "title": "Nivel 2: Reserva Doble de Pasajeros (MAD-BCN)",
+      "difficulty": "Principiante",
+      "description": "Crea una reserva para 2 pasajeros (Juan Pérez y María Pérez) de Madrid (MAD) a Barcelona (BCN) para el 15 de Diciembre. Cotiza la reserva de forma informativa (FXX) antes de guardar.",
+      "initialState": {
+        "searchDate": "15DEC",
+        "searchOrigin": "MAD",
+        "searchDestination": "BCN"
+      },
+      "targetState": {
+        "passengersCount": 2,
+        "segmentsCount": 1,
+        "hasPhone": true,
+        "hasTicketing": true,
+        "hasReceivedFrom": true,
+        "isTransacted": true
+      },
+      "suggestedFlow": ["AN15DECBCNMAD", "SS2Y1", "NM2PEREZ/JUAN MR/MARIA MRS", "APMAD 34912345678-A", "TK OK", "FXX", "RF JUAN", "ER"]
+    },
+    {
+      "id": "scenario-3",
+      "title": "Nivel 3: Cancelación de Elemento (XE)",
+      "difficulty": "Intermedio",
+      "description": "Un PNR activo contiene un teléfono erróneo. Cancela la línea de contacto (XE) e ingresa un teléfono celular actualizado antes de cerrar la transacción.",
+      "initialState": {
+        "pnr": {
+          "code": "K8X9P2",
+          "passengers": [{ "id": 1, "name": "MARTINEZ/LUCIA MS" }],
+          "segments": [{ "id": 1, "flight": "AV0026", "class": "Y", "date": "25NOV", "route": "BOG-MIA", "status": "HK1" }],
+          "contacts": [{ "id": 1, "text": "APBOG 5711111111-H" }],
+          "ticketing": "TK OK",
+          "receivedFrom": "LUCIA"
+        }
+      },
+      "targetState": {
+        "passengersCount": 1,
+        "segmentsCount": 1,
+        "hasPhone": true,
+        "hasReceivedFrom": true,
+        "isTransacted": true
+      },
+      "suggestedFlow": ["RT", "XE3", "APBOG 573009998877-M", "RF LUCIA", "ER"]
+    },
+    {
+      "id": "scenario-4",
+      "title": "Nivel 4: Ignorar Modificaciones (IG)",
+      "difficulty": "Principiante",
+      "description": "Has realizado cambios no deseados en la reserva activa. Ejecuta el comando de ignorar (IG) para restaurar el área de trabajo limpia.",
+      "initialState": {},
+      "targetState": {
+        "isClean": true
+      },
+      "suggestedFlow": ["IG"]
+    },
+    {
+      "id": "scenario-5",
+      "title": "Nivel 5: Cotización y Registro TST (FXP)",
+      "difficulty": "Intermedio",
+      "description": "Abre la reserva activa, calcula la tarifa e ingresa el registro TST en el PNR mediante el comando FXP. Finaliza guardando con ER.",
+      "initialState": {
+        "pnr": {
+          "code": "TST123",
+          "passengers": [{ "id": 1, "name": "RODRIGUEZ/PEDRO MR" }],
+          "segments": [{ "id": 1, "flight": "AA1124", "class": "Y", "date": "25NOV", "route": "BOG-MIA", "status": "HK1" }],
+          "contacts": [{ "id": 1, "text": "APBOG 573112223344-M" }],
+          "ticketing": "TK OK",
+          "receivedFrom": "PEDRO"
+        }
+      },
+      "targetState": {
+        "hasTst": true,
+        "isTransacted": true
+      },
+      "suggestedFlow": ["FXP", "RF PEDRO", "ER"]
+    },
+    {
+      "id": "scenario-6",
+      "title": "Nivel 6: Solicitud de Servicio Especial (SR VGML)",
+      "difficulty": "Intermedio",
+      "description": "El pasajero requiere comida vegetariana en su vuelo. Agrega la solicitud de servicio especial VGML usando el comando SR.",
+      "initialState": {
+        "pnr": {
+          "code": "SRV456",
+          "passengers": [{ "id": 1, "name": "SILVA/ANA MS" }],
+          "segments": [{ "id": 1, "flight": "IB6588", "class": "Y", "date": "15DEC", "route": "MAD-BCN", "status": "HK1" }],
+          "contacts": [{ "id": 1, "text": "APMAD 34600000000-M" }],
+          "ticketing": "TK OK"
+        }
+      },
+      "targetState": {
+        "hasSsr": true,
+        "isTransacted": true
+      },
+      "suggestedFlow": ["SR VGML", "RF ANA", "ER"]
+    },
+    {
+      "id": "scenario-7",
+      "title": "Nivel 7: Información OSI para la Aerolínea",
+      "difficulty": "Intermedio",
+      "description": "Registra una nota OSI de pasajero frecuente VIP para Avianca (AV) usando el comando OS.",
+      "initialState": {
+        "pnr": {
+          "code": "OSI789",
+          "passengers": [{ "id": 1, "name": "LOPEZ/MARIO MR" }],
+          "segments": [{ "id": 1, "flight": "AV0026", "class": "J", "date": "25NOV", "route": "BOG-MIA", "status": "HK1" }],
+          "contacts": [{ "id": 1, "text": "APBOG 573223344555-M" }],
+          "ticketing": "TK OK"
+        }
+      },
+      "targetState": {
+        "hasOsi": true,
+        "isTransacted": true
+      },
+      "suggestedFlow": ["OS AV PASSENGER IS VIP PLATINUM", "RF MARIO", "ER"]
+    },
+    {
+      "id": "scenario-8",
+      "title": "Nivel 8: Simulación de Emisión de Tiquete (TTP)",
+      "difficulty": "Avanzado",
+      "description": "Con el PNR cotizado y el registro TST presente, ejecuta la emisión del tiquete electrónico con el comando TTP.",
+      "initialState": {
+        "pnr": {
+          "code": "TKT999",
+          "passengers": [{ "id": 1, "name": "HERNANDEZ/LUIS MR" }],
+          "segments": [{ "id": 1, "flight": "AV0026", "class": "Y", "date": "25NOV", "route": "BOG-MIA", "status": "HK1" }],
+          "contacts": [{ "id": 1, "text": "APBOG 573001112233-M" }],
+          "ticketing": "TK OK",
+          "tst": { "priceUSD": 450, "currency": "USD" },
+          "isTransacted": true
+        }
+      },
+      "targetState": {
+        "isTicketed": true
+      },
+      "suggestedFlow": ["TTP"]
+    },
+    {
+      "id": "scenario-9",
+      "title": "Nivel 9: Consulta de Manuales y Ayudas (HE)",
+      "difficulty": "Principiante",
+      "description": "Utiliza el comando de ayuda HE para consultar la sintaxis del comando de disponibilidad AN y del comando de nombres NM.",
+      "initialState": {},
+      "targetState": {
+        "viewedHelp": true
+      },
+      "suggestedFlow": ["HE AN", "HE NM"]
+    },
+    {
+      "id": "scenario-10",
+      "title": "Nivel 10: Reto Completo de Reserva & Emisión",
+      "difficulty": "Avanzado",
+      "description": "Realiza la disponibilidad MEX-BOG, vende 1 asiento en clase Económica (Y), ingresa pasajero, teléfono, cotización con TST (FXP), recibido de y emisión final.",
+      "initialState": {
+        "searchDate": "20DEC",
+        "searchOrigin": "MEX",
+        "searchDestination": "BOG"
+      },
+      "targetState": {
+        "passengersCount": 1,
+        "segmentsCount": 1,
+        "hasPhone": true,
+        "hasTicketing": true,
+        "hasTst": true,
+        "isTicketed": true
+      },
+      "suggestedFlow": ["AN20DECMEXBOG", "SS1Y1", "NM1RAMIREZ/DIEGO MR", "APMEX 525512345678-M", "TK OK", "FXP", "RF DIEGO", "ER", "TTP"]
+    }
+  ]
+}

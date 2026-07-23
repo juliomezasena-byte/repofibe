@@ -1,0 +1,326 @@
+{
+  "profile": "amadeus",
+  "version": "1.0.0",
+  "name": "Amadeus GDS Profile",
+  "commands": [
+    {
+      "code": "AN",
+      "category": "Availability",
+      "name": "Availability Display",
+      "description": "Muestra vuelos disponibles entre dos ciudades para una fecha determinada.",
+      "syntax": [
+        "AN{date}{origin}{destination}",
+        "AN{date}{origin}{destination}/A{airline}"
+      ],
+      "tokens": {
+        "date": "^(\\d{1,2}[A-Z]{3})",
+        "origin": "^([A-Z]{3})",
+        "destination": "^([A-Z]{3})",
+        "airline": "(?:/A([A-Z0-9]{2}))?"
+      },
+      "handler": "QUERY_AVAILABILITY",
+      "examples": ["AN25NOVBOGMIA", "AN15DECBCNMAD/AAV"],
+      "errors": {
+        "INVALID_CITY": "CHECK CITY CODES",
+        "NO_FLIGHTS": "NO DIRECT FLIGHTS / CHECK DATES"
+      }
+    },
+    {
+      "code": "SS",
+      "category": "Booking",
+      "name": "Sell Segment",
+      "description": "Vende asientos en un vuelo específico mostrado en la pantalla de disponibilidad.",
+      "syntax": [
+        "SS{count}{class}{line}"
+      ],
+      "tokens": {
+        "count": "^(\\d{1})",
+        "class": "^([A-Z]{1})",
+        "line": "^(\\d{1,2})"
+      },
+      "handler": "SELL_SEGMENT",
+      "examples": ["SS1Y1", "SS2C3"],
+      "errors": {
+        "NO_AVAILABILITY": "NO SEATS AVAILABLE IN CLASS",
+        "INVALID_LINE": "CHECK LINE NUMBER"
+      }
+    },
+    {
+      "code": "NM",
+      "category": "Passenger",
+      "name": "Name Entry",
+      "description": "Registra el nombre de los pasajeros en la reserva activa.",
+      "syntax": [
+        "NM1{surname}/{firstname} {title}",
+        "NM{count}{surname}/{firstname1} {title1}/{firstname2} {title2}"
+      ],
+      "tokens": {
+        "count": "^(\\d{1})?",
+        "surname": "^([A-Z]+)/",
+        "firstname": "^([A-Z]+)",
+        "title": "(?: (MR|MRS|MS|MISS))?"
+      },
+      "handler": "ADD_NAME",
+      "examples": ["NM1GARCIA/CARLOS MR", "NM2PEREZ/JUAN MR/MARIA MRS"],
+      "errors": {
+        "INVALID_FORMAT": "FORMAT ERROR - NAME",
+        "DUPLICATE_NAME": "CHECK PASSENGER NAME"
+      }
+    },
+    {
+      "code": "AP",
+      "category": "Contact",
+      "name": "Add Contact Phone",
+      "description": "Agrega información de contacto telefónico del pasajero o agencia.",
+      "syntax": [
+        "AP{city} {phone}-{type}"
+      ],
+      "tokens": {
+        "city": "^([A-Z]{3}) ",
+        "phone": "^([0-9 +]+)-",
+        "type": "^([A-Z]{1})"
+      },
+      "handler": "ADD_CONTACT",
+      "examples": ["APBOG 573001234567-M", "APMIA 13055551234-A"],
+      "errors": {
+        "INVALID_FORMAT": "FORMAT ERROR - PHONE"
+      }
+    },
+    {
+      "code": "TK",
+      "category": "Ticketing",
+      "name": "Ticketing Option",
+      "description": "Define la opción o fecha límite para la emisión de tiquetes.",
+      "syntax": [
+        "TK OK",
+        "TK TL{date}"
+      ],
+      "tokens": {
+        "option": "^(OK|TL\\d{1,2}[A-Z]{3})"
+      },
+      "handler": "SET_TICKETING",
+      "examples": ["TK OK", "TK TL25NOV"],
+      "errors": {
+        "INVALID_FORMAT": "FORMAT ERROR - TK"
+      }
+    },
+    {
+      "code": "RF",
+      "category": "PNR Lifecycle",
+      "name": "Received From",
+      "description": "Registra la persona que solicita la transacción o modificación del PNR.",
+      "syntax": [
+        "RF {person}"
+      ],
+      "tokens": {
+        "person": "^(.+)"
+      },
+      "handler": "SET_RECEIVED_FROM",
+      "examples": ["RF CARLOS", "RF CLIENTE"],
+      "errors": {
+        "MISSING_PARAM": "FORMAT ERROR - RECEIVED FROM"
+      }
+    },
+    {
+      "code": "ER",
+      "category": "PNR Lifecycle",
+      "name": "End and Redisplay",
+      "description": "Guarda la reserva actual (crea PNR) y la vuelve a mostrar en pantalla.",
+      "syntax": ["ER"],
+      "tokens": {},
+      "handler": "END_AND_REDISPLAY",
+      "examples": ["ER"],
+      "errors": {
+        "NEED_NAME": "NEED NAME",
+        "NEED_ITINERARY": "NEED ITINERARY",
+        "NEED_PHONE": "NEED PHONE ELEMENT",
+        "NEED_TICKETING": "NEED TICKETING ELEMENT",
+        "NEED_RF": "NEED RECEIVED FROM"
+      }
+    },
+    {
+      "code": "ET",
+      "category": "PNR Lifecycle",
+      "name": "End Transact",
+      "description": "Guarda la reserva activa y limpia la pantalla del terminal.",
+      "syntax": ["ET"],
+      "tokens": {},
+      "handler": "END_TRANSACT",
+      "examples": ["ET"],
+      "errors": {
+        "NEED_PRINT": "CHECK MANDATORY PNR ELEMENTS (PRINT)"
+      }
+    },
+    {
+      "code": "IG",
+      "category": "PNR Lifecycle",
+      "name": "Ignore Transaction",
+      "description": "Ignora las modificaciones no guardadas y limpia el área de trabajo.",
+      "syntax": ["IG"],
+      "tokens": {},
+      "handler": "IGNORE_TRANSACTION",
+      "examples": ["IG"],
+      "errors": {}
+    },
+    {
+      "code": "RT",
+      "category": "PNR Display",
+      "name": "Redisplay PNR",
+      "description": "Vuelve a mostrar la reserva activa o abre un PNR guardado por su código de 6 caracteres.",
+      "syntax": [
+        "RT",
+        "RT{pnrCode}"
+      ],
+      "tokens": {
+        "pnrCode": "^([A-Z0-9]{6})"
+      },
+      "handler": "REDISPLAY_PNR",
+      "examples": ["RT", "RTK8X9P2"],
+      "errors": {
+        "NOT_FOUND": "PNR NOT FOUND"
+      }
+    },
+    {
+      "code": "XE",
+      "category": "Cancelation",
+      "name": "Cancel Element",
+      "description": "Cancela un elemento específico de la reserva por su número de línea.",
+      "syntax": [
+        "XE{lineNumber}"
+      ],
+      "tokens": {
+        "lineNumber": "^(\\d{1,2})"
+      },
+      "handler": "CANCEL_ELEMENT",
+      "examples": ["XE2", "XE4"],
+      "errors": {
+        "INVALID_LINE": "CHECK LINE NUMBER"
+      }
+    },
+    {
+      "code": "XI",
+      "category": "Cancelation",
+      "name": "Cancel Itinerary",
+      "description": "Cancela todos los segmentos de vuelo de la reserva activa.",
+      "syntax": ["XI"],
+      "tokens": {},
+      "handler": "CANCEL_ITINERARY",
+      "examples": ["XI"],
+      "errors": {
+        "NO_ITINERARY": "NO ITINERARY TO CANCEL"
+      }
+    },
+    {
+      "code": "FXX",
+      "category": "Pricing",
+      "name": "Price Itinerary (Informative)",
+      "description": "Muestra la tarifa cotizada sin guardar el registro TST en el PNR.",
+      "syntax": ["FXX"],
+      "tokens": {},
+      "handler": "PRICE_INFORMATIVE",
+      "examples": ["FXX"],
+      "errors": {
+        "NO_ITINERARY": "NO ITINERARY TO PRICE"
+      }
+    },
+    {
+      "code": "FXP",
+      "category": "Pricing",
+      "name": "Price Itinerary and Create TST",
+      "description": "Cotiza el itinerario y crea el registro de tarifa (TST) para emisión.",
+      "syntax": ["FXP"],
+      "tokens": {},
+      "handler": "PRICE_AND_STORE",
+      "examples": ["FXP"],
+      "errors": {
+        "NO_ITINERARY": "NO ITINERARY TO PRICE",
+        "NO_NAMES": "NEED PASSENGER NAME"
+      }
+    },
+    {
+      "code": "HE",
+      "category": "Help",
+      "name": "Help & Syntax Manual",
+      "description": "Muestra la ayuda y sintaxis declarada para los comandos GDS.",
+      "syntax": [
+        "HE",
+        "HE {topic}"
+      ],
+      "tokens": {
+        "topic": "^([A-Z0-9]+)"
+      },
+      "handler": "SHOW_HELP",
+      "examples": ["HE", "HE AN", "HE NM"],
+      "errors": {}
+    },
+    {
+      "code": "SR",
+      "category": "Services",
+      "name": "Special Service Request (SSR)",
+      "description": "Registra solicitudes especiales (comida vegetal, silla de ruedas, etc.).",
+      "syntax": [
+        "SR {code}"
+      ],
+      "tokens": {
+        "code": "^([A-Z4]{4})"
+      },
+      "handler": "ADD_SSR",
+      "examples": ["SR VGML", "SR WCHR"],
+      "errors": {
+        "INVALID_CODE": "CHECK SERVICE CODE"
+      }
+    },
+    {
+      "code": "OS",
+      "category": "Services",
+      "name": "Other Service Info (OSI)",
+      "description": "Agrega información de servicio no accionable para las aerolíneas.",
+      "syntax": [
+        "OS {airline} {text}"
+      ],
+      "tokens": {
+        "airline": "^([A-Z0-9]{2}) ",
+        "text": "^(.+)"
+      },
+      "handler": "ADD_OSI",
+      "examples": ["OS AV PASAJERO VIP"],
+      "errors": {}
+    },
+    {
+      "code": "FQN",
+      "category": "Pricing",
+      "name": "Fare Notes / Rules",
+      "description": "Muestra las reglas de la tarifa cotizada.",
+      "syntax": ["FQN"],
+      "tokens": {},
+      "handler": "SHOW_FARE_RULES",
+      "examples": ["FQN"],
+      "errors": {}
+    },
+    {
+      "code": "TTP",
+      "category": "Ticketing",
+      "name": "Issue Ticket",
+      "description": "Simula la emisión del tiquete electrónico para reservas con TST.",
+      "syntax": ["TTP"],
+      "tokens": {},
+      "handler": "ISSUE_TICKET",
+      "examples": ["TTP"],
+      "errors": {
+        "NO_TST": "NO TST PRESENT FOR ISSUANCE",
+        "NEED_OK": "CHECK TICKETING ELEMENT"
+      }
+    },
+    {
+      "code": "SO",
+      "category": "System",
+      "name": "Sign Out",
+      "description": "Cierra la sesión activa en el terminal.",
+      "syntax": ["SO"],
+      "tokens": {},
+      "handler": "SIGN_OUT",
+      "examples": ["SO"],
+      "errors": {}
+    }
+  ]
+}

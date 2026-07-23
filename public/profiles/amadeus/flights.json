@@ -1,0 +1,69 @@
+{
+  "flights": [
+    {
+      "line": 1,
+      "airline": "AV",
+      "flightNumber": "0026",
+      "classes": { "J": 4, "C": 2, "Y": 7, "M": 5, "K": 0 },
+      "origin": "BOG",
+      "destination": "MIA",
+      "departure": "08:15",
+      "arrival": "12:45",
+      "equipment": "788",
+      "stops": 0,
+      "priceUSD": 450
+    },
+    {
+      "line": 2,
+      "airline": "AA",
+      "flightNumber": "1124",
+      "classes": { "J": 2, "Y": 9, "B": 4, "H": 2 },
+      "origin": "BOG",
+      "destination": "MIA",
+      "departure": "14:20",
+      "arrival": "18:50",
+      "equipment": "738",
+      "stops": 0,
+      "priceUSD": 480
+    },
+    {
+      "line": 1,
+      "airline": "IB",
+      "flightNumber": "6588",
+      "classes": { "J": 5, "Y": 9, "K": 3 },
+      "origin": "MAD",
+      "destination": "BCN",
+      "departure": "09:00",
+      "arrival": "10:15",
+      "equipment": "320",
+      "stops": 0,
+      "priceUSD": 120
+    },
+    {
+      "line": 2,
+      "airline": "UX",
+      "flightNumber": "7701",
+      "classes": { "Y": 9, "M": 9, "N": 4 },
+      "origin": "MAD",
+      "destination": "BCN",
+      "departure": "15:30",
+      "arrival": "16:45",
+      "equipment": "738",
+      "stops": 0,
+      "priceUSD": 95
+    },
+    {
+      "line": 1,
+      "airline": "AM",
+      "flightNumber": "0436",
+      "classes": { "J": 3, "Y": 9, "E": 6 },
+      "origin": "MEX",
+      "destination": "BOG",
+      "departure": "01:10",
+      "arrival": "06:40",
+      "equipment": "738",
+      "stops": 0,
+      "priceUSD": 390
+    }
+  ]
+}

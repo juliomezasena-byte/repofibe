@@ -1,0 +1,21 @@
+{
+  "short_name": "CrypticTrainer",
+  "name": "Cryptic Trainer - Universal GDS Simulator PWA",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#05080c",
+  "theme_color": "#05080c",
+  "display": "standalone",
+  "orientation": "portrait"
+}

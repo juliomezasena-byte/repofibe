@@ -13,3 +13,4 @@ Thumbs.db
 #   npm install playwright && npx playwright install chromium
 package.json
 package-lock.json
+dist/

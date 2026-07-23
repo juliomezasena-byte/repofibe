@@ -1,0 +1,171 @@
+/**
+ * ResponseGenerator.js
+ * Generador de pantallas CRT Amadeus en formato de 80 columnas.
+ * Formatea disponibilidades, PNRs guardados, cotizaciones FXX/FXP y errores GDS nativos.
+ */
+
+export class ResponseGenerator {
+  /**
+   * Genera el texto formateado de la terminal Amadeus.
+   * @param {Object} result - Resultado retornado por la PnrStateMachine o DslParser.
+   * @param {Object} pnrState - Estado actual del PNR.
+   * @returns {string} - Cadena de texto formateada para la terminal CRT.
+   */
+  formatResponse(result, pnrState) {
+    if (!result) {
+      return 'FORMAT ERROR';
+    }
+
+    if (!result.success) {
+      return `*** ${result.error || 'FORMAT ERROR'} ***`;
+    }
+
+    // 1. Respuestas de Disponibilidad (AN)
+    if (result.type === 'AVAILABILITY') {
+      return this.formatAvailability(result.data);
+    }
+
+    // 2. Ayuda (HE)
+    if (result.type === 'HELP') {
+      return this.formatHelp(result.topic);
+    }
+
+    // 3. Cotizaciones (FXX / FXP)
+    if (result.priceUSD !== undefined) {
+      return this.formatPricing(result);
+    }
+
+    // 4. Emisión de tiquete (TTP)
+    if (result.ticketNumber) {
+      return `OK ETKT ${result.ticketNumber} PASENGER ISSUED\nOK TTP COMPLETED`;
+    }
+
+    // 5. Render de PNR activo (ER, RT, etc.)
+    const passengers = (pnrState && pnrState.passengers) || [];
+    const segments = (pnrState && pnrState.segments) || [];
+    if (pnrState && (pnrState.code || passengers.length > 0 || segments.length > 0)) {
+      return this.formatPnr(pnrState);
+    }
+
+    if (result.message) {
+      return result.message;
+    }
+
+    return 'OK';
+  }
+
+  formatAvailability(data) {
+    const { date, origin, destination, flights } = data;
+    let lines = [`AN ${date} ${origin}${destination}`];
+    lines.push(`** AMADEUS AVAILABILITY - AN ** ${origin} ${destination}  ${date}`);
+
+    (flights || []).forEach((f, idx) => {
+      const lineNo = f.line || idx + 1;
+      const classStr = Object.entries(f.classes || { Y: 9 })
+        .map(([cls, seats]) => `${cls}${seats}`)
+        .join(' ');
+
+      lines.push(
+        `${lineNo}  ${f.airline} ${f.flightNumber} ${classStr.padEnd(20)} ${f.origin}${f.destination} ${f.departure} ${f.arrival} E0/${f.equipment} ${f.stops ? f.stops : 'S'}`
+      );
+    });
+
+    return lines.join('\n');
+  }
+
+  formatPnr(pnr) {
+    let lines = [];
+    const codeStr = pnr.code ? `RP/${pnr.code}` : '--- PNR DRAFT ---';
+    lines.push(`--- RLR --- ${codeStr}`);
+
+    let lineIndex = 1;
+
+    // Pasajeros
+    (pnr.passengers || []).forEach((p) => {
+      lines.push(`${lineIndex}. ${p.name}`);
+      lineIndex++;
+    });
+
+    // Segmentos
+    (pnr.segments || []).forEach((s) => {
+      lines.push(
+        `${lineIndex}  ${s.flight} ${s.class}  ${s.date} ${s.route.replace('-', '')} ${s.status}  1 ${s.departure || '0800'} ${s.arrival || '1200'}  +1`
+      );
+      lineIndex++;
+    });
+
+    // Contactos
+    (pnr.contacts || []).forEach((c) => {
+      lines.push(`${lineIndex} ${c.text}`);
+      lineIndex++;
+    });
+
+    // SSRs
+    (pnr.ssrs || []).forEach((ssr) => {
+      lines.push(`${lineIndex} SSR ${ssr}`);
+      lineIndex++;
+    });
+
+    // OSIs
+    (pnr.osis || []).forEach((osi) => {
+      lines.push(`${lineIndex} OS ${osi}`);
+      lineIndex++;
+    });
+
+    // Ticketing
+    if (pnr.ticketing) {
+      lines.push(`${lineIndex} ${pnr.ticketing}`);
+      lineIndex++;
+    }
+
+    // TST
+    if (pnr.tst) {
+      lines.push(`TST 001 - USD ${pnr.tst.priceUSD}.00 EQUIV FARE ${pnr.tst.fareBasis}`);
+    }
+
+    // Received From
+    if (pnr.receivedFrom) {
+      lines.push(`RF-${pnr.receivedFrom}`);
+    }
+
+    if (pnr.isTicketed) {
+      lines.push(`* TICKETED ELECTRONICALLY *`);
+    }
+
+    return lines.join('\n');
+  }
+
+  formatPricing(result) {
+    return [
+      `LAST TKT DATE - ${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`,
+      `AL PASSENGER`,
+      `USD ${result.priceUSD}.00  BASE FARE`,
+      `USD 45.00    TAXES / FEES`,
+      `USD ${result.priceUSD + 45}.00 TOTAL`,
+      result.tstStored ? 'TST 001 STORED IN PNR OK' : 'FXX INFORMATIVE PRICING ONLY'
+    ].join('\n');
+  }
+
+  formatHelp(topic) {
+    if (!topic) {
+      return [
+        `*** CRYPTIC TRAINER - AMADEUS GDS HELP MANUAL ***`,
+        `COMANDOS DISPONIBLES:`,
+        `  AN : Disponibilidad de vuelos (ej: AN25NOVBOGMIA)`,
+        `  SS : Vender segmento (ej: SS1Y1)`,
+        `  NM : Registrar nombres (ej: NM1GARCIA/CARLOS MR)`,
+        `  AP : Agregar contacto (ej: APBOG 573001234567-M)`,
+        `  TK : Opción de emision (ej: TK OK)`,
+        `  RF : Recibido de (ej: RF CARLOS)`,
+        `  ER : Guardar y mostrar PNR`,
+        `  ET : Guardar y limpiar pantalla`,
+        `  IG : Ignorar cambios`,
+        `  RT : Volver a mostrar PNR`,
+        `  FXP: Cotizar y crear TST`,
+        `  TTP: Emitir tiquete electrónico`
+      ].join('\n');
+    }
+
+    return `*** HELP MANUAL FOR COMMAND: ${topic.toUpperCase()} ***\nConsulte las especificaciones en public/profiles/amadeus/commands_meta.json`;
+  }
+}
