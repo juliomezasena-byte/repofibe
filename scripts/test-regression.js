@@ -142,6 +142,26 @@ probarTolerancia('XE1-3 borra el rango', ['NM1AAA/UNO', 'NM1BBB/DOS', 'NM1CCC/TR
 probarTolerancia('XE con lista (XE1,3) borra solo esas', ['NM1AAA/UNO', 'NM1BBB/DOS', 'NM1CCC/TRES', 'XE1,3'],
   (r, s) => r.success && s.passengers.length === 1 && /BBB/.test(s.passengers[0].name) ? null : `quedaron: ${JSON.stringify(s.passengers)}`);
 
+// ── Escalera de clases RBD completa y escalas (como en clase) ──
+probarTolerancia('SN muestra escalera completa de clases (>=15 letras)', ['SN 12 APR MEX SDQ'],
+  (r) => {
+    const f = r.data.flights[0];
+    const n = Object.keys(f.classes || {}).length;
+    return r.success && n >= 15 ? null : `solo ${n} clases en la primera opción`;
+  });
+probarTolerancia('SN incluye opción con escala (IB VIA MAD)', ['SN 12 APR MEX SDQ'],
+  (r) => r.data.flights.some((f) => f.airline === 'IB' && f.stops === 1 && f.via === 'MAD') ? null : 'no aparece la opción con escala');
+probarTolerancia('Escalera marca clases cerradas con C', ['SN 12 APR MEX SDQ'],
+  (r) => r.data.flights.some((f) => Object.values(f.classes).includes('C')) ? null : 'ninguna clase cerrada C');
+probarTolerancia('SS en clase cerrada (Q de AV0026) -> error', ['AN25NOVBOGMIA', 'SS1Q1'],
+  (r, s) => !r.success && /CLOSED/.test(r.error) && s.segments.length === 0 ? null : 'vendió una clase cerrada');
+probarTolerancia('Ruta sin catálogo también trae 3 opciones con escalera', ['SN 10 AUG BOG SCL'],
+  (r) => {
+    const fl = r.data.flights;
+    const ok = r.success && fl.length === 3 && fl.every((f) => Object.keys(f.classes).length >= 15) && fl.some((f) => f.stops === 1);
+    return ok ? null : `opciones: ${fl.length}`;
+  });
+
 console.log(`\n==========================================`);
 console.log(`Resumen QA: ${passedScenarios}/${scenarios.length} escenarios superados.`);
 console.log(`Tolerancia: ${toleranceFailures === 0 ? 'OK' : toleranceFailures + ' fallos'}`);

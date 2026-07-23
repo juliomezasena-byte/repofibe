@@ -165,6 +165,71 @@ export class PnrStateMachine {
     }
   }
 
+  /**
+   * Escalera RBD completa estilo Amadeus (J..G): número = puestos abiertos,
+   * 'C' = clase cerrada, 0 = agotada. Determinista según la semilla.
+   */
+  buildClassLadder(seed = 1) {
+    const ORDEN = ['J', 'C', 'D', 'I', 'W', 'P', 'E', 'Y', 'B', 'M', 'H', 'K', 'L', 'Q', 'T', 'U', 'N', 'V', 'X', 'G'];
+    const ladder = {};
+    ORDEN.forEach((letra, i) => {
+      const v = (seed * 7 + i * 3) % 11;
+      ladder[letra] = v === 0 ? 'C' : v === 1 ? 0 : Math.min(9, v);
+    });
+    // Y (turista base) siempre abierta para no bloquear los ejercicios
+    ladder.Y = 9;
+    return ladder;
+  }
+
+  /**
+   * Opciones sintéticas cuando la ruta no está en el catálogo: directos +
+   * una opción con escala vía el hub de Iberia (MAD), como en clase.
+   */
+  buildSyntheticFlights(origin, destination) {
+    return [
+      {
+        line: 1,
+        airline: 'AV',
+        flightNumber: '0026',
+        classes: this.buildClassLadder(2),
+        origin,
+        destination,
+        departure: '08:15',
+        arrival: '12:45',
+        equipment: '788',
+        stops: 0,
+        priceUSD: 420
+      },
+      {
+        line: 2,
+        airline: 'LA',
+        flightNumber: '2410',
+        classes: this.buildClassLadder(5),
+        origin,
+        destination,
+        departure: '17:10',
+        arrival: '20:25',
+        equipment: 'B789',
+        stops: 0,
+        priceUSD: 380
+      },
+      {
+        line: 3,
+        airline: 'IB',
+        flightNumber: '6402',
+        classes: this.buildClassLadder(8),
+        origin,
+        destination,
+        departure: '19:30',
+        arrival: '14:55',
+        equipment: '350',
+        stops: 1,
+        via: 'MAD',
+        priceUSD: 650
+      }
+    ];
+  }
+
   handleAvailability(params, flightsCatalog) {
     const origin = params.origin || 'BOG';
     const destination = params.destination || 'MIA';
@@ -176,21 +241,7 @@ export class PnrStateMachine {
     );
 
     if (matches.length === 0) {
-      // Vuelo sintético por defecto si no está en el JSON
-      matches = [
-        {
-          line: 1,
-          airline: 'AV',
-          flightNumber: '0026',
-          classes: { J: 4, Y: 9, M: 5 },
-          origin,
-          destination,
-          departure: '08:15',
-          arrival: '12:45',
-          equipment: '788',
-          priceUSD: 420
-        }
-      ];
+      matches = this.buildSyntheticFlights(origin, destination);
     }
 
     this.state.lastAvailability = { date, origin, destination, flights: matches };
@@ -508,30 +559,7 @@ export class PnrStateMachine {
     );
 
     if (matches.length === 0) {
-      matches = [
-        {
-          line: 1,
-          airline: 'AV',
-          flightNumber: '0142',
-          origin,
-          destination,
-          departure: '10:30',
-          arrival: '13:45',
-          equipment: 'A320',
-          stops: 0
-        },
-        {
-          line: 2,
-          airline: 'LA',
-          flightNumber: '2410',
-          origin,
-          destination,
-          departure: '17:10',
-          arrival: '20:25',
-          equipment: 'B789',
-          stops: 0
-        }
-      ];
+      matches = this.buildSyntheticFlights(origin, destination);
     }
 
     this.state.lastAvailability = { date, origin, destination, flights: matches };

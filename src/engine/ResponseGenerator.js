@@ -50,14 +50,22 @@ export class ResponseGenerator {
       ].join('\n');
     }
 
-    // 3. Programación Neutral SN
+    // 3. Programación Neutral SN — con escalera de clases RBD completa:
+    // número = puestos abiertos, C = clase cerrada (no se vende).
     if (result.type === 'SCHEDULE') {
       const { date, origin, destination, flights } = result.data;
       let lines = [`SN ${date} ${origin}${destination}`];
       lines.push(`** AMADEUS SCHEDULE NEUTRAL - SN ** ${origin} ${destination}  ${date}`);
       (flights || []).forEach((f, idx) => {
+        const classStr = Object.entries(f.classes || { Y: 9 })
+          .map(([cls, seats]) => `${cls}${seats}`)
+          .join(' ');
+        const viaStr = f.via ? ` VIA ${f.via}` : '';
         lines.push(
-          `${idx + 1}  ${f.airline} ${f.flightNumber}  ${f.origin}${f.destination} ${f.departure} ${f.arrival} E0/${f.equipment || 'A320'}`
+          `${f.line || idx + 1}  ${f.airline} ${f.flightNumber}  ${classStr}`
+        );
+        lines.push(
+          `   ${f.origin}${f.destination} ${f.departure} ${f.arrival} E${f.stops || 0}/${f.equipment || 'A320'}${viaStr}`
         );
       });
       return lines.join('\n');
@@ -136,9 +144,11 @@ export class ResponseGenerator {
       const classStr = Object.entries(f.classes || { Y: 9 })
         .map(([cls, seats]) => `${cls}${seats}`)
         .join(' ');
+      const viaStr = f.via ? ` VIA ${f.via}` : '';
 
+      lines.push(`${lineNo}  ${f.airline} ${f.flightNumber} ${classStr}`);
       lines.push(
-        `${lineNo}  ${f.airline} ${f.flightNumber} ${classStr.padEnd(20)} ${f.origin}${f.destination} ${f.departure} ${f.arrival} E0/${f.equipment} ${f.stops ? f.stops : 'S'}`
+        `   ${f.origin}${f.destination} ${f.departure} ${f.arrival} E${f.stops || 0}/${f.equipment}${viaStr}`
       );
     });
 
