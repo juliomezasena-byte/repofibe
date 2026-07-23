@@ -16,7 +16,7 @@ export function App() {
 
   // Instancias de los motores del simulador
   const pnrFsm = useMemo(() => new PnrStateMachine(), []);
-  const responseGen = useMemo(() => new ResponseGenerator(), []);
+  const responseGen = useMemo(() => new ResponseGenerator(profileConfig), [profileConfig]);
   const evalEngine = useMemo(() => new EvaluationEngine(), []);
 
   const dslParser = useMemo(() => {

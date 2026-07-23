@@ -1,32 +1,69 @@
 import React from 'react';
+import { Delete, CornerDownLeft } from 'lucide-react';
 
-export const SmartKeypad = ({ onKeyPress }) => {
-  const symbols = ['/', '-', '*', '(', ')', ','];
-  const verbs = ['AN', 'SS', 'NM', 'AP', 'TK', 'RF', 'ER', 'IG', 'FXP', 'TTP', 'RT', 'XE', 'HE'];
+export const SmartKeypad = ({ onKeyPress, onBackspace, onSubmit }) => {
+  const symbols = ['/', '-', '*', '(', ')', ',', '.'];
+  // Comandos del manual de clase primero, luego el resto del ciclo PNR.
+  const verbs = [
+    'DAN', 'DAC', 'FQC', 'SN', 'AN', 'SS', 'NM', 'FXX', 'FXP',
+    'DF', 'RM', 'AP', 'TK', 'RF', 'ER', 'RT', 'XE', 'TTP', 'HE'
+  ];
 
   return (
     <div className="smart-keypad">
-      {symbols.map((sym) => (
-        <button
-          key={sym}
-          className="keypad-btn"
-          onClick={() => onKeyPress(sym)}
-          title={`Insertar ${sym}`}
-        >
-          {sym}
-        </button>
-      ))}
+      {/* Fila 1: símbolos + acciones (siempre visibles) */}
+      <div className="keypad-row keypad-actions">
+        {symbols.map((sym) => (
+          <button
+            key={sym}
+            className="keypad-btn"
+            onClick={() => onKeyPress(sym)}
+            title={`Insertar ${sym}`}
+          >
+            {sym}
+          </button>
+        ))}
 
-      {verbs.map((verb) => (
         <button
-          key={verb}
-          className="keypad-btn verb-btn"
-          onClick={() => onKeyPress(verb)}
-          title={`Ejecutar ${verb}`}
+          className="keypad-btn space-btn"
+          onClick={() => onKeyPress(' ')}
+          title="Espacio"
         >
-          {verb}
+          ␣ ESP
         </button>
-      ))}
+
+        <button
+          className="keypad-btn"
+          onClick={onBackspace}
+          title="Borrar"
+          aria-label="Borrar"
+        >
+          <Delete size={16} />
+        </button>
+
+        <button
+          className="keypad-btn enter-btn"
+          onClick={onSubmit}
+          title="Enviar comando"
+          aria-label="Enviar comando"
+        >
+          <CornerDownLeft size={16} /> ENVIAR
+        </button>
+      </div>
+
+      {/* Fila 2: comandos (deslizable) */}
+      <div className="keypad-row keypad-verbs">
+        {verbs.map((verb) => (
+          <button
+            key={verb}
+            className="keypad-btn verb-btn"
+            onClick={() => onKeyPress(verb)}
+            title={`Insertar ${verb}`}
+          >
+            {verb}
+          </button>
+        ))}
+      </div>
     </div>
   );
 };

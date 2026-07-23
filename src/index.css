@@ -27,6 +27,7 @@ body {
   color: var(--text-light);
   font-family: var(--font-sans);
   min-height: 100vh;
+  min-height: 100dvh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
@@ -36,6 +37,7 @@ body {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh; /* dvh se encoge cuando el teclado móvil aparece: input y keypad siguen visibles */
   max-width: 1200px;
   margin: 0 auto;
   padding: 12px;
@@ -81,6 +83,7 @@ body {
   border: 1px solid rgba(0, 255, 102, 0.3);
   border-radius: 4px;
   font-family: var(--font-mono);
+  white-space: nowrap;
 }
 
 /* Grid Principal Terminal & Panel Escenarios */
@@ -95,6 +98,61 @@ body {
 @media (max-width: 868px) {
   .main-layout {
     grid-template-columns: 1fr;
+  }
+
+  /* En móvil soltamos el alto fijo: la página hace scroll natural para llegar al panel */
+  .app-container {
+    height: auto;
+    min-height: 100dvh;
+  }
+
+  /* La terminal ocupa la mayor parte de la pantalla; input y keypad quedan a la mano */
+  .terminal-wrapper {
+    min-height: 68dvh;
+  }
+
+  /* Fuente mono más compacta para que quepan más columnas del formato Amadeus */
+  .terminal-screen {
+    font-size: 0.78rem;
+    padding: 12px;
+  }
+
+  /* Header compacto: título en una línea, botón más pequeño */
+  .app-header {
+    padding: 8px 12px;
+  }
+
+  .brand-title {
+    font-size: 0.95rem;
+    white-space: nowrap;
+  }
+
+  .terminal-header {
+    font-size: 0.7rem;
+    gap: 8px;
+  }
+
+  .terminal-header > div {
+    white-space: nowrap;
+  }
+}
+
+/* En pantallas muy angostas la etiqueta y los detalles del header sobran */
+@media (max-width: 480px) {
+  .brand-tag {
+    display: none;
+  }
+
+  .hide-mobile {
+    display: none;
+  }
+}
+
+/* En desktop hay espacio: mostrar TODOS los comandos (sin scroll oculto) */
+@media (min-width: 869px) {
+  .keypad-row.keypad-verbs {
+    flex-wrap: wrap;
+    overflow-x: visible;
   }
 }
 
@@ -200,12 +258,28 @@ body {
 /* SmartKeypad Flotante (Móvil) */
 .smart-keypad {
   display: flex;
+  flex-direction: column;
   gap: 6px;
-  overflow-x: auto;
-  padding: 8px 12px;
+  padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
   background: #0b121b;
   border-top: 1px solid var(--border-color);
+}
+
+.keypad-row {
+  display: flex;
+  gap: 6px;
+}
+
+/* Símbolos + acciones: siempre visibles (los más usados al escribir comandos) */
+.keypad-row.keypad-actions {
+  flex-wrap: wrap;
+}
+
+/* Verbos: fila deslizable horizontal */
+.keypad-row.keypad-verbs {
+  overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  padding-bottom: 2px;
 }
 
 .keypad-btn {
@@ -213,13 +287,18 @@ body {
   color: var(--crt-cyan);
   border: 1px solid #1e2d42;
   border-radius: 6px;
-  padding: 6px 12px;
+  min-height: 40px;
+  min-width: 40px;
+  padding: 8px 12px;
   font-family: var(--font-mono);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .keypad-btn:active, .keypad-btn:hover {
@@ -237,6 +316,34 @@ body {
 .keypad-btn.verb-btn:hover {
   background: var(--crt-green);
   color: #000;
+}
+
+/* Tecla de enviar comando destacada */
+.keypad-btn.enter-btn {
+  color: var(--crt-green);
+  border-color: rgba(0, 255, 102, 0.4);
+  background: rgba(0, 255, 102, 0.1);
+  font-weight: 700;
+}
+
+.keypad-btn.enter-btn:active, .keypad-btn.enter-btn:hover {
+  background: var(--crt-green);
+  color: #000;
+}
+
+.keypad-btn.space-btn {
+  flex: 1;
+  min-width: 90px;
+}
+
+/* En móvil, objetivos táctiles cómodos (>=44px) */
+@media (max-width: 640px) {
+  .keypad-btn {
+    min-height: 44px;
+    min-width: 44px;
+    font-size: 1rem;
+    padding: 8px 14px;
+  }
 }
 
 /* Panel Lateral Escenarios & Evaluación */
