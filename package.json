@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test:parser": "node scripts/test-parser.js",
-    "test:regression": "node scripts/test-regression.js"
+    "test:regression": "node scripts/test-regression.js",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "lucide-react": "^0.475.0",
@@ -16,6 +17,7 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@vitejs/plugin-react": "^4.3.4",
     "playwright": "^1.61.1",
     "vite": "^6.1.0"

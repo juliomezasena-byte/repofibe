@@ -1,0 +1,27 @@
+// Smoke E2E — Fase 1.5 de docs/PLAN_UX.md.
+// Verifica que la app arranca, que el terminal responde un comando real
+// del manual (SN) y que la pestaña Teoria muestra el quiz.
+import { test, expect } from '@playwright/test';
+
+test.describe('smoke', () => {
+  test('el terminal responde SN 12 APR MEX SDQ con SCHEDULE NEUTRAL', async ({ page }) => {
+    await page.goto('/');
+
+    // La app cargo: el header del emulador muestra AMADEUS.
+    await expect(page.getByText('AMADEUS 1A GDS')).toBeVisible();
+
+    const input = page.locator('.cmd-input');
+    await input.fill('SN 12 APR MEX SDQ');
+    await input.press('Enter');
+
+    await expect(page.getByText('SCHEDULE NEUTRAL')).toBeVisible();
+  });
+
+  test('la pestania Teoria muestra el QUIZ RAPIDO', async ({ page }) => {
+    await page.goto('/');
+
+    await page.getByText('Teoría').click();
+
+    await expect(page.getByText('QUIZ RÁPIDO')).toBeVisible();
+  });
+});
