@@ -24,7 +24,11 @@ export class PnrStateMachine {
       isTicketed: false,
       isTransacted: false,
       lastAvailability: null,
-      viewedHelp: false
+      viewedHelp: false,
+      hasEncoded: false,
+      hasDecoded: false,
+      hasConverted: false,
+      usedDf: false
     };
   }
 
@@ -205,19 +209,33 @@ export class PnrStateMachine {
   }
 
   handleAddName(params, rawInput) {
-    // Parser flexible de nombres
-    const rawName = rawInput.replace(/^NM\d?/, '').trim();
-    if (!rawName) {
+    // Formato Amadeus: NM{cantidad}{APELLIDO}/{NOMBRE1} {TITULO1}/{NOMBRE2} {TITULO2}...
+    // Ej: NM1GARCIA/CARLOS MR  ->  1 pax
+    //     NM2PEREZ/JUAN MR/MARIA MRS  ->  2 pax (mismo apellido)
+    const match = rawInput.match(/^NM(\d+)?(.+)$/i);
+    const body = (match ? match[2] : '').trim();
+    if (!body.includes('/')) {
       return { success: false, error: 'FORMAT ERROR - NAME' };
     }
 
-    const newPassenger = {
-      id: this.state.passengers.length + 1,
-      name: rawName
-    };
+    const count = parseInt((match && match[1]) || '1', 10) || 1;
+    const [surname, ...rest] = body.split('/');
+    const firstNames = rest.join('/').split('/').map(s => s.trim()).filter(Boolean);
 
-    this.state.passengers.push(newPassenger);
-    return { success: true, passenger: newPassenger };
+    const added = firstNames.slice(0, count).map((firstName) => {
+      const passenger = {
+        id: this.state.passengers.length + 1,
+        name: `${surname.trim()}/${firstName}`
+      };
+      this.state.passengers.push(passenger);
+      return passenger;
+    });
+
+    if (added.length === 0) {
+      return { success: false, error: 'FORMAT ERROR - NAME' };
+    }
+
+    return { success: true, passengers: added, passenger: added[0] };
   }
 
   handleAddContact(params, rawInput) {
@@ -386,10 +404,12 @@ export class PnrStateMachine {
       'MADRID': { code: 'MAD', city: 'MADRID', country: 'SPAIN' },
       'MIAMI': { code: 'MIA', city: 'MIAMI', country: 'UNITED STATES' },
       'MEXICO': { code: 'MEX', city: 'MEXICO CITY', country: 'MEXICO' },
-      'BARCELONA': { code: 'BCN', city: 'BARCELONA', country: 'SPAIN' }
+      'BARCELONA': { code: 'BCN', city: 'BARCELONA', country: 'SPAIN' },
+      'SANTO DOMINGO': { code: 'SDQ', city: 'SANTO DOMINGO', country: 'DOMINICAN REPUBLIC' }
     };
 
     const match = dictionary[query] || { code: query.slice(0, 3), city: query, country: 'INTERNATIONAL' };
+    this.state.hasEncoded = true;
     return { success: true, type: 'ENCODE_CITY', data: match };
   }
 
@@ -401,30 +421,49 @@ export class PnrStateMachine {
       'MAD': { code: 'MAD', name: 'MADRID / ADOLFO SUAREZ BARAJAS', country: 'SPAIN' },
       'MIA': { code: 'MIA', name: 'MIAMI / MIAMI INTL', country: 'UNITED STATES' },
       'MEX': { code: 'MEX', name: 'MEXICO CITY / BENITO JUAREZ INTL', country: 'MEXICO' },
-      'BCN': { code: 'BCN', name: 'BARCELONA / EL PRAT INTL', country: 'SPAIN' }
+      'BCN': { code: 'BCN', name: 'BARCELONA / EL PRAT INTL', country: 'SPAIN' },
+      'SDQ': { code: 'SDQ', name: 'SANTO DOMINGO / LAS AMERICAS INTL', country: 'DOMINICAN REPUBLIC' }
     };
 
     const match = dictionary[code] || { code, name: `${code} AIRPORT`, country: 'GLOBAL' };
+    this.state.hasDecoded = true;
     return { success: true, type: 'DECODE_CITY', data: match };
   }
 
   handleConvertCurrency(params, rawInput) {
     const amount = parseFloat(params.amount || '35');
-    const from = params.fromCurrency || 'USD';
-    const to = params.toCurrency || 'COP';
+    const from = (params.fromCurrency || 'USD').toUpperCase();
+    const to = (params.toCurrency || 'COP').toUpperCase();
 
-    // Tasas fijas sintéticas para simulación GDS
-    const rates = {
-      'USD_COP': 4150.0,
-      'EUR_USD': 1.08,
-      'USD_EUR': 0.92,
-      'EUR_COP': 4480.0,
-      'COP_USD': 0.00024
+    // Tasas BSR sintéticas expresadas como: 1 USD = X moneda.
+    // Permite convertir el gasto de gestión (emitido en USD) a la moneda
+    // del país desde el que llama el cliente. Valores aproximados de clase.
+    const usdRates = {
+      USD: 1,
+      COP: 4150.0,     // Colombia
+      DOP: 59.0,       // República Dominicana
+      MXN: 18.5,       // México
+      PEN: 3.75,       // Perú
+      EUR: 0.92,       // Zona Euro
+      ARS: 950.0,      // Argentina
+      CLP: 950.0,      // Chile
+      BRL: 5.10,       // Brasil
+      PAB: 1.0         // Panamá
     };
 
-    const key = `${from}_${to}`;
-    const rate = rates[key] || 4150.0;
+    let rate;
+    if (from === 'USD' && usdRates[to] !== undefined) {
+      rate = usdRates[to];
+    } else if (to === 'USD' && usdRates[from] !== undefined) {
+      rate = 1 / usdRates[from];
+    } else if (usdRates[from] !== undefined && usdRates[to] !== undefined) {
+      rate = usdRates[to] / usdRates[from];
+    } else {
+      return { success: false, error: 'CHECK CURRENCY CODE' };
+    }
+
     const converted = (amount * rate).toFixed(2);
+    this.state.hasConverted = true;
 
     return {
       success: true,
@@ -433,7 +472,7 @@ export class PnrStateMachine {
         amount,
         fromCurrency: from,
         toCurrency: to,
-        rate,
+        rate: Number(rate.toFixed(4)),
         convertedAmount: converted
       }
     };
@@ -441,7 +480,7 @@ export class PnrStateMachine {
 
   handleSchedule(params, flightsCatalog) {
     const origin = params.origin || 'LIM';
-    const destination = params.destination || 'COP';
+    const destination = params.destination || 'BOG';
     const date = params.date || '13MAR';
 
     let matches = flightsCatalog.filter(
@@ -505,6 +544,8 @@ export class PnrStateMachine {
         items.push({ text: token, subtotal: val, isMultiplier: false, val1: val });
       }
     }
+
+    this.state.usedDf = true;
 
     return {
       success: true,

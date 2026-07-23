@@ -90,6 +90,32 @@
       "equipment": "B789",
       "stops": 0,
       "priceUSD": 340
+    },
+    {
+      "line": 1,
+      "airline": "AM",
+      "flightNumber": "0674",
+      "classes": { "J": 6, "C": 4, "D": 2, "W": 5, "Y": 9, "B": 7, "M": 5, "H": 3, "K": 2, "Q": 0 },
+      "origin": "MEX",
+      "destination": "SDQ",
+      "departure": "07:45",
+      "arrival": "13:20",
+      "equipment": "738",
+      "stops": 0,
+      "priceUSD": 520
+    },
+    {
+      "line": 2,
+      "airline": "DM",
+      "flightNumber": "0521",
+      "classes": { "C": 2, "Y": 9, "B": 9, "M": 6, "H": 4, "K": "C" },
+      "origin": "MEX",
+      "destination": "SDQ",
+      "departure": "15:05",
+      "arrival": "20:40",
+      "equipment": "320",
+      "stops": 0,
+      "priceUSD": 495
     }
   ]
 }

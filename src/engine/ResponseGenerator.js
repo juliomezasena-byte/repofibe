@@ -6,6 +6,17 @@
 
 export class ResponseGenerator {
   /**
+   * @param {Object} profileConfig - Perfil DSL (commands_meta.json) para la ayuda por comando.
+   */
+  constructor(profileConfig = null) {
+    this.commandsSpec = profileConfig?.commands || [];
+  }
+
+  setProfileConfig(profileConfig) {
+    this.commandsSpec = profileConfig?.commands || [];
+  }
+
+  /**
    * Genera el texto formateado de la terminal Amadeus.
    * @param {Object} result - Resultado retornado por la PnrStateMachine o DslParser.
    * @param {Object} pnrState - Estado actual del PNR.
@@ -88,7 +99,7 @@ export class ResponseGenerator {
 
     // 4. Emisión de tiquete (TTP)
     if (result.ticketNumber) {
-      return `OK ETKT ${result.ticketNumber} PASENGER ISSUED\nOK TTP COMPLETED`;
+      return `OK ETKT ${result.ticketNumber} PASSENGER ISSUED\nOK TTP COMPLETED`;
     }
 
     // 5. Render de PNR activo (ER, RT, etc.)
@@ -212,7 +223,7 @@ export class ResponseGenerator {
         `  SS : Vender segmento (ej: SS1Y1)`,
         `  NM : Registrar nombres (ej: NM1GARCIA/CARLOS MR)`,
         `  AP : Agregar contacto (ej: APBOG 573001234567-M)`,
-        `  TK : Opción de emision (ej: TK OK)`,
+        `  TK : Opción de emisión (ej: TK OK)`,
         `  RF : Recibido de (ej: RF CARLOS)`,
         `  ER : Guardar y mostrar PNR`,
         `  ET : Guardar y limpiar pantalla`,
@@ -223,6 +234,22 @@ export class ResponseGenerator {
       ].join('\n');
     }
 
-    return `*** HELP MANUAL FOR COMMAND: ${topic.toUpperCase()} ***\nConsulte las especificaciones en public/profiles/amadeus/commands_meta.json`;
+    const code = topic.toUpperCase();
+    const spec = this.commandsSpec.find((c) => c.code === code);
+    if (!spec) {
+      return `*** NO HELP AVAILABLE FOR: ${code} ***\nEscriba HE para ver la lista de comandos.`;
+    }
+
+    const lines = [`*** HELP - ${spec.code} : ${spec.name} ***`];
+    if (spec.description) lines.push(spec.description);
+    if (spec.syntax && spec.syntax.length) {
+      lines.push('', 'SINTAXIS:');
+      spec.syntax.forEach((s) => lines.push(`  ${s}`));
+    }
+    if (spec.examples && spec.examples.length) {
+      lines.push('', 'EJEMPLOS:');
+      spec.examples.forEach((e) => lines.push(`  ${e}`));
+    }
+    return lines.join('\n');
   }
 }

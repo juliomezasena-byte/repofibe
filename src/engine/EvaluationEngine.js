@@ -160,6 +160,63 @@ export class EvaluationEngine {
       }
     }
 
+    // 13. Codificación de ciudad (DAN)
+    if (target.hasEncoded) {
+      totalChecks++;
+      if (state.hasEncoded) {
+        checksPassed++;
+        feedback.push(`[OK] Ciudad codificada con DAN.`);
+      } else {
+        feedback.push(`[PENDIENTE] Codifica una ciudad con DAN (Ej: DAN LIMA).`);
+      }
+    }
+
+    // 14. Decodificación de IATA (DAC)
+    if (target.hasDecoded) {
+      totalChecks++;
+      if (state.hasDecoded) {
+        checksPassed++;
+        feedback.push(`[OK] Código IATA decodificado con DAC.`);
+      } else {
+        feedback.push(`[PENDIENTE] Decodifica un IATA con DAC (Ej: DAC BOG).`);
+      }
+    }
+
+    // 15. Conversión de moneda (FQC)
+    if (target.hasConverted) {
+      totalChecks++;
+      if (state.hasConverted) {
+        checksPassed++;
+        feedback.push(`[OK] Gasto de gestión convertido con FQC.`);
+      } else {
+        feedback.push(`[PENDIENTE] Convierte los gastos con FQC (Ej: FQC 35USD/DOP).`);
+      }
+    }
+
+    // 16. Suma de tarifas (DF)
+    if (target.usedDf) {
+      totalChecks++;
+      if (state.usedDf) {
+        checksPassed++;
+        feedback.push(`[OK] Suma total de tarifas calculada con DF.`);
+      } else {
+        feedback.push(`[PENDIENTE] Calcula el valor total del vuelo con DF.`);
+      }
+    }
+
+    // 17. Notas de reserva (RM)
+    if (target.hasRemarks) {
+      totalChecks++;
+      const remarksCount = (state.remarks || []).length;
+      const required = typeof target.hasRemarks === 'number' ? target.hasRemarks : 1;
+      if (remarksCount >= required) {
+        checksPassed++;
+        feedback.push(`[OK] Notas registradas con RM (${remarksCount}/${required}).`);
+      } else {
+        feedback.push(`[PENDIENTE] Registra las notas con RM (${remarksCount}/${required}).`);
+      }
+    }
+
     const score = totalChecks > 0 ? Math.round((checksPassed / totalChecks) * 100) : 100;
     const completed = checksPassed === totalChecks;
 

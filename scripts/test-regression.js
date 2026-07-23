@@ -15,7 +15,7 @@ const scenarios = JSON.parse(fs.readFileSync(path.join(__dirname, '../public/pro
 
 const parser = new DslParser(spec);
 const fsm = new PnrStateMachine();
-const responseGen = new ResponseGenerator();
+const responseGen = new ResponseGenerator(spec);
 const evalEngine = new EvaluationEngine();
 
 console.log('--- SUITE DE PRUEBAS DE REGRESIÓN (QA) ---');
@@ -30,27 +30,34 @@ scenarios.forEach((scen) => {
     fsm.setState(scen.initialState.pnr);
   }
 
+  let flowErrors = 0;
   scen.suggestedFlow.forEach((cmd) => {
     const parseResult = parser.parse(cmd);
     if (!parseResult.success) {
       console.error(`  [ERROR PARSER] Comando "${cmd}" falló: ${parseResult.error}`);
+      flowErrors++;
       return;
     }
     const processResult = fsm.process(parseResult, flights);
     const output = responseGen.formatResponse(processResult, fsm.getState());
-    if (!processResult.success && !cmd.includes('XE') && !cmd.includes('HE')) {
-      console.warn(`  [WARN FSM] Comando "${cmd}" respuesta: ${output}`);
+    // XE elimina líneas y HE/consultas pueden devolver estados informativos;
+    // cualquier otro comando del flujo sugerido NO debe fallar.
+    if (!processResult.success && !cmd.startsWith('XE')) {
+      console.error(`  [ERROR FSM] Comando "${cmd}" respuesta: ${output}`);
+      flowErrors++;
     }
   });
 
   const evalResult = evalEngine.evaluate(scen, fsm.getState());
   console.log(`  Resultado Evaluación: ${evalResult.score}% (Completado: ${evalResult.completed})`);
 
-  if (evalResult.completed || evalResult.score >= 80) {
-    console.log(`  [PASS] Escenario ${scen.id} superó los criterios.`);
+  // Criterio estricto: el flujo sugerido del manual DEBE completar el escenario al 100%
+  // y no puede producir errores intermedios.
+  if (evalResult.completed && flowErrors === 0) {
+    console.log(`  [PASS] Escenario ${scen.id} completado al 100%.`);
     passedScenarios++;
   } else {
-    console.error(`  [FAIL] Escenario ${scen.id} no cumplió criterios. Feedback:`, evalResult.feedback);
+    console.error(`  [FAIL] Escenario ${scen.id} (errores de flujo: ${flowErrors}). Feedback:`, evalResult.feedback);
   }
 });
 

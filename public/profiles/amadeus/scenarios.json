@@ -24,7 +24,7 @@
       "id": "scenario-2",
       "title": "Nivel 2: Reserva Doble Pasajeros Adultos (MAD-BCN)",
       "difficulty": "Principiante",
-      "description": "PASAJEROS (PAXS): 2 ADT (Adultos: Juan Pérez MR y María Pérez MRS).\nRUTA: Madrid (MAD) ➔ Barcelona (BCN).\nFECHA SALIDA: 15DEC.\nCABINA: Turista (Clase Y).\nTAREA: Revisa disponibilidad (AN15DECBCNMAD), vende 2 puestos (SS2Y1), registra nombres (NM2PEREZ/JUAN MR/MARIA MRS), contacto (APMAD 34912345678-A), cotización (FXX), recibido RF JUAN y guarda con ER.",
+      "description": "PASAJEROS (PAXS): 2 ADT (Adultos: Juan Pérez MR y María Pérez MRS).\nRUTA: Madrid (MAD) ➔ Barcelona (BCN).\nFECHA SALIDA: 15DEC.\nCABINA: Turista (Clase Y).\nTAREA: Revisa disponibilidad (AN15DECMADBCN), vende 2 puestos (SS2Y1), registra nombres (NM2PEREZ/JUAN MR/MARIA MRS), contacto (APMAD 34912345678-A), cotización (FXX), recibido RF JUAN y guarda con ER.",
       "initialState": {
         "searchDate": "15DEC",
         "searchOrigin": "MAD",
@@ -38,7 +38,7 @@
         "hasReceivedFrom": true,
         "isTransacted": true
       },
-      "suggestedFlow": ["AN15DECBCNMAD", "SS2Y1", "NM2PEREZ/JUAN MR/MARIA MRS", "APMAD 34912345678-A", "TK OK", "FXX", "RF JUAN", "ER"]
+      "suggestedFlow": ["AN15DECMADBCN", "SS2Y1", "NM2PEREZ/JUAN MR/MARIA MRS", "APMAD 34912345678-A", "TK OK", "FXX", "RF JUAN", "ER"]
     },
     {
       "id": "scenario-3",
@@ -134,7 +134,7 @@
         "hasOsi": true,
         "isTransacted": true
       },
-      "suggestedFlow": ["OS AV PASSENGER IS VIP PLATINUM", "RF MARIO", "ER"]
+      "suggestedFlow": ["OS AV PASAJERO VIP", "RF MARIO", "ER"]
     },
     {
       "id": "scenario-8",
@@ -195,9 +195,11 @@
       "description": "PASAJEROS (PAXS): Consulta de agencia.\nTAREA: Codifica el aeropuerto de Lima (DAN LIMA), decodifica el código IATA de Bogotá (DAC BOG) y calcula la conversión de $35 USD de gastos de gestión a COP (FQC35USD/COP).",
       "initialState": {},
       "targetState": {
-        "viewedHelp": true
+        "hasEncoded": true,
+        "hasDecoded": true,
+        "hasConverted": true
       },
-      "suggestedFlow": ["DAN LIMA", "DAC BOG", "FQC35USD/COP", "HE FQC"]
+      "suggestedFlow": ["DAN LIMA", "DAC BOG", "FQC35USD/COP"]
     },
     {
       "id": "scenario-12",
@@ -207,7 +209,7 @@
       "initialState": {
         "searchDate": "13MAR",
         "searchOrigin": "LIM",
-        "searchDestination": "COP"
+        "searchDestination": "BOG"
       },
       "targetState": {
         "passengersCount": 1,
@@ -223,12 +225,12 @@
       "id": "scenario-13",
       "title": "Nivel 13: Facturación y Suma de Tarifas (DF) - Ejemplo de Clase",
       "difficulty": "Intermedio",
-      "description": "PASAJEROS (PAXS): 2 ADT ($200.000 COP c/u) + 1 CHD ($1.000.000 COP) + 1 INF ($860.000 COP) + Gastos de Gestión ($240.000 x 3 PAXS).\nTAREA: Utiliza el comando DF del manual de clase para calcular el valor total del vuelo (DF 2*200000;1000000;860000;240000*3).",
+      "description": "PASAJEROS (PAXS): 1 ADT ($2.200.000) + 1 CHD ($1.000.000) + 1 INF ($860.000) + Gastos de Gestión ($240.000 x 3 PAXS).\nTAREA: Utiliza el comando DF del manual de clase para calcular la suma total del vuelo (DF 2200000;1000000;860000; 240000*3). El motor calcula el total real de la expresión.",
       "initialState": {},
       "targetState": {
-        "viewedHelp": true
+        "usedDf": true
       },
-      "suggestedFlow": ["DF 2*200000;1000000;860000;240000*3", "HE DF"]
+      "suggestedFlow": ["DF 2200000;1000000;860000; 240000*3", "HE DF"]
     },
     {
       "id": "scenario-14",
@@ -245,10 +247,11 @@
         }
       },
       "targetState": {
+        "hasRemarks": 2,
         "hasReceivedFrom": true,
         "isTransacted": true
       },
-      "suggestedFlow": ["RM *22JUL26* ADT 2200000, CHD 1000000, INF 860000, GG 240000 COP", "RM *22JUL26* TTL 12900000 COP", "RM *22JUL26* FC1,2 TKT REEMB, CHG NO PENTY + DF + GG", "RF CARLOS", "ER"]
+      "suggestedFlow": ["RM *22JUL26* PAX AVDO AD:2200000 CH:1000000 IN:860000; GG 240000 COP", "RM *22JUL26* TTL 12900000 COP", "RM *22JUL26* FC1,2 TKT REEMB, CHG NO PENTY + DF + GG", "RF CARLOS", "ER"]
     },
     {
       "id": "scenario-15",

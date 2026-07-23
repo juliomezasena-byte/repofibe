@@ -351,7 +351,7 @@
         "SR {code}"
       ],
       "tokens": {
-        "code": "^([A-Z4]{4})"
+        "code": "^([A-Z]{4})"
       },
       "handler": "ADD_SSR",
       "examples": ["SR VGML", "SR WCHR", "SR INFT"],
