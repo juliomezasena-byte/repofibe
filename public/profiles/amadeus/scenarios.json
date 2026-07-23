@@ -2,9 +2,9 @@
   "scenarios": [
     {
       "id": "scenario-1",
-      "title": "Nivel 1: Creación de PNR Básico (BOG-MIA)",
+      "title": "Nivel 1: Reserva Individual Solo Ida (BOG-MIA)",
       "difficulty": "Principiante",
-      "description": "El cliente Carlos García desea reservar un vuelo de Bogotá (BOG) a Miami (MIA) para el 25 de Noviembre en clase Económica (Y). Registra el nombre, la reserva del vuelo, teléfono de contacto en Bogotá y la confirmación TK OK. Finaliza con ER.",
+      "description": "PASAJEROS: 1 ADT (Adulto: Carlos García MR).\nRUTA: Bogotá (BOG) -> Miami (MIA).\nFECHA SALIDA: 25NOV.\nCABINA: Turista (Clase Y).\nTAREA: Consulta disponibilidad (AN25NOVBOGMIA), vende 1 asiento en línea 1 (SS1Y1), registra nombre (NM1GARCIA/CARLOS MR), teléfono (APBOG 573001234567-M), emisión TK OK, recibido de RF CARLOS y guarda con ER.",
       "initialState": {
         "searchDate": "25NOV",
         "searchOrigin": "BOG",
@@ -12,7 +12,6 @@
       },
       "targetState": {
         "passengersCount": 1,
-        "passengerNames": ["GARCIA/CARLOS MR"],
         "segmentsCount": 1,
         "hasPhone": true,
         "hasTicketing": true,
@@ -23,9 +22,9 @@
     },
     {
       "id": "scenario-2",
-      "title": "Nivel 2: Reserva Doble de Pasajeros (MAD-BCN)",
+      "title": "Nivel 2: Reserva Doble Pasajeros Adultos (MAD-BCN)",
       "difficulty": "Principiante",
-      "description": "Crea una reserva para 2 pasajeros (Juan Pérez y María Pérez) de Madrid (MAD) a Barcelona (BCN) para el 15 de Diciembre. Cotiza la reserva de forma informativa (FXX) antes de guardar.",
+      "description": "PASAJEROS: 2 ADT (Adultos: Juan Pérez MR y María Pérez MRS).\nRUTA: Madrid (MAD) -> Barcelona (BCN).\nFECHA SALIDA: 15DEC.\nCABINA: Turista (Clase Y).\nTAREA: Revisa disponibilidad (AN15DECBCNMAD), vende 2 asientos (SS2Y1), registra nombres (NM2PEREZ/JUAN MR/MARIA MRS), contacto (APMAD 34912345678-A), cotización informativa (FXX), recibido RF JUAN y guarda con ER.",
       "initialState": {
         "searchDate": "15DEC",
         "searchOrigin": "MAD",
@@ -43,9 +42,9 @@
     },
     {
       "id": "scenario-3",
-      "title": "Nivel 3: Cancelación de Elemento (XE)",
+      "title": "Nivel 3: Modificación y Cancelación de Elemento (XE)",
       "difficulty": "Intermedio",
-      "description": "Un PNR activo contiene un teléfono erróneo. Cancela la línea de contacto (XE) e ingresa un teléfono celular actualizado antes de cerrar la transacción.",
+      "description": "PASAJEROS: 1 ADT (Lucía Martínez MS).\nRUTA: Bogotá (BOG) -> Miami (MIA) (25NOV).\nPROBLEMA: El PNR activo tiene un teléfono erróneo en la línea 3.\nTAREA: Abre la reserva (RT), cancela la línea 3 con XE3, agrega el celular actualizado y guarda el PNR con ER.",
       "initialState": {
         "pnr": {
           "code": "K8X9P2",
@@ -67,9 +66,9 @@
     },
     {
       "id": "scenario-4",
-      "title": "Nivel 4: Ignorar Modificaciones (IG)",
+      "title": "Nivel 4: Ignorar Modificaciones en Área de Trabajo (IG)",
       "difficulty": "Principiante",
-      "description": "Has realizado cambios no deseados en la reserva activa. Ejecuta el comando de ignorar (IG) para restaurar el área de trabajo limpia.",
+      "description": "PASAJEROS: Área de trabajo sucia con errores.\nTAREA: Limpia el terminal ignorando las modificaciones no guardadas mediante el comando IG.",
       "initialState": {},
       "targetState": {
         "isClean": true
@@ -78,9 +77,9 @@
     },
     {
       "id": "scenario-5",
-      "title": "Nivel 5: Cotización y Registro TST (FXP)",
+      "title": "Nivel 5: Cotización Formal con Registro TST (FXP)",
       "difficulty": "Intermedio",
-      "description": "Abre la reserva activa, calcula la tarifa e ingresa el registro TST en el PNR mediante el comando FXP. Finaliza guardando con ER.",
+      "description": "PASAJEROS: 1 ADT (Pedro Rodríguez MR).\nRUTA: Bogotá (BOG) -> Miami (MIA) (25NOV).\nTAREA: Cotiza la reserva activa generando el registro de tarifa TST mediante FXP, registra recibido de RF PEDRO y guarda con ER.",
       "initialState": {
         "pnr": {
           "code": "TST123",
@@ -99,9 +98,9 @@
     },
     {
       "id": "scenario-6",
-      "title": "Nivel 6: Solicitud de Servicio Especial (SR VGML)",
+      "title": "Nivel 6: Servicio Especial de Comida Vegetariana (SR VGML)",
       "difficulty": "Intermedio",
-      "description": "El pasajero requiere comida vegetariana en su vuelo. Agrega la solicitud de servicio especial VGML usando el comando SR.",
+      "description": "PASAJEROS: 1 ADT (Ana Silva MS).\nRUTA: Madrid (MAD) -> Barcelona (BCN) (15DEC).\nTAREA: Agrega la solicitud de comida vegetariana usando el comando SR VGML, registra recibido de RF ANA y guarda con ER.",
       "initialState": {
         "pnr": {
           "code": "SRV456",
@@ -119,9 +118,9 @@
     },
     {
       "id": "scenario-7",
-      "title": "Nivel 7: Información OSI para la Aerolínea",
+      "title": "Nivel 7: Información de Servicio OSI Frecuente (OS AV)",
       "difficulty": "Intermedio",
-      "description": "Registra una nota OSI de pasajero frecuente VIP para Avianca (AV) usando el comando OS.",
+      "description": "PASAJEROS: 1 ADT (Mario López MR).\nRUTA: Bogotá (BOG) -> Miami (MIA) (25NOV).\nCABINA: Business (Clase J).\nTAREA: Agrega nota OSI para Avianca sobre pasajero frecuente VIP (OS AV PASAJERO VIP), ingresa RF MARIO y guarda con ER.",
       "initialState": {
         "pnr": {
           "code": "OSI789",
@@ -139,9 +138,9 @@
     },
     {
       "id": "scenario-8",
-      "title": "Nivel 8: Simulación de Emisión de Tiquete (TTP)",
+      "title": "Nivel 8: Emisión de Tiquete Electrónico (TTP)",
       "difficulty": "Avanzado",
-      "description": "Con el PNR cotizado y el registro TST presente, ejecuta la emisión del tiquete electrónico con el comando TTP.",
+      "description": "PASAJEROS: 1 ADT (Luis Hernández MR).\nESTADO: PNR con registro TST grabado.\nTAREA: Con la cotización lista, ejecuta el comando de emisión de tiquete electrónico TTP.",
       "initialState": {
         "pnr": {
           "code": "TKT999",
@@ -160,9 +159,9 @@
     },
     {
       "id": "scenario-9",
-      "title": "Nivel 9: Consulta de Manuales y Ayudas (HE)",
+      "title": "Nivel 9: Consulta de Ayuda y Sintaxis GDS (HE)",
       "difficulty": "Principiante",
-      "description": "Utiliza el comando de ayuda HE para consultar la sintaxis del comando de disponibilidad AN y del comando de nombres NM.",
+      "description": "TAREA: Revisa el manual de ayuda para consultar la sintaxis del comando de disponibilidad AN y del comando de nombres NM usando HE AN y HE NM.",
       "initialState": {},
       "targetState": {
         "viewedHelp": true
@@ -171,9 +170,9 @@
     },
     {
       "id": "scenario-10",
-      "title": "Nivel 10: Reto Completo de Reserva & Emisión",
+      "title": "Nivel 10: Reto de Reserva y Emisión Completa (MEX-BOG)",
       "difficulty": "Avanzado",
-      "description": "Realiza la disponibilidad MEX-BOG, vende 1 asiento en clase Económica (Y), ingresa pasajero, teléfono, cotización con TST (FXP), recibido de y emisión final.",
+      "description": "PASAJEROS: 1 ADT (Diego Ramírez MR).\nRUTA: Ciudad de México (MEX) -> Bogotá (BOG).\nFECHA SALIDA: 20DEC.\nCABINA: Turista (Clase Y).\nTAREA: Disponibilidad AN20DECMEXBOG, venta SS1Y1, nombre NM1RAMIREZ/DIEGO MR, contacto APMEX 525512345678-M, opción TK OK, cotización FXP, recibido RF DIEGO, guarda con ER y emite con TTP.",
       "initialState": {
         "searchDate": "20DEC",
         "searchOrigin": "MEX",
@@ -191,9 +190,9 @@
     },
     {
       "id": "scenario-11",
-      "title": "Nivel 11: Codificación IATA (DAN/DAC) & Conversión FQC",
+      "title": "Nivel 11: Codificación IATA (DAN/DAC) y Conversión de Gastos (FQC)",
       "difficulty": "Principiante",
-      "description": "El cliente consulta el código IATA de Lima (DAN LIMA), decodifica el código BOG (DAC BOG) y calcula la conversión de los gastos de gestión de $35 USD a COP (FQC35USD/COP).",
+      "description": "PASAJEROS: Consulta de agencia.\nTAREA: Codifica el aeropuerto de Lima (DAN LIMA), decodifica el código IATA de Bogotá (DAC BOG) y calcula la conversión de $35 USD de gastos de gestión a COP (FQC35USD/COP).",
       "initialState": {},
       "targetState": {
         "viewedHelp": true
@@ -202,9 +201,9 @@
     },
     {
       "id": "scenario-12",
-      "title": "Nivel 12: Horarios Neutrales (SN) & Cotización con Modificadores (FXX/R,CH)",
-      "difficulty": "Intermedio",
-      "description": "Consulta la programación neutral de vuelos Lima a Bogotá para el 13 de Marzo (SN13MARLIMCOP). Vende 1 asiento en clase Económica y realiza la cotización informativa con modificador de tarifa de niño (FXX/R,CH).",
+      "title": "Nivel 12: Reserva Familiar con Niños (1 ADT + 1 CHD) y Tarifa Especial",
+      "difficulty": "Avanzado",
+      "description": "PASAJEROS: 1 ADT (Adulto) + 1 CHD (Niño: Juan Pérez).\nRUTA: Lima (LIM) -> Bogotá (BOG).\nFECHA SALIDA: 13MAR.\nCABINA: Turista (Clase Y).\nTAREA: Revisa programación neutral (SN13MARLIMCOP), disponibilidad (AN13MARLIMBOG), vende 1 asiento (SS1Y1), ingresa niño NM1PEREZ/JUAN(CHD/10MAY18), contacto APBOG 573001112233-M, TK OK, cotiza tarifa de niño (FXX/R,CH), recibido RF PAREJA y guarda con ER.",
       "initialState": {
         "searchDate": "13MAR",
         "searchOrigin": "LIM",
