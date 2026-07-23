@@ -20,7 +20,39 @@ export class ResponseGenerator {
       return `*** ${result.error || 'FORMAT ERROR'} ***`;
     }
 
-    // 1. Respuestas de Disponibilidad (AN)
+    // 1. Codificación/Decodificación DAN / DAC
+    if (result.type === 'ENCODE_CITY') {
+      return `DAN ENCODE NAME RESULT:\nCITY: ${result.data.city}\nIATA CODE: ${result.data.code}\nCOUNTRY: ${result.data.country}`;
+    }
+    if (result.type === 'DECODE_CITY') {
+      return `DAC DECODE CODE RESULT:\nIATA CODE: ${result.data.code}\nLOCATION: ${result.data.name}\nCOUNTRY: ${result.data.country}`;
+    }
+
+    // 2. Conversión de Moneda FQC
+    if (result.type === 'CURRENCY_CONVERSION') {
+      const d = result.data;
+      return [
+        `** AMADEUS CURRENCY CONVERSION - FQC **`,
+        `AMOUNT CONVERTED: ${d.amount} ${d.fromCurrency}`,
+        `EXCHANGE RATE BSR: 1 ${d.fromCurrency} = ${d.rate} ${d.toCurrency}`,
+        `TOTAL AMOUNT     : ${d.convertedAmount} ${d.toCurrency}`
+      ].join('\n');
+    }
+
+    // 3. Programación Neutral SN
+    if (result.type === 'SCHEDULE') {
+      const { date, origin, destination, flights } = result.data;
+      let lines = [`SN ${date} ${origin}${destination}`];
+      lines.push(`** AMADEUS SCHEDULE NEUTRAL - SN ** ${origin} ${destination}  ${date}`);
+      (flights || []).forEach((f, idx) => {
+        lines.push(
+          `${idx + 1}  ${f.airline} ${f.flightNumber}  ${f.origin}${f.destination} ${f.departure} ${f.arrival} E0/${f.equipment || 'A320'}`
+        );
+      });
+      return lines.join('\n');
+    }
+
+    // 4. Respuestas de Disponibilidad (AN)
     if (result.type === 'AVAILABILITY') {
       return this.formatAvailability(result.data);
     }

@@ -1,8 +1,80 @@
 {
   "profile": "amadeus",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "name": "Amadeus GDS Profile",
   "commands": [
+    {
+      "code": "DAN",
+      "category": "Encoding/Decoding",
+      "name": "Encode City / Airport Name",
+      "description": "Busca el código IATA de 3 letras a partir del nombre de una ciudad o aeropuerto.",
+      "syntax": [
+        "DAN {cityName}"
+      ],
+      "tokens": {
+        "cityName": "^(.+)"
+      },
+      "handler": "ENCODE_CITY",
+      "examples": ["DAN LIMA", "DAN BOGOTA", "DAN MADRID"],
+      "errors": {
+        "NOT_FOUND": "NO MATCH FOR CITY NAME"
+      }
+    },
+    {
+      "code": "DAC",
+      "category": "Encoding/Decoding",
+      "name": "Decode IATA City / Airport Code",
+      "description": "Decodifica el nombre completo de una ciudad y país a partir de su código IATA de 3 letras.",
+      "syntax": [
+        "DAC{cityCode}"
+      ],
+      "tokens": {
+        "cityCode": "^([A-Z]{3})"
+      },
+      "handler": "DECODE_CITY",
+      "examples": ["DAC LIM", "DAC BOG", "DAC MAD"],
+      "errors": {
+        "INVALID_CODE": "CHECK IATA CITY CODE"
+      }
+    },
+    {
+      "code": "FQC",
+      "category": "Currency",
+      "name": "Foreign Currency Conversion",
+      "description": "Calcula la conversión entre divisas (ej: USD a COP) aplicando tasa BSR/IATA y gastos de gestión.",
+      "syntax": [
+        "FQC{amount}{fromCurrency}/{toCurrency}"
+      ],
+      "tokens": {
+        "amount": "^(\\d+(?:\\.\\d+)?)",
+        "fromCurrency": "^([A-Z]{3})/",
+        "toCurrency": "^([A-Z]{3})"
+      },
+      "handler": "CONVERT_CURRENCY",
+      "examples": ["FQC35USD/COP", "FQC100EUR/USD"],
+      "errors": {
+        "INVALID_CURRENCY": "CHECK CURRENCY CODE"
+      }
+    },
+    {
+      "code": "SN",
+      "category": "Schedules",
+      "name": "Schedule Neutral Display",
+      "description": "Muestra la programación completa de horarios de vuelos independientes de disponibilidad.",
+      "syntax": [
+        "SN{date}{origin}{destination}"
+      ],
+      "tokens": {
+        "date": "^(\\d{1,2}[A-Z]{3})",
+        "origin": "^([A-Z]{3})",
+        "destination": "^([A-Z]{3})"
+      },
+      "handler": "QUERY_SCHEDULE",
+      "examples": ["SN13MARLIMCOP", "SN25NOVBOGMIA"],
+      "errors": {
+        "INVALID_CITY": "CHECK CITY CODES"
+      }
+    },
     {
       "code": "AN",
       "category": "Availability",
@@ -214,11 +286,16 @@
       "code": "FXX",
       "category": "Pricing",
       "name": "Price Itinerary (Informative)",
-      "description": "Muestra la tarifa cotizada sin guardar el registro TST en el PNR.",
-      "syntax": ["FXX"],
-      "tokens": {},
+      "description": "Muestra la tarifa cotizada con modificadores opcionales (/R,CH, /R,IN, /R,RAD) sin guardar TST.",
+      "syntax": [
+        "FXX",
+        "FXX/R,{modifier}"
+      ],
+      "tokens": {
+        "modifier": "(?:/R,([A-Z0-9*,-]+))?"
+      },
       "handler": "PRICE_INFORMATIVE",
-      "examples": ["FXX"],
+      "examples": ["FXX", "FXX/R,CH", "FXX/R,RAD*CH*IN"],
       "errors": {
         "NO_ITINERARY": "NO ITINERARY TO PRICE"
       }
@@ -227,11 +304,16 @@
       "code": "FXP",
       "category": "Pricing",
       "name": "Price Itinerary and Create TST",
-      "description": "Cotiza el itinerario y crea el registro de tarifa (TST) para emisión.",
-      "syntax": ["FXP"],
-      "tokens": {},
+      "description": "Cotiza el itinerario con modificadores (/R,CH, /R,RAD) y crea el registro de tarifa (TST) para emisión.",
+      "syntax": [
+        "FXP",
+        "FXP/R,{modifier}"
+      ],
+      "tokens": {
+        "modifier": "(?:/R,([A-Z0-9*,-]+))?"
+      },
       "handler": "PRICE_AND_STORE",
-      "examples": ["FXP"],
+      "examples": ["FXP", "FXP/R,CH", "FXP/R,RAD*CH*IN"],
       "errors": {
         "NO_ITINERARY": "NO ITINERARY TO PRICE",
         "NO_NAMES": "NEED PASSENGER NAME"
@@ -250,14 +332,14 @@
         "topic": "^([A-Z0-9]+)"
       },
       "handler": "SHOW_HELP",
-      "examples": ["HE", "HE AN", "HE NM"],
+      "examples": ["HE", "HE AN", "HE NM", "HE DAN", "HE FQC"],
       "errors": {}
     },
     {
       "code": "SR",
       "category": "Services",
       "name": "Special Service Request (SSR)",
-      "description": "Registra solicitudes especiales (comida vegetal, silla de ruedas, etc.).",
+      "description": "Registra solicitudes especiales (comida vegetariana, silla de ruedas, infantes, etc.).",
       "syntax": [
         "SR {code}"
       ],
@@ -265,7 +347,7 @@
         "code": "^([A-Z4]{4})"
       },
       "handler": "ADD_SSR",
-      "examples": ["SR VGML", "SR WCHR"],
+      "examples": ["SR VGML", "SR WCHR", "SR INFT"],
       "errors": {
         "INVALID_CODE": "CHECK SERVICE CODE"
       }
@@ -283,7 +365,7 @@
         "text": "^(.+)"
       },
       "handler": "ADD_OSI",
-      "examples": ["OS AV PASAJERO VIP"],
+      "examples": ["OS AV PASAJERO VIP", "OS IB CLIENTE FRECUENTE"],
       "errors": {}
     },
     {

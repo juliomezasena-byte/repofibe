@@ -21,7 +21,11 @@ const testCases = [
   { input: 'RF CARLOS', expectedCode: 'RF', expectedHandler: 'SET_RECEIVED_FROM' },
   { input: 'ER', expectedCode: 'ER', expectedHandler: 'END_AND_REDISPLAY' },
   { input: 'FXP', expectedCode: 'FXP', expectedHandler: 'PRICE_AND_STORE' },
-  { input: 'HE AN', expectedCode: 'HE', expectedHandler: 'SHOW_HELP' }
+  { input: 'HE AN', expectedCode: 'HE', expectedHandler: 'SHOW_HELP' },
+  { input: 'DAN LIMA', expectedCode: 'DAN', expectedHandler: 'ENCODE_CITY' },
+  { input: 'DAC BOG', expectedCode: 'DAC', expectedHandler: 'DECODE_CITY' },
+  { input: 'FQC35USD/COP', expectedCode: 'FQC', expectedHandler: 'CONVERT_CURRENCY' },
+  { input: 'SN13MARLIMCOP', expectedCode: 'SN', expectedHandler: 'QUERY_SCHEDULE' }
 ];
 
 let passed = 0;

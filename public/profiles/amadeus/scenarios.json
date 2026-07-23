@@ -188,6 +188,37 @@
         "isTicketed": true
       },
       "suggestedFlow": ["AN20DECMEXBOG", "SS1Y1", "NM1RAMIREZ/DIEGO MR", "APMEX 525512345678-M", "TK OK", "FXP", "RF DIEGO", "ER", "TTP"]
+    },
+    {
+      "id": "scenario-11",
+      "title": "Nivel 11: Codificación IATA (DAN/DAC) & Conversión FQC",
+      "difficulty": "Principiante",
+      "description": "El cliente consulta el código IATA de Lima (DAN LIMA), decodifica el código BOG (DAC BOG) y calcula la conversión de los gastos de gestión de $35 USD a COP (FQC35USD/COP).",
+      "initialState": {},
+      "targetState": {
+        "viewedHelp": true
+      },
+      "suggestedFlow": ["DAN LIMA", "DAC BOG", "FQC35USD/COP", "HE FQC"]
+    },
+    {
+      "id": "scenario-12",
+      "title": "Nivel 12: Horarios Neutrales (SN) & Cotización con Modificadores (FXX/R,CH)",
+      "difficulty": "Intermedio",
+      "description": "Consulta la programación neutral de vuelos Lima a Bogotá para el 13 de Marzo (SN13MARLIMCOP). Vende 1 asiento en clase Económica y realiza la cotización informativa con modificador de tarifa de niño (FXX/R,CH).",
+      "initialState": {
+        "searchDate": "13MAR",
+        "searchOrigin": "LIM",
+        "searchDestination": "COP"
+      },
+      "targetState": {
+        "passengersCount": 1,
+        "segmentsCount": 1,
+        "hasPhone": true,
+        "hasTicketing": true,
+        "hasReceivedFrom": true,
+        "isTransacted": true
+      },
+      "suggestedFlow": ["SN13MARLIMCOP", "AN13MARLIMBOG", "SS1Y1", "NM1PEREZ/JUAN(CHD/10MAY18)", "APBOG 573001112233-M", "TK OK", "FXX/R,CH", "RF PAREJA", "ER"]
     }
   ]
 }

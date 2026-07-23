@@ -56,6 +56,18 @@ export class PnrStateMachine {
     const { handler, params, rawInput } = parsedCommand;
 
     switch (handler) {
+      case 'ENCODE_CITY':
+        return this.handleEncodeCity(params, rawInput);
+
+      case 'DECODE_CITY':
+        return this.handleDecodeCity(params, rawInput);
+
+      case 'CONVERT_CURRENCY':
+        return this.handleConvertCurrency(params, rawInput);
+
+      case 'QUERY_SCHEDULE':
+        return this.handleSchedule(params, flightsCatalog);
+
       case 'QUERY_AVAILABILITY':
         return this.handleAvailability(params, flightsCatalog);
 
@@ -350,6 +362,110 @@ export class PnrStateMachine {
       success: true,
       ticketNumber: `791-${Math.floor(1000000000 + Math.random() * 9000000000)}`,
       message: 'ELECTRONIC TICKET ISSUED OK'
+    };
+  }
+
+  handleEncodeCity(params, rawInput) {
+    const query = rawInput.replace(/^DAN\s*/, '').trim().toUpperCase();
+    const dictionary = {
+      'LIMA': { code: 'LIM', city: 'LIMA', country: 'PERU' },
+      'BOGOTA': { code: 'BOG', city: 'BOGOTA', country: 'COLOMBIA' },
+      'MADRID': { code: 'MAD', city: 'MADRID', country: 'SPAIN' },
+      'MIAMI': { code: 'MIA', city: 'MIAMI', country: 'UNITED STATES' },
+      'MEXICO': { code: 'MEX', city: 'MEXICO CITY', country: 'MEXICO' },
+      'BARCELONA': { code: 'BCN', city: 'BARCELONA', country: 'SPAIN' }
+    };
+
+    const match = dictionary[query] || { code: query.slice(0, 3), city: query, country: 'INTERNATIONAL' };
+    return { success: true, type: 'ENCODE_CITY', data: match };
+  }
+
+  handleDecodeCity(params, rawInput) {
+    const code = rawInput.replace(/^DAC\s*/, '').trim().toUpperCase();
+    const dictionary = {
+      'LIM': { code: 'LIM', name: 'LIMA / JORGE CHAVEZ INTL', country: 'PERU' },
+      'BOG': { code: 'BOG', name: 'BOGOTA / EL DORADO INTL', country: 'COLOMBIA' },
+      'MAD': { code: 'MAD', name: 'MADRID / ADOLFO SUAREZ BARAJAS', country: 'SPAIN' },
+      'MIA': { code: 'MIA', name: 'MIAMI / MIAMI INTL', country: 'UNITED STATES' },
+      'MEX': { code: 'MEX', name: 'MEXICO CITY / BENITO JUAREZ INTL', country: 'MEXICO' },
+      'BCN': { code: 'BCN', name: 'BARCELONA / EL PRAT INTL', country: 'SPAIN' }
+    };
+
+    const match = dictionary[code] || { code, name: `${code} AIRPORT`, country: 'GLOBAL' };
+    return { success: true, type: 'DECODE_CITY', data: match };
+  }
+
+  handleConvertCurrency(params, rawInput) {
+    const amount = parseFloat(params.amount || '35');
+    const from = params.fromCurrency || 'USD';
+    const to = params.toCurrency || 'COP';
+
+    // Tasas fijas sintéticas para simulación GDS
+    const rates = {
+      'USD_COP': 4150.0,
+      'EUR_USD': 1.08,
+      'USD_EUR': 0.92,
+      'EUR_COP': 4480.0,
+      'COP_USD': 0.00024
+    };
+
+    const key = `${from}_${to}`;
+    const rate = rates[key] || 4150.0;
+    const converted = (amount * rate).toFixed(2);
+
+    return {
+      success: true,
+      type: 'CURRENCY_CONVERSION',
+      data: {
+        amount,
+        fromCurrency: from,
+        toCurrency: to,
+        rate,
+        convertedAmount: converted
+      }
+    };
+  }
+
+  handleSchedule(params, flightsCatalog) {
+    const origin = params.origin || 'LIM';
+    const destination = params.destination || 'COP';
+    const date = params.date || '13MAR';
+
+    let matches = flightsCatalog.filter(
+      f => f.origin === origin && f.destination === destination
+    );
+
+    if (matches.length === 0) {
+      matches = [
+        {
+          line: 1,
+          airline: 'AV',
+          flightNumber: '0142',
+          origin,
+          destination,
+          departure: '10:30',
+          arrival: '13:45',
+          equipment: 'A320',
+          stops: 0
+        },
+        {
+          line: 2,
+          airline: 'LA',
+          flightNumber: '2410',
+          origin,
+          destination,
+          departure: '17:10',
+          arrival: '20:25',
+          equipment: 'B789',
+          stops: 0
+        }
+      ];
+    }
+
+    return {
+      success: true,
+      type: 'SCHEDULE',
+      data: { date, origin, destination, flights: matches }
     };
   }
 }
