@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { TerminalSquare, BookOpen, Download } from 'lucide-react';
+import { TerminalSquare, BookOpen, Brain, Layout } from 'lucide-react';
 import { DslParser } from './engine/DslParser';
 import { PnrStateMachine } from './engine/PnrStateMachine';
 import { ResponseGenerator } from './engine/ResponseGenerator';
 import { EvaluationEngine } from './engine/EvaluationEngine';
 import { Terminal } from './components/Terminal';
 import { ScenarioSelector } from './components/ScenarioSelector';
+import { QuizPanel } from './components/QuizPanel';
 
 export function App() {
   const [profileConfig, setProfileConfig] = useState(null);
@@ -14,6 +15,7 @@ export function App() {
   const [scenarios, setScenarios] = useState([]);
   const [activeScenarioId, setActiveScenarioId] = useState('scenario-1');
   const [history, setHistory] = useState([]);
+  const [activeTab, setActiveTab] = useState('sim'); // 'sim' | 'quiz'
 
   // Instancias de los motores del simulador
   const pnrFsm = useMemo(() => new PnrStateMachine(), []);
@@ -124,7 +126,21 @@ export function App() {
 
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
-            onClick={() => handleExecuteCommand('HE')}
+            onClick={() => setActiveTab('sim')}
+            className={`keypad-btn ${activeTab === 'sim' ? 'tab-active' : ''}`}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            <Layout size={14} /> Simulador
+          </button>
+          <button
+            onClick={() => setActiveTab('quiz')}
+            className={`keypad-btn ${activeTab === 'quiz' ? 'tab-active' : ''}`}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            <Brain size={14} /> Teoría
+          </button>
+          <button
+            onClick={() => { setActiveTab('sim'); handleExecuteCommand('HE'); }}
             className="keypad-btn"
             style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
           >
@@ -133,17 +149,27 @@ export function App() {
         </div>
       </header>
 
-      <main className="main-layout">
-        <Terminal onExecuteCommand={handleExecuteCommand} history={history} />
+      {activeTab === 'quiz' ? (
+        <main className="main-layout quiz-layout">
+          <QuizPanel
+            profileConfig={profileConfig}
+            locationsCatalog={locationsCatalog}
+            flightsCatalog={flightsCatalog}
+          />
+        </main>
+      ) : (
+        <main className="main-layout">
+          <Terminal onExecuteCommand={handleExecuteCommand} history={history} />
 
-        <ScenarioSelector
-          scenarios={scenarios}
-          activeScenarioId={activeScenarioId}
-          onSelectScenario={handleSelectScenario}
-          evaluationResult={evaluationResult}
-          onResetScenario={handleResetScenario}
-        />
-      </main>
+          <ScenarioSelector
+            scenarios={scenarios}
+            activeScenarioId={activeScenarioId}
+            onSelectScenario={handleSelectScenario}
+            evaluationResult={evaluationResult}
+            onResetScenario={handleResetScenario}
+          />
+        </main>
+      )}
     </div>
   );
 }

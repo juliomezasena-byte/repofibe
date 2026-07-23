@@ -5,6 +5,7 @@ import { DslParser } from '../src/engine/DslParser.js';
 import { PnrStateMachine } from '../src/engine/PnrStateMachine.js';
 import { ResponseGenerator } from '../src/engine/ResponseGenerator.js';
 import { EvaluationEngine } from '../src/engine/EvaluationEngine.js';
+import { QuizEngine } from '../src/engine/QuizEngine.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -188,11 +189,68 @@ probarTolerancia('Ruta sin catálogo también trae 3 opciones con escalera', ['S
     return ok ? null : `opciones: ${fl.length}`;
   });
 
+// ── Suite del QuizEngine (modo Teoría de Juan Pablo) ──
+console.log('\n--- SUITE DEL QUIZ (TEORÍA) ---');
+let quizFailures = 0;
+const quiz = new QuizEngine({ commands: spec.commands, locations, flights });
+
+function probarQuiz(nombre, fn) {
+  try {
+    const err = fn();
+    if (err) { console.error(`  [FAIL] ${nombre}: ${err}`); quizFailures++; }
+    else console.log(`  [PASS] ${nombre}`);
+  } catch (e) {
+    console.error(`  [FAIL] ${nombre}: excepción ${e.message}`); quizFailures++;
+  }
+}
+
+probarQuiz('Determinismo: mismo seed => mismo quiz', () => {
+  const a = quiz.generateQuiz(10, 42);
+  const b = quiz.generateQuiz(10, 42);
+  return JSON.stringify(a) === JSON.stringify(b) ? null : 'quizzes distintos con el mismo seed';
+});
+
+probarQuiz('200 preguntas: 4 opciones únicas y respuesta válida', () => {
+  for (let seed = 1; seed <= 20; seed++) {
+    for (const q of quiz.generateQuiz(10, seed)) {
+      if (q.options.length !== 4) return `"${q.prompt}" tiene ${q.options.length} opciones`;
+      if (new Set(q.options).size !== 4) return `opciones duplicadas en "${q.prompt}"`;
+      if (q.correctIndex < 0 || q.correctIndex > 3) return `correctIndex inválido en "${q.prompt}"`;
+      if (!q.explain) return `sin explicación en "${q.prompt}"`;
+    }
+  }
+  return null;
+});
+
+probarQuiz('Todos los tipos de pregunta se generan', () => {
+  const tipos = new Set(quiz.generateQuiz(14, 7).map((q) => q.type));
+  const faltan = QuizEngine.TYPES.filter((t) => !tipos.has(t));
+  return faltan.length === 0 ? null : `faltan tipos: ${faltan.join(',')}`;
+});
+
+probarQuiz('Sin prompts repetidos dentro de un quiz', () => {
+  const qs = quiz.generateQuiz(10, 99);
+  return new Set(qs.map((q) => q.prompt)).size === qs.length ? null : 'prompts repetidos';
+});
+
+probarQuiz('city-iata: los distractores nunca son códigos de la misma ciudad', () => {
+  for (let seed = 1; seed <= 30; seed++) {
+    for (const q of quiz.generateQuiz(10, seed).filter((x) => x.type === 'city-iata')) {
+      const ciudad = q.prompt.match(/de (.+)\?$/)[1];
+      const codesDeCiudad = locations.filter((l) => l.city === ciudad).map((l) => l.code);
+      const malos = q.options.filter((o, i) => i !== q.correctIndex && codesDeCiudad.includes(o));
+      if (malos.length) return `distractor ambiguo ${malos[0]} para ${ciudad}`;
+    }
+  }
+  return null;
+});
+
 console.log(`\n==========================================`);
 console.log(`Resumen QA: ${passedScenarios}/${scenarios.length} escenarios superados.`);
 console.log(`Tolerancia: ${toleranceFailures === 0 ? 'OK' : toleranceFailures + ' fallos'}`);
+console.log(`Quiz: ${quizFailures === 0 ? 'OK' : quizFailures + ' fallos'}`);
 console.log(`==========================================`);
 
-if (passedScenarios < scenarios.length || toleranceFailures > 0) {
+if (passedScenarios < scenarios.length || toleranceFailures > 0 || quizFailures > 0) {
   process.exit(1);
 }
