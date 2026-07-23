@@ -25,7 +25,9 @@ const testCases = [
   { input: 'DAN LIMA', expectedCode: 'DAN', expectedHandler: 'ENCODE_CITY' },
   { input: 'DAC BOG', expectedCode: 'DAC', expectedHandler: 'DECODE_CITY' },
   { input: 'FQC35USD/COP', expectedCode: 'FQC', expectedHandler: 'CONVERT_CURRENCY' },
-  { input: 'SN13MARLIMCOP', expectedCode: 'SN', expectedHandler: 'QUERY_SCHEDULE' }
+  { input: 'SN13MARLIMCOP', expectedCode: 'SN', expectedHandler: 'QUERY_SCHEDULE' },
+  { input: 'DF 2*200000;1000000;860000;240000*3', expectedCode: 'DF', expectedHandler: 'SUM_FARES' },
+  { input: 'RM *22JUL26* TTL 12900000 COP', expectedCode: 'RM', expectedHandler: 'ADD_REMARK' }
 ];
 
 let passed = 0;

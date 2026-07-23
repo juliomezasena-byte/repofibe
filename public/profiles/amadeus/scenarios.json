@@ -218,6 +218,57 @@
         "isTransacted": true
       },
       "suggestedFlow": ["SN 12 APR MEX SDQ", "AN13MARLIMBOG", "SS1Y1", "NM1PEREZ/JUAN(CHD/10MAY18)", "APBOG 573001112233-M", "TK OK", "FXX/FF-OPTIMA/RAD*CH*IN,BOG", "RF PAREJA", "ER"]
+    },
+    {
+      "id": "scenario-13",
+      "title": "Nivel 13: Facturación y Suma de Tarifas (DF) - Ejemplo de Clase",
+      "difficulty": "Intermedio",
+      "description": "PASAJEROS (PAXS): 2 ADT ($200.000 COP c/u) + 1 CHD ($1.000.000 COP) + 1 INF ($860.000 COP) + Gastos de Gestión ($240.000 x 3 PAXS).\nTAREA: Utiliza el comando DF del manual de clase para calcular el valor total del vuelo (DF 2*200000;1000000;860000;240000*3).",
+      "initialState": {},
+      "targetState": {
+        "viewedHelp": true
+      },
+      "suggestedFlow": ["DF 2*200000;1000000;860000;240000*3", "HE DF"]
+    },
+    {
+      "id": "scenario-14",
+      "title": "Nivel 14: Registro de Notas de Tarifa y Políticas de Reembolso (RM)",
+      "difficulty": "Intermedio",
+      "description": "PASAJEROS (PAXS): 1 ADT (Carlos García MR).\nTAREA: Registra las notas explicativas en la reserva activa: valores por tipo de pasajero (RM *22JUL26* ADT 2200000, CHD 1000000, INF 860000, GG 240000 COP), total de la transacción (RM *22JUL26* TTL 12900000 COP) y política de reembolso (RM *22JUL26* FC1,2 TKT REEMB, CHG NO PENTY + DF + GG).",
+      "initialState": {
+        "pnr": {
+          "code": "RM9999",
+          "passengers": [{ "id": 1, "name": "GARCIA/CARLOS MR" }],
+          "segments": [{ "id": 1, "flight": "AV0026", "class": "Y", "date": "25NOV", "route": "BOG-MIA", "status": "HK1" }],
+          "contacts": [{ "id": 1, "text": "APBOG 573001234567-M" }],
+          "ticketing": "TK OK"
+        }
+      },
+      "targetState": {
+        "hasReceivedFrom": true,
+        "isTransacted": true
+      },
+      "suggestedFlow": ["RM *22JUL26* ADT 2200000, CHD 1000000, INF 860000, GG 240000 COP", "RM *22JUL26* TTL 12900000 COP", "RM *22JUL26* FC1,2 TKT REEMB, CHG NO PENTY + DF + GG", "RF CARLOS", "ER"]
+    },
+    {
+      "id": "scenario-15",
+      "title": "Nivel 15: Caso Integrador República Dominicana (Business Flex SDQ)",
+      "difficulty": "Avanzado",
+      "description": "PASAJEROS (PAXS): 1 ADT + 1 CHD en Cabina Business con Tarifa Flex en República Dominicana (SDQ).\nTAREA: Calcula la conversión de gastos (FQC 35USD/DOP), consulta horarios (SN 12 APR MEX SDQ), vende 2 puestos en Business (SS2C1), registra nombres (NM2PEREZ/JUAN MR/MARIA(CHD)), contacto (APSDQ 18095551234-M), TK OK, facturar tarifa Business Flex (FXX/FF-BUSFLEX/RAD*CH, SDQ), recibido RF CLIENTE y guarda con ER.",
+      "initialState": {
+        "searchDate": "12APR",
+        "searchOrigin": "MEX",
+        "searchDestination": "SDQ"
+      },
+      "targetState": {
+        "passengersCount": 2,
+        "segmentsCount": 1,
+        "hasPhone": true,
+        "hasTicketing": true,
+        "hasReceivedFrom": true,
+        "isTransacted": true
+      },
+      "suggestedFlow": ["FQC 35USD/DOP", "SN 12 APR MEX SDQ", "SS2C1", "NM2PEREZ/JUAN MR/MARIA(CHD)", "APSDQ 18095551234-M", "TK OK", "FXX/FF-BUSFLEX/RAD*CH, SDQ", "RF CLIENTE", "ER"]
     }
   ]
 }

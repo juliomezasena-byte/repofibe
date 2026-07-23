@@ -399,6 +399,41 @@
       "handler": "SIGN_OUT",
       "examples": ["SO"],
       "errors": {}
+    },
+    {
+      "code": "DF",
+      "category": "Pricing",
+      "name": "Detailed Fare Summation",
+      "description": "Calcula la suma total de las tarifas de los pasajeros más los gastos de gestión (DF VALOR1;VALOR2;GASTOS*CANTIDAD_PAX).",
+      "syntax": [
+        "DF {expression}"
+      ],
+      "tokens": {
+        "expression": "^(.+)"
+      },
+      "handler": "SUM_FARES",
+      "examples": ["DF 2*200000;1000000;860000;240000*3", "DF 500000;250000;100000*2"],
+      "errors": {
+        "FORMAT_ERROR": "FORMAT ERROR - DF EXPRESSION"
+      }
+    },
+    {
+      "code": "RM",
+      "category": "Remarks",
+      "name": "General Remark / Notes",
+      "description": "Registra notas explicativas, desgloses de tarifa y políticas de reembolso en la reserva.",
+      "syntax": [
+        "RM {text}",
+        "RM*{date}*{text}"
+      ],
+      "tokens": {
+        "text": "^(.+)"
+      },
+      "handler": "ADD_REMARK",
+      "examples": ["RM *22JUL26* ADT 2200000, CHD 1000000, INF 860000, GG 240000 COP", "RM *22JUL26* TTL 12900000 COP"],
+      "errors": {
+        "FORMAT_ERROR": "FORMAT ERROR - REMARK"
+      }
     }
   ]
 }

@@ -57,6 +57,25 @@ export class ResponseGenerator {
       return this.formatAvailability(result.data);
     }
 
+    // 5. Facturación de Tarifas (DF)
+    if (result.type === 'FARE_SUMMATION') {
+      const d = result.data;
+      let lines = [`** AMADEUS DETAILED FARE SUMMATION - DF **`];
+      lines.push(`EXPRESSION: ${d.rawInput}`);
+      lines.push(`DESGLOSE DE TARIFAS Y GASTOS:`);
+      d.items.forEach((item, idx) => {
+        lines.push(`  PARTE ${idx + 1}: ${item.text.padEnd(20)} = ${item.subtotal.toLocaleString()}`);
+      });
+      lines.push(`----------------------------------------`);
+      lines.push(`VALOR TOTAL DEL VUELO: ${d.totalSum.toLocaleString()}`);
+      return lines.join('\n');
+    }
+
+    // 6. Registro de Notas (RM)
+    if (result.type === 'ADD_REMARK') {
+      return `${result.message}\nRM: ${result.data.text}`;
+    }
+
     // 2. Ayuda (HE)
     if (result.type === 'HELP') {
       return this.formatHelp(result.topic);
@@ -141,6 +160,12 @@ export class ResponseGenerator {
     // OSIs
     (pnr.osis || []).forEach((osi) => {
       lines.push(`${lineIndex} OS ${osi}`);
+      lineIndex++;
+    });
+
+    // Remarks (RM)
+    (pnr.remarks || []).forEach((rm) => {
+      lines.push(`${lineIndex} RM ${rm.text}`);
       lineIndex++;
     });
 

@@ -19,6 +19,7 @@ export class PnrStateMachine {
       receivedFrom: null,
       ssrs: [],
       osis: [],
+      remarks: [],
       tst: null,
       isTicketed: false,
       isTransacted: false,
@@ -37,7 +38,8 @@ export class PnrStateMachine {
       segments: newState.segments ? [...newState.segments] : [],
       contacts: newState.contacts ? [...newState.contacts] : [],
       ssrs: newState.ssrs ? [...newState.ssrs] : [],
-      osis: newState.osis ? [...newState.osis] : []
+      osis: newState.osis ? [...newState.osis] : [],
+      remarks: newState.remarks ? [...newState.remarks] : []
     };
   }
 
@@ -115,6 +117,12 @@ export class PnrStateMachine {
 
       case 'ADD_OSI':
         return this.handleAddOsi(params, rawInput);
+
+      case 'SUM_FARES':
+        return this.handleFareSummation(params, rawInput);
+
+      case 'ADD_REMARK':
+        return this.handleAddRemark(params, rawInput);
 
       case 'SHOW_HELP':
         this.state.viewedHelp = true;
@@ -473,6 +481,61 @@ export class PnrStateMachine {
       success: true,
       type: 'SCHEDULE',
       data: { date, origin, destination, flights: matches }
+    };
+  }
+
+  handleFareSummation(params, rawInput) {
+    const rawExpr = (rawInput.slice(2).trim() || '').replace(/\s+/g, '');
+    const tokens = rawExpr.split(';').filter(Boolean);
+
+    let items = [];
+    let totalSum = 0;
+
+    for (const token of tokens) {
+      if (token.includes('*')) {
+        const parts = token.split('*');
+        const val1 = parseFloat(parts[0]) || 0;
+        const val2 = parseFloat(parts[1]) || 0;
+        const subtotal = val1 * val2;
+        totalSum += subtotal;
+        items.push({ text: token, subtotal, isMultiplier: true, val1, val2 });
+      } else {
+        const val = parseFloat(token) || 0;
+        totalSum += val;
+        items.push({ text: token, subtotal: val, isMultiplier: false, val1: val });
+      }
+    }
+
+    return {
+      success: true,
+      type: 'FARE_SUMMATION',
+      data: {
+        rawInput,
+        items,
+        totalSum
+      }
+    };
+  }
+
+  handleAddRemark(params, rawInput) {
+    const remarkText = rawInput.slice(2).trim();
+    if (!remarkText) {
+      return { success: false, error: 'FORMAT ERROR - MISSING REMARK TEXT' };
+    }
+
+    const newRemark = {
+      id: this.state.remarks.length + 1,
+      text: remarkText
+    };
+
+    this.state.remarks.push(newRemark);
+    this.state.isTransacted = false;
+
+    return {
+      success: true,
+      type: 'ADD_REMARK',
+      data: newRemark,
+      message: `RM LINE ${newRemark.id} ADDED`
     };
   }
 }
