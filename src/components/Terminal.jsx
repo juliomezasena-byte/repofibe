@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { SmartKeypad } from './SmartKeypad';
 
-export const Terminal = ({ onExecuteCommand, history, hideVerbs = false }) => {
+export const Terminal = ({ onExecuteCommand, history, hideVerbs = false, missionComplete = false }) => {
   const screenRef = useRef(null);
   const inputRef = useRef(null);
   const [inputVal, setInputVal] = useState('');
@@ -44,12 +44,19 @@ export const Terminal = ({ onExecuteCommand, history, hideVerbs = false }) => {
 
   return (
     <div className="terminal-wrapper">
-      <div className="terminal-header">
+      {/* La victoria vive en el CHROME del emulador, nunca en el scroll GDS
+          (Ley de Pantalla Limpia). El glow de 2s es puro CSS derivado del
+          render — sin efectos ni entradas sinteticas en history. */}
+      <div className={`terminal-header ${missionComplete ? 'mission-done' : ''}`}>
         <div>
           <span className="status-dot"></span>
           <span>AMADEUS 1A GDS<span className="hide-mobile"> TERMINAL (80 COLS)</span></span>
         </div>
-        <div>SESSION: ACTIVE<span className="hide-mobile"> (ONLINE)</span></div>
+        <div>
+          {missionComplete
+            ? 'MISION 100% ✓'
+            : <>SESSION: ACTIVE<span className="hide-mobile"> (ONLINE)</span></>}
+        </div>
       </div>
 
       <div className="terminal-screen" ref={screenRef}>

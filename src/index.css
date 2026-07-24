@@ -286,6 +286,82 @@ body {
   margin-right: 6px;
 }
 
+/* Victoria en el chrome: el header se pone ambar con un glow que corre UNA
+   vez al montar el estado (P3 presupuesto de atencion: un solo elemento). */
+.terminal-header.mission-done {
+  color: var(--crt-amber);
+  animation: mission-glow 2s ease-out;
+}
+
+.terminal-header.mission-done .status-dot {
+  background: var(--crt-amber);
+  box-shadow: 0 0 10px var(--crt-amber);
+}
+
+@keyframes mission-glow {
+  0% { text-shadow: 0 0 14px var(--crt-amber); background: rgba(255, 183, 0, 0.14); }
+  100% { text-shadow: 0 0 0 transparent; background: #0d1520; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .terminal-header.mission-done { animation: none; }
+}
+
+/* Barra de misión (solo móvil, oculta en desktop por defecto) */
+.mission-bar-mobile {
+  display: none;
+}
+
+@media (max-width: 868px) {
+  .mission-bar-mobile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    color: var(--text-light);
+    text-align: left;
+  }
+
+  .mission-bar-level {
+    font-weight: 700;
+    font-size: 0.82rem;
+    color: var(--crt-cyan);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mission-bar-pct {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Presupuesto de atención: en móvil el header cambia de color SIN glow;
+     el único elemento animado es la barra de misión. */
+  .terminal-header.mission-done {
+    animation: none;
+  }
+
+  .mission-bar-pct.done {
+    color: var(--crt-amber);
+    animation: mission-pulse 2s ease-out;
+  }
+
+  @keyframes mission-pulse {
+    0%, 100% { text-shadow: none; }
+    50% { text-shadow: 0 0 12px var(--crt-amber); }
+  }
+}
+
 .terminal-screen {
   flex: 1;
   padding: 16px;

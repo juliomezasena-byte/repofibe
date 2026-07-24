@@ -189,11 +189,28 @@ export function App() {
           />
         </main>
       ) : (
+        <>
+          {/* Barra de misión (solo móvil): progreso siempre visible sin
+              scrollear. Tocarla lleva al panel de la misión. */}
+          <button
+            className="mission-bar-mobile"
+            onClick={() => document.querySelector('.sidebar-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+          >
+            <span className="mission-bar-level">
+              {activeScenario ? activeScenario.title.split(':')[0] : 'MISIÓN'}
+              {examMode === 'exam' && ' · EXAMEN'}
+            </span>
+            <span className={`mission-bar-pct ${evaluationResult?.completed && examMode === 'practice' ? 'done' : ''}`}>
+              {examMode === 'exam' ? '⏱' : `${evaluationResult?.score ?? 0}%`} ▸ VER MISIÓN
+            </span>
+          </button>
+
         <main className="main-layout">
           <Terminal
             onExecuteCommand={handleExecuteCommand}
             history={history}
             hideVerbs={examMode === 'exam'}
+            missionComplete={examMode === 'practice' && !!evaluationResult?.completed}
           />
 
           <ScenarioSelector
@@ -209,6 +226,7 @@ export function App() {
             onDeliver={handleDeliver}
           />
         </main>
+        </>
       )}
     </div>
   );
