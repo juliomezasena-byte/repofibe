@@ -250,6 +250,26 @@ body {
     flex-wrap: wrap;
     overflow-x: visible;
   }
+
+  /* Atmósfera CRT: scanlines SOLO desktop. Van en el background del propio
+     elemento (background-attachment por defecto = fijo al elemento), así que
+     NO se mueven con el texto al hacer scroll y no necesitan overlay ni
+     pointer-events. Líneas finas al ~5% para no fatigar la vista. */
+  .terminal-screen {
+    background-image:
+      repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent 3px,
+        rgba(0, 0, 0, 0.22) 3px,
+        rgba(0, 0, 0, 0.22) 4px
+      ),
+      radial-gradient(circle at center, rgba(0, 255, 102, 0.02) 0%, transparent 80%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .terminal-screen { background-image: none; }
 }
 
 /* Pantalla CRT Terminal */
@@ -461,6 +481,18 @@ body {
   color: #5b6b7e;
 }
 
+/* Hint de error: capa UI (sans, NO es salida GDS), fuera del scroll */
+.terminal-tip {
+  background: #0d1520;
+  border-top: 1px dashed #1e2d42;
+  padding: 8px 14px;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  color: var(--crt-amber);
+}
+
+.terminal-tip b { color: var(--crt-cyan); }
+
 /* SmartKeypad Flotante (Móvil) */
 .smart-keypad {
   display: flex;
@@ -481,11 +513,34 @@ body {
   flex-wrap: wrap;
 }
 
-/* Verbos: fila deslizable horizontal */
+/* Verbos: fila deslizable horizontal, agrupados por capítulo del manual */
 .keypad-row.keypad-verbs {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   padding-bottom: 2px;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.keypad-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.keypad-group-label {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+  color: #64748b;
+  padding-left: 2px;
+  white-space: nowrap;
+}
+
+.keypad-group-btns {
+  display: flex;
+  gap: 6px;
 }
 
 .keypad-btn {
@@ -780,12 +835,14 @@ body {
 .quiz-title {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   font-family: var(--font-mono);
   font-weight: 700;
   color: var(--crt-green);
   text-shadow: 0 0 6px var(--crt-green-glow);
   font-size: 1rem;
+  text-align: center;
 }
 
 .quiz-sub {

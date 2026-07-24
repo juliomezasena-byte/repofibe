@@ -3,11 +3,17 @@ import { Delete, CornerDownLeft } from 'lucide-react';
 
 export const SmartKeypad = ({ onKeyPress, onBackspace, onSubmit, hideVerbs = false }) => {
   const symbols = ['/', '-', '*', '(', ')', ',', '.'];
-  // Comandos del manual de clase primero, luego el resto del ciclo PNR.
-  const verbs = [
-    'DAN', 'DAC', 'FQC', 'SN', 'MN', 'MY', 'MO', 'AN', 'SS', 'NM',
-    'FXX', 'FXP', 'FQN', 'MD', 'MU', 'DF', 'RM', 'AP', 'APE', 'SR',
-    'TK', 'TKXL', 'RF', 'ER', 'RT', 'XE', 'TTP', 'HE'
+  // Comandos agrupados por capítulo del manual (mapa mental del flujo).
+  const groups = [
+    { label: 'IATA/MONEDA', verbs: ['DAN', 'DAC', 'FQC'] },
+    { label: 'VUELOS', verbs: ['SN', 'AN', 'MN', 'MY', 'MO'] },
+    { label: 'VENTA', verbs: ['SS', 'NM'] },
+    { label: 'CONTACTOS', verbs: ['AP', 'APE'] },
+    { label: 'SERVICIOS', verbs: ['SR', 'OS'] },
+    { label: 'TARIFAS', verbs: ['FXX', 'FXP', 'FQN', 'DF', 'MD', 'MU'] },
+    { label: 'NOTAS', verbs: ['RM'] },
+    { label: 'CIERRE', verbs: ['TK', 'TKXL', 'RF', 'ER', 'TTP'] },
+    { label: 'PNR/AYUDA', verbs: ['RT', 'XE', 'HE'] }
   ];
 
   return (
@@ -52,19 +58,26 @@ export const SmartKeypad = ({ onKeyPress, onBackspace, onSubmit, hideVerbs = fal
         </button>
       </div>
 
-      {/* Fila 2: comandos (deslizable). En modo EXAMEN se oculta:
+      {/* Fila 2: comandos agrupados (deslizable). En modo EXAMEN se oculta:
           es una chuleta de reconocimiento y el examen mide recuerdo. */}
       {!hideVerbs && (
       <div className="keypad-row keypad-verbs">
-        {verbs.map((verb) => (
-          <button
-            key={verb}
-            className="keypad-btn verb-btn"
-            onClick={() => onKeyPress(verb)}
-            title={`Insertar ${verb}`}
-          >
-            {verb}
-          </button>
+        {groups.map((g) => (
+          <div key={g.label} className="keypad-group">
+            <span className="keypad-group-label">{g.label}</span>
+            <div className="keypad-group-btns">
+              {g.verbs.map((verb) => (
+                <button
+                  key={verb}
+                  className="keypad-btn verb-btn"
+                  onClick={() => onKeyPress(verb)}
+                  title={`Insertar ${verb}`}
+                >
+                  {verb}
+                </button>
+              ))}
+            </div>
+          </div>
         ))}
       </div>
       )}

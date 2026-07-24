@@ -139,7 +139,7 @@ export const QuizPanel = ({ profileConfig, locationsCatalog, flightsCatalog }) =
 
           <div className="quiz-stats-row">
             <div className="quiz-stat">
-              <Flame size={16} /> Racha: {stats.streak || 0} día(s)
+              <Flame size={16} /> Racha: {stats.streak || 0} días
             </div>
             <div className="quiz-stat">
               <Trophy size={16} /> Mejor: {stats.best || 0}/10
@@ -214,7 +214,7 @@ export const QuizPanel = ({ profileConfig, locationsCatalog, flightsCatalog }) =
                 : 'Sigue practicando: las falladas se repetirán hasta que las memorices.'}
           </p>
           <div className="quiz-stats-row">
-            <div className="quiz-stat"><Flame size={16} /> Racha: {stats.streak || 0} día(s)</div>
+            <div className="quiz-stat"><Flame size={16} /> Racha: {stats.streak || 0} días</div>
             <div className="quiz-stat"><Trophy size={16} /> Mejor: {stats.best || 0}/10</div>
           </div>
           <button className="quiz-big-btn" onClick={startQuiz}>

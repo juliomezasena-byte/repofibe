@@ -15,10 +15,33 @@ export const Terminal = forwardRef(({ onExecuteCommand, history, hideVerbs = fal
     }
   }));
 
+  // Hint de error en la capa UI (bajo la prompt, NUNCA en el scroll GDS).
+  // Se muestra solo las primeras 3 veces para no volverse ruido.
+  const [showTip, setShowTip] = useState(false);
+  const seenRef = useRef(0);
+  const last = history[history.length - 1];
+  const lastErrorCmd = last && last.isError ? last.command : null;
+
   // Auto-scroll al final de la pantalla CRT
   useEffect(() => {
     if (screenRef.current) {
       screenRef.current.scrollTop = screenRef.current.scrollHeight;
+    }
+  }, [history]);
+
+  useEffect(() => {
+    if (history.length <= seenRef.current) return;
+    seenRef.current = history.length;
+    const item = history[history.length - 1];
+    if (item && item.isError) {
+      let n = 0;
+      try { n = parseInt(localStorage.getItem('tipErrorCount') || '0', 10); } catch {}
+      if (n < 3) {
+        setShowTip(true);
+        try { localStorage.setItem('tipErrorCount', String(n + 1)); } catch {}
+      }
+    } else {
+      setShowTip(false);
     }
   }, [history]);
 
@@ -71,9 +94,8 @@ export const Terminal = forwardRef(({ onExecuteCommand, history, hideVerbs = fal
       <div className="terminal-screen" ref={screenRef}>
         <div className="output-block">
           <div className="response-text">
-            *** CRYPTIC TRAINER GDS SYSTEM READY ***{'\n'}
-            PROFILE: AMADEUS (DSL ENGINE 1.2){'\n'}
-            TYPE 'HE' FOR HELP MANUAL OR SELECT A TRAIN SCENARIO.
+            A4Z9 - AMADEUS TRAINING SYSTEM - MEX1A0980{'\n'}
+            SIGN IN COMPLETE - WORK AREA A
           </div>
         </div>
 
@@ -101,6 +123,12 @@ export const Terminal = forwardRef(({ onExecuteCommand, history, hideVerbs = fal
           spellCheck="false"
         />
       </form>
+
+      {showTip && lastErrorCmd && (
+        <div className="terminal-tip">
+          TIP: escribe <b>HE {(lastErrorCmd.match(/^[A-Za-z]+/) || [''])[0].toUpperCase()}</b> para ver la sintaxis del comando.
+        </div>
+      )}
 
       <SmartKeypad
         onKeyPress={handleKeypadPress}
