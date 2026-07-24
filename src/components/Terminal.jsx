@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { SmartKeypad } from './SmartKeypad';
 
-export const Terminal = ({ onExecuteCommand, history }) => {
+export const Terminal = ({ onExecuteCommand, history, hideVerbs = false }) => {
   const screenRef = useRef(null);
   const inputRef = useRef(null);
   const [inputVal, setInputVal] = useState('');
@@ -90,6 +90,7 @@ export const Terminal = ({ onExecuteCommand, history }) => {
         onKeyPress={handleKeypadPress}
         onBackspace={handleBackspace}
         onSubmit={submitCommand}
+        hideVerbs={hideVerbs}
       />
     </div>
   );

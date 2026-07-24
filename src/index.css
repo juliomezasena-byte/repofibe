@@ -562,6 +562,46 @@ body {
   color: var(--text-muted);
 }
 
+/* ── Modo Examen ─────────────────────────────── */
+.link-btn {
+  background: transparent;
+  border: none;
+  color: var(--crt-cyan);
+  font-size: 0.78rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.exam-box {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #0e1724;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.exam-timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--crt-amber);
+  justify-content: center;
+}
+
+.exam-hint {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  text-align: center;
+}
+
 /* ── Modo Teoría / Quiz (idea de Juan Pablo) ───────────────── */
 .quiz-layout {
   grid-template-columns: 1fr;

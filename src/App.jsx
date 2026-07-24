@@ -16,6 +16,9 @@ export function App() {
   const [activeScenarioId, setActiveScenarioId] = useState('scenario-1');
   const [history, setHistory] = useState([]);
   const [activeTab, setActiveTab] = useState('sim'); // 'sim' | 'quiz'
+  const [examMode, setExamMode] = useState('practice'); // 'practice' | 'exam' | 'delivered'
+  const [examStartTs, setExamStartTs] = useState(null);
+  const [examResult, setExamResult] = useState(null);
 
   // Instancias de los motores del simulador
   const pnrFsm = useMemo(() => new PnrStateMachine(), []);
@@ -66,23 +69,48 @@ export function App() {
     return scenarios.find((s) => s.id === activeScenarioId) || scenarios[0];
   }, [scenarios, activeScenarioId]);
 
-  // Manejar cambio de escenario
-  const handleSelectScenario = (scenarioId) => {
-    setActiveScenarioId(scenarioId);
+  // Reinicia el PNR al estado inicial del escenario dado y limpia la pantalla.
+  const cargarEstadoInicial = (scen) => {
     pnrFsm.reset();
-    const newScen = scenarios.find((s) => s.id === scenarioId);
-    if (newScen && newScen.initialState && newScen.initialState.pnr) {
-      pnrFsm.setState(newScen.initialState.pnr);
+    if (scen && scen.initialState && scen.initialState.pnr) {
+      pnrFsm.setState(scen.initialState.pnr);
     }
     setHistory([]);
   };
 
+  // Manejar cambio de escenario: cancela cualquier examen en curso.
+  const handleSelectScenario = (scenarioId) => {
+    setActiveScenarioId(scenarioId);
+    cargarEstadoInicial(scenarios.find((s) => s.id === scenarioId));
+    setExamMode('practice');
+    setExamStartTs(null);
+    setExamResult(null);
+  };
+
   const handleResetScenario = () => {
-    pnrFsm.reset();
-    if (activeScenario && activeScenario.initialState && activeScenario.initialState.pnr) {
-      pnrFsm.setState(activeScenario.initialState.pnr);
+    cargarEstadoInicial(activeScenario);
+  };
+
+  // PRÁCTICA <-> EXAMEN. Activar examen reinicia el PNR y arranca el cronómetro.
+  const handleToggleExam = (mode) => {
+    if (mode === 'exam') {
+      cargarEstadoInicial(activeScenario);
+      setExamStartTs(Date.now());
+      setExamResult(null);
+      setExamMode('exam');
+    } else {
+      setExamMode('practice');
+      setExamStartTs(null);
+      setExamResult(null);
     }
-    setHistory([]);
+  };
+
+  // ENTREGAR: congela el resultado (score, tiempo, checklist) y cierra el examen.
+  const handleDeliver = () => {
+    const evalNow = evalEngine.evaluate(activeScenario, pnrFsm.getState());
+    const elapsedMs = examStartTs ? Date.now() - examStartTs : 0;
+    setExamResult({ ...evalNow, elapsedMs });
+    setExamMode('delivered');
   };
 
   // Ejecución de comandos ingresados en la Terminal
@@ -162,7 +190,11 @@ export function App() {
         </main>
       ) : (
         <main className="main-layout">
-          <Terminal onExecuteCommand={handleExecuteCommand} history={history} />
+          <Terminal
+            onExecuteCommand={handleExecuteCommand}
+            history={history}
+            hideVerbs={examMode === 'exam'}
+          />
 
           <ScenarioSelector
             scenarios={scenarios}
@@ -170,6 +202,11 @@ export function App() {
             onSelectScenario={handleSelectScenario}
             evaluationResult={evaluationResult}
             onResetScenario={handleResetScenario}
+            examMode={examMode}
+            examStartTs={examStartTs}
+            examResult={examResult}
+            onToggleExam={handleToggleExam}
+            onDeliver={handleDeliver}
           />
         </main>
       )}

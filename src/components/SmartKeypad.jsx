@@ -1,7 +1,7 @@
 import React from 'react';
 import { Delete, CornerDownLeft } from 'lucide-react';
 
-export const SmartKeypad = ({ onKeyPress, onBackspace, onSubmit }) => {
+export const SmartKeypad = ({ onKeyPress, onBackspace, onSubmit, hideVerbs = false }) => {
   const symbols = ['/', '-', '*', '(', ')', ',', '.'];
   // Comandos del manual de clase primero, luego el resto del ciclo PNR.
   const verbs = [
@@ -52,7 +52,9 @@ export const SmartKeypad = ({ onKeyPress, onBackspace, onSubmit }) => {
         </button>
       </div>
 
-      {/* Fila 2: comandos (deslizable) */}
+      {/* Fila 2: comandos (deslizable). En modo EXAMEN se oculta:
+          es una chuleta de reconocimiento y el examen mide recuerdo. */}
+      {!hideVerbs && (
       <div className="keypad-row keypad-verbs">
         {verbs.map((verb) => (
           <button
@@ -65,6 +67,7 @@ export const SmartKeypad = ({ onKeyPress, onBackspace, onSubmit }) => {
           </button>
         ))}
       </div>
+      )}
     </div>
   );
 };
