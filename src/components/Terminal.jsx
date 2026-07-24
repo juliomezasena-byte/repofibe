@@ -1,10 +1,19 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { SmartKeypad } from './SmartKeypad';
 
-export const Terminal = ({ onExecuteCommand, history, hideVerbs = false, missionComplete = false }) => {
+export const Terminal = forwardRef(({ onExecuteCommand, history, hideVerbs = false, missionComplete = false }, ref) => {
   const screenRef = useRef(null);
   const inputRef = useRef(null);
   const [inputVal, setInputVal] = useState('');
+
+  // Contrato P3.1: los chips escriben en el input via ref imperativa, sin
+  // levantar inputVal a App (evita re-render de todo por keystroke).
+  useImperativeHandle(ref, () => ({
+    setInput: (text) => {
+      setInputVal(text);
+      if (inputRef.current) inputRef.current.focus();
+    }
+  }));
 
   // Auto-scroll al final de la pantalla CRT
   useEffect(() => {
@@ -101,4 +110,6 @@ export const Terminal = ({ onExecuteCommand, history, hideVerbs = false, mission
       />
     </div>
   );
-};
+});
+
+Terminal.displayName = 'Terminal';

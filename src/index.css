@@ -638,6 +638,81 @@ body {
   color: var(--text-muted);
 }
 
+/* ── Chips de comandos: estética "orden de trabajo", no Duolingo ── */
+.chip-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.work-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  background: #141f2e;
+  border: 1px solid #1e2d42;
+  border-left: 2px solid #1e2d42;
+  border-radius: 4px;
+  padding: 7px 10px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-light);
+  cursor: pointer;
+  transition: border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.work-chip:hover { border-color: var(--crt-cyan); }
+
+.work-chip .chip-num {
+  color: #64748b;
+  font-size: 0.72rem;
+  flex-shrink: 0;
+}
+
+.work-chip .chip-cmd { flex: 1; }
+
+.work-chip.current {
+  border-left-color: var(--crt-cyan);
+}
+
+.work-chip.done {
+  opacity: 0.6;
+  border-left-color: var(--crt-green);
+}
+
+.work-chip.done .chip-cmd { color: var(--crt-green); }
+
+.chip-check { color: var(--crt-green); flex-shrink: 0; }
+
+/* Fichas de datos extraídos (verificación descubrible) */
+.data-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.data-field {
+  display: flex;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  background: #0e1724;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 5px 9px;
+}
+
+.data-label {
+  color: var(--crt-cyan);
+  flex-shrink: 0;
+  min-width: 90px;
+}
+
+.data-value { color: var(--text-light); }
+
 /* ── Modo Examen ─────────────────────────────── */
 .link-btn {
   background: transparent;

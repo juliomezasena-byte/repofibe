@@ -1,9 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Target, CheckCircle2, Circle, RefreshCw, GraduationCap, Dumbbell, Send, Clock } from 'lucide-react';
+import { Target, CheckCircle2, Circle, RefreshCw, GraduationCap, Dumbbell, Send, Clock, Eye } from 'lucide-react';
 
 function fmt(ms) {
   const s = Math.floor(ms / 1000);
   return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+}
+
+// Matriz de andamiaje (P2): qué texto escribe el chip según la dificultad.
+// Principiante = comando completo; Intermedio = solo el código (el alumno
+// completa los datos de memoria); Avanzado = sin chips (return null).
+function chipText(command, difficulty) {
+  if (difficulty === 'Avanzado') return null;
+  if (difficulty === 'Intermedio') {
+    const code = (command.match(/^[A-Z]+/) || [command])[0];
+    return code;
+  }
+  return command; // Principiante
 }
 
 // Checklist reutilizable (práctica en vivo y resultado de examen).
@@ -33,9 +45,21 @@ export const ScenarioSelector = ({
   examStartTs = null,
   examResult = null,
   onToggleExam,
-  onDeliver
+  onDeliver,
+  chipStatus = [],
+  onChipTap
 }) => {
   const activeScenario = scenarios.find((s) => s.id === activeScenarioId) || scenarios[0];
+  const [showData, setShowData] = useState(false);
+
+  // Fichas de datos (verificación descubrible): parsea el enunciado por
+  // líneas "ETIQUETA: valor". Genérico — sin migrar el JSON, con fallback
+  // al párrafo (que sigue siendo lo primero que se lee).
+  const dataFields = (activeScenario?.description || '')
+    .split('\n')
+    .map((l) => l.match(/^([A-ZÁÉÍÓÚÑ ()]+):\s*(.+)$/))
+    .filter(Boolean)
+    .map((m) => ({ label: m[1].trim(), value: m[2].trim() }));
 
   // Cronómetro: tick cada segundo solo mientras el examen está activo.
   const [now, setNow] = useState(Date.now());
@@ -92,18 +116,62 @@ export const ScenarioSelector = ({
         </div>
       )}
 
-      {/* ── MODO PRÁCTICA: comandos sugeridos + progreso en vivo ── */}
+      {/* Verificación descubrible: fichas de datos extraídos del enunciado */}
+      {activeScenario && dataFields.length > 0 && (
+        <div>
+          <button className="link-btn" onClick={() => setShowData((v) => !v)}>
+            <Eye size={12} /> {showData ? 'Ocultar datos' : 'Ver datos extraídos'}
+          </button>
+          {showData && (
+            <div className="data-fields">
+              {dataFields.map((f, i) => (
+                <div key={i} className="data-field">
+                  <span className="data-label">{f.label}</span>
+                  <span className="data-value">{f.value}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── MODO PRÁCTICA: chips de comandos (andamiaje) + progreso ── */}
       {examMode === 'practice' && activeScenario && (
         <>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>COMANDOS SUGERIDOS:</span>
+            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+              {activeScenario.difficulty === 'Avanzado' ? 'FLUJO (NIVEL AVANZADO)' : 'PASOS SUGERIDOS:'}
+            </span>
             <button onClick={onResetScenario} className="link-btn">
               <RefreshCw size={12} /> Reiniciar PNR
             </button>
           </div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.78rem', color: 'var(--crt-cyan)' }}>
-            {activeScenario.suggestedFlow.join(' -> ')}
-          </div>
+
+          {activeScenario.difficulty === 'Avanzado' ? (
+            <div style={{ fontSize: '0.72rem', color: '#64748b', lineHeight: '1.5' }}>
+              Nivel avanzado: sin ayudas de comando. Escríbelos de memoria a
+              partir del enunciado.
+            </div>
+          ) : (
+            <div className="chip-list">
+              {activeScenario.suggestedFlow.map((cmd, i) => {
+                const text = chipText(cmd, activeScenario.difficulty);
+                const status = chipStatus[i] || 'pending';
+                return (
+                  <button
+                    key={i}
+                    className={`work-chip ${status}`}
+                    onClick={() => onChipTap && onChipTap(cmd)}
+                    title="Escribir en la terminal (no lo ejecuta)"
+                  >
+                    <span className="chip-num">{String(i + 1).padStart(2, '0')}</span>
+                    <span className="chip-cmd">{text}</span>
+                    {status === 'done' && <CheckCircle2 size={13} className="chip-check" />}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {evaluationResult && (
             <div className="progress-card">

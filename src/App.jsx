@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { TerminalSquare, BookOpen, Brain, Layout } from 'lucide-react';
 import { DslParser } from './engine/DslParser';
 import { PnrStateMachine } from './engine/PnrStateMachine';
@@ -19,6 +19,8 @@ export function App() {
   const [examMode, setExamMode] = useState('practice'); // 'practice' | 'exam' | 'delivered'
   const [examStartTs, setExamStartTs] = useState(null);
   const [examResult, setExamResult] = useState(null);
+
+  const terminalRef = useRef(null);
 
   // Instancias de los motores del simulador
   const pnrFsm = useMemo(() => new PnrStateMachine(), []);
@@ -143,6 +145,27 @@ export function App() {
     return evalEngine.evaluate(activeScenario, pnrFsm.getState());
   }, [activeScenario, history, evalEngine, pnrFsm]);
 
+  // Estado de cada chip (paso sugerido): 'done' | 'current' | 'pending'.
+  // Matching best-effort compact (SS 3 J 3 === SS3J3); es guía visual, NO
+  // evaluación. Al completar el objetivo, todo se marca (el estudiante pudo
+  // usar datos válidos distintos y el chip textual no casaría).
+  const chipStatus = useMemo(() => {
+    if (!activeScenario) return [];
+    const norm = (c) => (c || '').toUpperCase().replace(/\s+/g, '');
+    const done = new Set(history.filter((h) => !h.isError).map((h) => norm(h.command)));
+    const allDone = !!evaluationResult?.completed;
+    let currentAssigned = false;
+    return activeScenario.suggestedFlow.map((step) => {
+      if (allDone || done.has(norm(step))) return 'done';
+      if (!currentAssigned) { currentAssigned = true; return 'current'; }
+      return 'pending';
+    });
+  }, [activeScenario, history, evaluationResult]);
+
+  const handleChipTap = (cmd) => {
+    if (terminalRef.current) terminalRef.current.setInput(cmd);
+  };
+
   return (
     <div className="app-container">
       <header className="app-header">
@@ -207,6 +230,7 @@ export function App() {
 
         <main className="main-layout">
           <Terminal
+            ref={terminalRef}
             onExecuteCommand={handleExecuteCommand}
             history={history}
             hideVerbs={examMode === 'exam'}
@@ -224,6 +248,8 @@ export function App() {
             examResult={examResult}
             onToggleExam={handleToggleExam}
             onDeliver={handleDeliver}
+            chipStatus={chipStatus}
+            onChipTap={handleChipTap}
           />
         </main>
         </>
