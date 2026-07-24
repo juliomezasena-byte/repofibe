@@ -7,8 +7,13 @@ import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
   testDir: './e2e',
+  // Margen para el arranque en frio (el webServer compila antes de servir):
+  // sin esto, el primer test puede agotar el timeout por defecto de 30s
+  // mientras el build todavia corre.
+  timeout: 60000,
   use: {
     baseURL: 'http://localhost:4173',
+    navigationTimeout: 30000,
   },
   projects: [
     {
