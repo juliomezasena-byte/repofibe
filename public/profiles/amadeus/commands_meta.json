@@ -685,6 +685,94 @@
       "errors": {
         "INVALID_FORMAT": "FORMAT ERROR - EMAIL"
       }
+    },
+    {
+      "code": "SRXBAG",
+      "category": "Services",
+      "name": "Servicio de Equipaje Extra (SSR XBAG)",
+      "description": "Solicita equipaje adicional para un pasajero en un segmento (SRXBAG/P{pax}/S{segmento}). Ej: SRXBAG/P1/S2.",
+      "syntax": [
+        "SRXBAG/P{pax}/S{segmento}"
+      ],
+      "tokens": {},
+      "handler": "ADD_BAGGAGE",
+      "examples": [
+        "SRXBAG/P1/S2",
+        "SRXBAG/P1/S1"
+      ],
+      "errors": {
+        "FORMAT_ERROR": "FORMAT ERROR - CHECK /P PAX /S SEGMENT"
+      }
+    },
+    {
+      "code": "FXG",
+      "category": "Services",
+      "name": "Guardar Servicio de Equipaje (crear TSM)",
+      "description": "Guarda el servicio de equipaje y crea el registro TSM (documento del servicio) para su emision.",
+      "syntax": [
+        "FXG"
+      ],
+      "tokens": {},
+      "handler": "SAVE_BAGGAGE",
+      "examples": [
+        "FXG"
+      ],
+      "errors": {
+        "NO_BAGGAGE": "NO BAGGAGE SERVICE TO STORE"
+      }
+    },
+    {
+      "code": "TQM",
+      "category": "Ticketing",
+      "name": "Ver TSM y Entrar a Forma de Pago",
+      "description": "Muestra el TSM del servicio y abre el registro para agregar la forma de pago.",
+      "syntax": [
+        "TQM"
+      ],
+      "tokens": {},
+      "handler": "SHOW_TSM",
+      "examples": [
+        "TQM"
+      ],
+      "errors": {
+        "NO_TSM": "NO TSM PRESENT - USE FXG FIRST"
+      }
+    },
+    {
+      "code": "TMI",
+      "category": "Ticketing",
+      "name": "Forma de Pago del Servicio (TMI/FP-)",
+      "description": "Agrega la forma de pago al TSM del servicio. Ej: TMI/FP-CASH,",
+      "syntax": [
+        "TMI/FP-{forma}"
+      ],
+      "tokens": {},
+      "handler": "SET_FOP",
+      "examples": [
+        "TMI/FP-CASH,",
+        "TMI/FP-CASH"
+      ],
+      "errors": {
+        "FORMAT_ERROR": "FORMAT ERROR - TMI/FP-"
+      }
+    },
+    {
+      "code": "TTM",
+      "category": "Ticketing",
+      "name": "Emitir EMD del Servicio (TTM/M{n}/RT)",
+      "description": "Emite el documento electronico del servicio de equipaje (EMD) a partir del TSM. Ej: TTM/M1/RT.",
+      "syntax": [
+        "TTM/M{nroTsm}/RT"
+      ],
+      "tokens": {},
+      "handler": "ISSUE_TSM",
+      "examples": [
+        "TTM/M1/RT"
+      ],
+      "errors": {
+        "NO_TSM": "NO TSM TO ISSUE",
+        "NEED_FOP": "NEED FORM OF PAYMENT (TMI/FP-)"
+      }
     }
   ]
 }

@@ -34,7 +34,11 @@ export class PnrStateMachine {
       usedFxx: false,
       usedPaging: false,
       helpTopics: [],
-      pagedDisplay: null
+      pagedDisplay: null,
+      baggage: [],
+      tsm: null,
+      fop: null,
+      tsmIssued: false
     };
   }
 
@@ -49,7 +53,8 @@ export class PnrStateMachine {
       contacts: newState.contacts ? [...newState.contacts] : [],
       ssrs: newState.ssrs ? [...newState.ssrs] : [],
       osis: newState.osis ? [...newState.osis] : [],
-      remarks: newState.remarks ? [...newState.remarks] : []
+      remarks: newState.remarks ? [...newState.remarks] : [],
+      baggage: newState.baggage ? [...newState.baggage] : []
     };
   }
 
@@ -133,6 +138,21 @@ export class PnrStateMachine {
 
       case 'ADD_REMARK':
         return this.handleAddRemark(params, rawInput);
+
+      case 'ADD_BAGGAGE':
+        return this.handleAddBaggage(rawInput);
+
+      case 'SAVE_BAGGAGE':
+        return this.handleSaveBaggage();
+
+      case 'SHOW_TSM':
+        return this.handleShowTsm();
+
+      case 'SET_FOP':
+        return this.handleSetFop(rawInput);
+
+      case 'ISSUE_TSM':
+        return this.handleIssueTsm(rawInput);
 
       case 'MOVE_NEXT_DAY':
         return this.handleMoveDay(1, flightsCatalog);
@@ -754,6 +774,67 @@ export class PnrStateMachine {
     pd.index = newIndex;
     this.state.usedPaging = true;
     return { success: true, type: 'PAGED', data: { page: pd.pages[newIndex], index: newIndex, total: pd.pages.length } };
+  }
+
+  // ── Módulo de servicio de equipaje (EMD) — flujo del manual de David ──
+
+  // SRXBAG/P{pax}/S{segmento}: solicita equipaje extra.
+  handleAddBaggage(rawInput) {
+    const pax = (rawInput.match(/\/P(\d+)/i) || [])[1];
+    const seg = (rawInput.match(/\/S(\d+)/i) || [])[1];
+    if (!pax || !seg) {
+      return { success: false, error: 'FORMAT ERROR - CHECK /P PAX /S SEGMENT' };
+    }
+    const item = { code: 'XBAG', pax: parseInt(pax, 10), seg: parseInt(seg, 10) };
+    this.state.baggage.push(item);
+    return { success: true, type: 'BAGGAGE', message: `SR XBAG - PAX ${pax} SEGMENT ${seg} - HK` };
+  }
+
+  // FXG: guarda el servicio y crea el TSM (documento del servicio).
+  handleSaveBaggage() {
+    if (this.state.baggage.length === 0) {
+      return { success: false, error: 'NO BAGGAGE SERVICE TO STORE' };
+    }
+    this.state.tsm = { number: 1, service: 'XBAG', status: 'STORED' };
+    return { success: true, message: 'TSM 001 STORED - XBAG SERVICE' };
+  }
+
+  // TQM: muestra el TSM y abre el registro para la forma de pago.
+  handleShowTsm() {
+    if (!this.state.tsm) {
+      return { success: false, error: 'NO TSM PRESENT - USE FXG FIRST' };
+    }
+    return { success: true, type: 'TSM', data: { tsm: this.state.tsm, fop: this.state.fop } };
+  }
+
+  // TMI/FP-{forma}: agrega la forma de pago al TSM.
+  handleSetFop(rawInput) {
+    if (!this.state.tsm) {
+      return { success: false, error: 'NO TSM PRESENT - USE FXG FIRST' };
+    }
+    const m = rawInput.match(/FP-?\s*([A-Z]+)/i);
+    if (!m) {
+      return { success: false, error: 'FORMAT ERROR - TMI/FP-' };
+    }
+    this.state.fop = m[1].toUpperCase();
+    return { success: true, message: `FP ${this.state.fop} ADDED TO TSM 001` };
+  }
+
+  // TTM/M{n}/RT: emite el EMD del servicio.
+  handleIssueTsm(rawInput) {
+    if (!this.state.tsm) {
+      return { success: false, error: 'NO TSM TO ISSUE' };
+    }
+    if (!this.state.fop) {
+      return { success: false, error: 'NEED FORM OF PAYMENT (TMI/FP-)' };
+    }
+    this.state.tsm.status = 'ISSUED';
+    this.state.tsmIssued = true;
+    return {
+      success: true,
+      emd: `3-${Math.floor(1000000000 + Math.random() * 9000000000)}`,
+      message: 'OK EMD ISSUED'
+    };
   }
 
   handleAddRemark(params, rawInput) {

@@ -169,6 +169,18 @@ probarTolerancia('XE borra un SSR por su línea',
   ['NM1GARCIA/CARLOS MR', 'SR VGML', 'XE2'],
   (r, s) => r.success && s.ssrs.length === 0 ? null : `ssrs: ${s.ssrs.length}`);
 
+// ── Módulo de equipaje / EMD (flujo de David) ──
+probarTolerancia('SRXBAG registra el servicio de equipaje', ['SRXBAG/P1/S1'],
+  (r, s) => r.success && s.baggage.length === 1 && s.baggage[0].pax === 1 && s.baggage[0].seg === 1 ? null : 'no registro XBAG');
+probarTolerancia('FXG sin equipaje -> error honesto', ['FXG'],
+  (r) => !r.success && /NO BAGGAGE/.test(r.error) ? null : 'guardo sin servicio');
+probarTolerancia('FXG crea el TSM', ['SRXBAG/P1/S1', 'FXG'],
+  (r, s) => r.success && s.tsm && s.tsm.status === 'STORED' ? null : 'no creo TSM');
+probarTolerancia('TTM sin forma de pago -> error', ['SRXBAG/P1/S1', 'FXG', 'TTM/M1/RT'],
+  (r) => !r.success && /FORM OF PAYMENT/.test(r.error) ? null : 'emitio sin FP');
+probarTolerancia('Flujo EMD completo emite el documento', ['SRXBAG/P1/S1', 'FXG', 'TMI/FP-CASH,', 'TTM/M1/RT'],
+  (r, s) => r.success && r.emd && s.tsmIssued ? null : 'no emitio EMD');
+
 // ── Escalera de clases RBD completa y escalas (como en clase) ──
 probarTolerancia('SN muestra escalera completa de clases (>=15 letras)', ['SN 12 APR MEX SDQ'],
   (r) => {

@@ -306,6 +306,28 @@ export class EvaluationEngine {
       }
     }
 
+    // 16k. Servicio de equipaje solicitado (SRXBAG)
+    if (target.hasBaggage) {
+      totalChecks++;
+      if ((state.baggage || []).length > 0) {
+        checksPassed++;
+        feedback.push(`[OK] Servicio de equipaje solicitado (SRXBAG).`);
+      } else {
+        feedback.push(`[PENDIENTE] Solicita el equipaje con SRXBAG/P1/S1.`);
+      }
+    }
+
+    // 16l. EMD del servicio emitido (TTM)
+    if (target.tsmIssued) {
+      totalChecks++;
+      if (state.tsmIssued) {
+        checksPassed++;
+        feedback.push(`[OK] EMD del servicio emitido (TTM).`);
+      } else {
+        feedback.push(`[PENDIENTE] Emite el EMD del servicio con TTM/M1/RT (antes: FXG, TMI/FP-).`);
+      }
+    }
+
     // 17. Notas de reserva (RM)
     if (target.hasRemarks) {
       totalChecks++;

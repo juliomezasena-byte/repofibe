@@ -711,6 +711,57 @@
         "RF CARLOS",
         "ER"
       ]
+    },
+    {
+      "id": "scenario-21",
+      "title": "Nivel 21: Servicio de Equipaje Extra y Emision del EMD (SRXBAG)",
+      "difficulty": "Avanzado",
+      "description": "PASAJEROS (PAXS): 1 ADT (Juan Palacios MR) con reserva MAD-BCN ya confirmada.\nTAREA: El cliente pide una maleta extra. Solicita el equipaje para el pasajero 1 en el segmento 1 (SRXBAG/P1/S1), guarda el servicio creando el TSM (FXG), registra la nota del servicio (RM*24JUL26* XBAG 150 EUR), despliega la reserva (RT), entra a la forma de pago y ve el TSM (TQM), registra el titular que paga (RM*CSY/JUAN:PALACIOS), agrega la forma de pago (TMI/FP-CASH,), emite el EMD del servicio (TTM/M1/RT) y guarda con ER.",
+      "initialState": {
+        "pnr": {
+          "code": "BAG777",
+          "passengers": [
+            {
+              "id": 1,
+              "name": "PALACIOS/JUAN MR"
+            }
+          ],
+          "segments": [
+            {
+              "id": 1,
+              "flight": "IB6588",
+              "class": "Y",
+              "date": "18MAR",
+              "route": "MAD-BCN",
+              "status": "HK1"
+            }
+          ],
+          "contacts": [
+            {
+              "id": 1,
+              "text": "APMAD 34600112233-M"
+            }
+          ],
+          "ticketing": "TK OK",
+          "receivedFrom": "JUAN"
+        }
+      },
+      "targetState": {
+        "hasBaggage": true,
+        "tsmIssued": true,
+        "isTransacted": true
+      },
+      "suggestedFlow": [
+        "SRXBAG/P1/S1",
+        "FXG",
+        "RM*24JUL26* XBAG 150 EUR",
+        "RT",
+        "TQM",
+        "RM*CSY/JUAN:PALACIOS",
+        "TMI/FP-CASH,",
+        "TTM/M1/RT",
+        "ER"
+      ]
     }
   ]
 }

@@ -95,6 +95,24 @@ export class ResponseGenerator {
       return `${result.message}\nRM: ${result.data.text}`;
     }
 
+    // Servicio de equipaje (SRXBAG / FXG / TQM / TTM)
+    if (result.type === 'BAGGAGE') {
+      return result.message;
+    }
+    if (result.type === 'TSM') {
+      const fop = result.data.fop ? `FP: ${result.data.fop}` : 'FP: PENDIENTE (use TMI/FP-)';
+      return [
+        `** TSM 001 - EMD SERVICE **`,
+        `SERVICE: XBAG (EQUIPAJE EXTRA)`,
+        `STATUS : ${result.data.tsm.status}`,
+        fop,
+        `PARA EMITIR: TTM/M1/RT`
+      ].join('\n');
+    }
+    if (result.emd) {
+      return `OK EMD ${result.emd} ISSUED\nOK TTM COMPLETED`;
+    }
+
     // 7. Pantallas paginadas (FQN*PE, navegables con MD/MU)
     if (result.type === 'PAGED') {
       const d = result.data;
@@ -194,11 +212,22 @@ export class ResponseGenerator {
       lineIndex++;
     });
 
+    // Servicios de equipaje (SR XBAG)
+    (pnr.baggage || []).forEach((b) => {
+      lines.push(`${lineIndex} SSR ${b.code} HK1 /P${b.pax}/S${b.seg}`);
+      lineIndex++;
+    });
+
     // Remarks (RM)
     (pnr.remarks || []).forEach((rm) => {
       lines.push(`${lineIndex} RM ${rm.text}`);
       lineIndex++;
     });
+
+    // TSM / EMD del servicio
+    if (pnr.tsm) {
+      lines.push(`TSM 001 - XBAG ${pnr.tsm.status}${pnr.fop ? ' FP:' + pnr.fop : ''}`);
+    }
 
     // Ticketing
     if (pnr.ticketing) {
