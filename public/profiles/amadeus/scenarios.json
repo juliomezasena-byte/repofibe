@@ -4,7 +4,7 @@
       "id": "scenario-1",
       "title": "Nivel 1: Consulta de Vuelos SN 12 APR MEX SDQ (Guía de Clase)",
       "difficulty": "Principiante",
-      "description": "PASAJEROS (PAXS): 1 ADT (Adulto: Carlos García MR). El cliente llama desde República Dominicana (oficina SDQ).\nRUTA: Ciudad de México (MEX) ➔ Santo Domingo (SDQ).\nFECHA SALIDA: 12 APR.\nTAREA: Revisa los horarios (SN 12 APR MEX SDQ), vende 1 puesto en clase Y (SS1Y1), ingresa nombre (NM1GARCIA/CARLOS MR), teléfono (APMEX 525512345678-M), opción TK OK, factura la tarifa del adulto (FXX/FF-OPTIMA/RAD,SDQ), recibido RF CARLOS y guarda con ER.",
+      "description": "PASAJEROS (PAXS): 1 ADT (Adulto: Carlos García MR). El cliente llama desde México (oficina MEX).\nRUTA: Ciudad de México (MEX) ➔ Santo Domingo (SDQ).\nFECHA SALIDA: 12 APR.\nTAREA: Revisa los horarios (SN 12 APR MEX SDQ), vende 1 puesto en clase Y (SS1Y1), ingresa nombre (NM1GARCIA/CARLOS MR), teléfono (APMEX 525512345678-M), opción TK OK, factura la tarifa del adulto en la oficina de México (FXX/FF-OPTIMA/RAD,MEX), recibido RF CARLOS y guarda con ER.",
       "initialState": {
         "searchDate": "12APR",
         "searchOrigin": "MEX",
@@ -25,7 +25,7 @@
         "NM1GARCIA/CARLOS MR",
         "APMEX 525512345678-M",
         "TK OK",
-        "FXX/FF-OPTIMA/RAD,SDQ",
+        "FXX/FF-OPTIMA/RAD,MEX",
         "RF CARLOS",
         "ER"
       ]
