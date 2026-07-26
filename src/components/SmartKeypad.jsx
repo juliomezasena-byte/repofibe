@@ -1,7 +1,7 @@
 import React from 'react';
-import { Delete, CornerDownLeft } from 'lucide-react';
+import { Delete, CornerDownLeft, CornerLeftDown } from 'lucide-react';
 
-export const SmartKeypad = ({ onKeyPress, onBackspace, onSubmit, hideVerbs = false }) => {
+export const SmartKeypad = ({ onKeyPress, onBackspace, onSubmit, onNewline, hideVerbs = false }) => {
   const symbols = ['/', '-', '*', '(', ')', ',', '.'];
   // Comandos agrupados por capítulo del manual (mapa mental del flujo).
   const groups = [
@@ -38,6 +38,15 @@ export const SmartKeypad = ({ onKeyPress, onBackspace, onSubmit, hideVerbs = fal
           title="Espacio"
         >
           ␣ ESP
+        </button>
+
+        <button
+          className="keypad-btn"
+          onClick={onNewline}
+          title="Nueva línea (bajar sin enviar)"
+          aria-label="Nueva línea"
+        >
+          <CornerLeftDown size={16} />
         </button>
 
         <button

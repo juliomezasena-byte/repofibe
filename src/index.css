@@ -420,7 +420,7 @@ body {
 /* Prompt de Entrada */
 .terminal-prompt-bar {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   background: #090e15;
   border-top: 1px solid var(--border-color);
   padding: 10px 14px;
@@ -436,8 +436,7 @@ body {
   content: '';
   position: absolute;
   left: calc(14px + 1ch + 3px);
-  top: 50%;
-  transform: translateY(-50%);
+  top: 18px;
   width: 0.6em;
   height: 1.2em;
   font-family: var(--font-mono);
@@ -466,6 +465,8 @@ body {
   font-weight: 700;
   font-family: var(--font-mono);
   font-size: 1rem;
+  line-height: 1.5;
+  padding-top: 1px;
 }
 
 .cmd-input {
@@ -476,8 +477,15 @@ body {
   color: #fff;
   font-family: var(--font-mono);
   font-size: 1rem;
+  line-height: 1.5;
   text-transform: uppercase;
   caret-color: var(--crt-green);
+  /* textarea multilínea: sin agarradera de resize, crece por JS hasta 140px */
+  resize: none;
+  overflow-y: auto;
+  max-height: 140px;
+  min-height: 1.5em;
+  padding: 0;
 }
 
 .cmd-input::placeholder {

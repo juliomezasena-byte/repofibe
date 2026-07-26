@@ -29,6 +29,14 @@ export const Terminal = forwardRef(({ onExecuteCommand, history, hideVerbs = fal
     }
   }, [history]);
 
+  // Auto-crecer el textarea según su contenido (tope 140px, luego scroll).
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 140) + 'px';
+  }, [inputVal]);
+
   useEffect(() => {
     if (history.length <= seenRef.current) return;
     seenRef.current = history.length;
@@ -45,10 +53,14 @@ export const Terminal = forwardRef(({ onExecuteCommand, history, hideVerbs = fal
     }
   }, [history]);
 
+  // Enviar: cada línea no vacía se ejecuta como un comando en secuencia
+  // (permite pegar/escribir un flujo entero y correrlo de una vez).
   const submitCommand = () => {
     if (!inputVal.trim()) return;
-    onExecuteCommand(inputVal);
+    const lineas = inputVal.split('\n').map((l) => l.trim()).filter(Boolean);
+    lineas.forEach((linea) => onExecuteCommand(linea));
     setInputVal('');
+    if (inputRef.current) inputRef.current.style.height = 'auto';
   };
 
   const handleSubmit = (e) => {
@@ -56,8 +68,21 @@ export const Terminal = forwardRef(({ onExecuteCommand, history, hideVerbs = fal
     submitCommand();
   };
 
+  // Enter = enviar · Shift+Enter = nueva línea (espaciar hacia abajo).
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      submitCommand();
+    }
+  };
+
   const handleInputChange = (val) => {
     setInputVal(val);
+  };
+
+  const handleNewline = () => {
+    setInputVal((prev) => prev + '\n');
+    if (inputRef.current) inputRef.current.focus();
   };
 
   const handleKeypadPress = (text) => {
@@ -111,13 +136,14 @@ export const Terminal = forwardRef(({ onExecuteCommand, history, hideVerbs = fal
 
       <form onSubmit={handleSubmit} className="terminal-prompt-bar">
         <span className="prompt-symbol">&gt;</span>
-        <input
+        <textarea
           ref={inputRef}
-          type="text"
+          rows={1}
           className="cmd-input"
           value={inputVal}
           onChange={(e) => handleInputChange(e.target.value)}
-          placeholder="INGRESE COMANDO..."
+          onKeyDown={handleKeyDown}
+          placeholder="INGRESE COMANDO...  (Enter = enviar · Shift+Enter = nueva línea)"
           autoCorrect="off"
           autoCapitalize="characters"
           spellCheck="false"
@@ -134,6 +160,7 @@ export const Terminal = forwardRef(({ onExecuteCommand, history, hideVerbs = fal
         onKeyPress={handleKeypadPress}
         onBackspace={handleBackspace}
         onSubmit={submitCommand}
+        onNewline={handleNewline}
         hideVerbs={hideVerbs}
       />
     </div>
