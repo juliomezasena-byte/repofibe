@@ -63,11 +63,12 @@ export class ResponseGenerator {
           .map(([cls, seats]) => `${cls}${seats}`)
           .join(' ');
         const viaStr = f.via ? ` VIA ${f.via}` : '';
+        const cabStr = f.cabins === 3 ? ' [LR 3CAB]' : f.cabins === 2 ? ' [CR 2CAB]' : '';
         lines.push(
           `${f.line || idx + 1}  ${f.airline} ${f.flightNumber}  ${classStr}`
         );
         lines.push(
-          `   ${f.origin}${f.destination} ${f.departure} ${f.arrival} E${f.stops || 0}/${f.equipment || 'A320'}${viaStr}`
+          `   ${f.origin}${f.destination} ${f.departure} ${f.arrival} E${f.stops || 0}/${f.equipment || 'A320'}${viaStr}${cabStr}`
         );
       });
       return lines.join('\n');
@@ -179,10 +180,11 @@ export class ResponseGenerator {
         .map(([cls, seats]) => `${cls}${seats}`)
         .join(' ');
       const viaStr = f.via ? ` VIA ${f.via}` : '';
+      const cabStr = f.cabins === 3 ? ' [LR 3CAB]' : f.cabins === 2 ? ' [CR 2CAB]' : '';
 
       lines.push(`${lineNo}  ${f.airline} ${f.flightNumber} ${classStr}`);
       lines.push(
-        `   ${f.origin}${f.destination} ${f.departure} ${f.arrival} E${f.stops || 0}/${f.equipment}${viaStr}`
+        `   ${f.origin}${f.destination} ${f.departure} ${f.arrival} E${f.stops || 0}/${f.equipment}${viaStr}${cabStr}`
       );
     });
 
