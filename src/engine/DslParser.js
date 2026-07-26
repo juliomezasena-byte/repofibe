@@ -51,6 +51,21 @@ export class DslParser {
 
     let payload = input.slice(matchedSpec.code.length).trim();
 
+    // Los comandos sin tokens son exactos por defecto (ERK, FXG, etc.).
+    // Antes cualquier sufijo se ignoraba y `ERKXYZ` acababa ejecutando ERK.
+    // Los pocos comandos sin tokens que sí tienen una extensión válida la
+    // declaran explícitamente mediante payloadPattern en el DSL.
+    const hasTokens = matchedSpec.tokens && Object.keys(matchedSpec.tokens).length > 0;
+    if (!hasTokens && payload) {
+      if (!matchedSpec.payloadPattern || !new RegExp(matchedSpec.payloadPattern, 'i').test(payload)) {
+        return {
+          success: false,
+          rawInput: input,
+          error: 'FORMAT ERROR - UNKNOWN COMMAND'
+        };
+      }
+    }
+
     // Tolerancia a espacios/uniones (como Amadeus real): los comandos
     // estructurados declaran "normalize": "compact" en el DSL y el parser
     // elimina todo espacio antes de extraer tokens (SS 3 J 3 === SS3J3).
@@ -61,7 +76,7 @@ export class DslParser {
     const parsedParams = {};
 
     // 2. Extraer parámetros utilizando los patrones Regex/Tokens definidos en el DSL
-    if (matchedSpec.tokens && Object.keys(matchedSpec.tokens).length > 0) {
+    if (hasTokens) {
       let currentString = payload;
 
       for (const [paramName, patternStr] of Object.entries(matchedSpec.tokens)) {

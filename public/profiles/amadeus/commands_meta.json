@@ -717,7 +717,8 @@
       ],
       "errors": {
         "FORMAT_ERROR": "FORMAT ERROR - CHECK /P PAX /S SEGMENT"
-      }
+      },
+      "payloadPattern": "^/P[0-9]+/S[0-9]+"
     },
     {
       "code": "FXG",
@@ -769,7 +770,8 @@
       ],
       "errors": {
         "FORMAT_ERROR": "FORMAT ERROR - TMI/FP-"
-      }
+      },
+      "payloadPattern": "^/FP-?"
     },
     {
       "code": "TTM",
@@ -787,7 +789,8 @@
       "errors": {
         "NO_TSM": "NO TSM TO ISSUE",
         "NEED_FOP": "NEED FORM OF PAYMENT (TMI/FP-)"
-      }
+      },
+      "payloadPattern": "^/M[0-9]+"
     },
     {
       "code": "TQT",
@@ -806,7 +809,8 @@
       ],
       "errors": {
         "NO_TST": "NO TST PRESENT - USE FXP FIRST"
-      }
+      },
+      "payloadPattern": "^/T[0-9]+"
     }
   ]
 }

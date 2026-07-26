@@ -669,9 +669,11 @@
         }
       },
       "targetState": {
-        "forbiddenRemarkText": "ERRONEA",
-        "hasRemarks": 1,
-        "hasReceivedFrom": true,
+      "forbiddenRemarkText": "ERRONEA",
+      "hasRemarks": 1,
+      "requiredRemarkText": "*23JUL26* TTL 4780000 COP",
+      "requiredCancelSpec": "4-6",
+      "hasReceivedFrom": true,
         "isTransacted": true
       },
       "suggestedFlow": [
@@ -695,10 +697,22 @@
       "targetState": {
         "passengersCount": 1,
         "segmentsCount": 1,
-        "hasPhone": true,
-        "hasTicketing": true,
-        "usedFxx": true,
-        "hasReceivedFrom": true,
+      "hasPhone": true,
+      "hasTicketing": true,
+      "usedFxx": true,
+      "requiredInfant": {
+        "surname": "GARCIA",
+        "firstName": "SOFIA",
+        "dateOfBirth": "01JAN25",
+        "linkedAdult": "GARCIA/CARLOS MR"
+      },
+      "requiredFareQuote": {
+        "command": "FXX",
+        "fareFamily": "OPTIMA",
+        "modifier": "RAD*IN",
+        "office": "BOG"
+      },
+      "hasReceivedFrom": true,
         "isTransacted": true
       },
       "suggestedFlow": [

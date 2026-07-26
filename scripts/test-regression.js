@@ -152,7 +152,7 @@ probarTolerancia('XE con lista (XE1,3) borra solo esas', ['NM1AAA/UNO', 'NM1BBB/
 
 // ── Bug del profesor: XE debe borrar CUALQUIER línea visible del PNR ──
 probarTolerancia('Caso del profesor: XE3,4 borra los dos remarks',
-  ['AN20APRSDQMEX', 'SS1V1', 'NM1GARCIA/CARLOS MR', 'RM HOLA', 'RM HALO', 'XE3,4'],
+  ['AN20APRSDQMEX', 'SS1Y1', 'NM1GARCIA/CARLOS MR', 'RM HOLA', 'RM HALO', 'XE3,4'],
   (r, s) => {
     if (!r.success) return `XE3,4 falló: ${r.error}`;
     if (s.remarks.length !== 0) return `quedaron ${s.remarks.length} remarks`;

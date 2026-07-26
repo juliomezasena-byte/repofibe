@@ -71,6 +71,29 @@ export class PnrStateMachine {
   }
 
   /**
+   * Elementos que se muestran con número de línea en un PNR. ResponseGenerator
+   * y XE consumen esta única fuente para evitar que la numeración visual y el
+   * mapa de cancelación vuelvan a divergir.
+   */
+  static getNumberedPnrElements(pnr = {}) {
+    const entries = [];
+    const add = (type, values = []) => values.forEach((value, index) => {
+      entries.push({ type, index, value });
+    });
+
+    add('passengers', pnr.passengers || []);
+    add('segments', pnr.segments || []);
+    add('contacts', pnr.contacts || []);
+    add('ssrs', pnr.ssrs || []);
+    add('osis', pnr.osis || []);
+    add('baggage', pnr.baggage || []);
+    add('remarks', pnr.remarks || []);
+    if (pnr.ticketing) entries.push({ type: 'ticketing', value: pnr.ticketing });
+
+    return entries;
+  }
+
+  /**
    * Procesa la intención derivada del DslParser.
    */
   process(parsedCommand, flightsCatalog = [], locationsCatalog = []) {
@@ -200,14 +223,23 @@ export class PnrStateMachine {
     }
   }
 
+  // Clases RBD por cabina (David: largo radio = 3 cabinas, corto = 2).
+  static get RBD_BUSINESS() { return ['J', 'C', 'D', 'I', 'Z']; }
+  static get RBD_PREMIUM() { return ['W', 'P', 'E', 'T', 'R']; }
+  static get RBD_ECONOMY() { return ['Y', 'B', 'M', 'H', 'K', 'L', 'Q', 'N', 'V', 'X', 'G', 'U']; }
+
   /**
-   * Escalera RBD completa estilo Amadeus (J..G): número = puestos abiertos,
-   * 'C' = clase cerrada, 0 = agotada. Determinista según la semilla.
+   * Escalera RBD estilo Amadeus. Según el tipo de vuelo (David):
+   *  - Largo radio (3 cabinas): Business + Turista Premium + Economy.
+   *  - Corto radio (2 cabinas): Business + Economy (sin premium).
+   * número = puestos abiertos, 'C' = clase cerrada, 0 = agotada.
    */
-  buildClassLadder(seed = 1) {
-    const ORDEN = ['J', 'C', 'D', 'I', 'W', 'P', 'E', 'Y', 'B', 'M', 'H', 'K', 'L', 'Q', 'T', 'U', 'N', 'V', 'X', 'G'];
+  buildClassLadder(seed = 1, cabins = 3) {
+    const orden = cabins === 3
+      ? [...PnrStateMachine.RBD_BUSINESS, ...PnrStateMachine.RBD_PREMIUM, ...PnrStateMachine.RBD_ECONOMY]
+      : [...PnrStateMachine.RBD_BUSINESS, ...PnrStateMachine.RBD_ECONOMY];
     const ladder = {};
-    ORDEN.forEach((letra, i) => {
+    orden.forEach((letra, i) => {
       const v = (seed * 7 + i * 3) % 11;
       ladder[letra] = v === 0 ? 'C' : v === 1 ? 0 : Math.min(9, v);
     });
@@ -223,9 +255,9 @@ export class PnrStateMachine {
   static get AIRLINE_POOL() {
     return ['AV', 'LA', 'AA', 'IB', 'UX', 'AM', 'CM', 'DL', 'AF', 'AR', 'JJ', 'AD', 'BA', 'KL', 'TP'];
   }
-  static get EQUIP_POOL() {
-    return ['788', '738', '320', '321', 'A320', 'B789', '350', '737', '319', '73H'];
-  }
+  // Widebody = largo radio (3 cabinas). Narrowbody = corto radio (2 cabinas).
+  static get EQUIP_WIDE() { return ['788', 'B789', '350', '330', '77W']; }
+  static get EQUIP_NARROW() { return ['738', '320', '321', 'A320', '737', '319', '73H']; }
   static get HUB_POOL() {
     return ['MAD', 'BOG', 'PTY', 'MEX', 'MIA', 'LIM', 'GRU', 'SCL'];
   }
@@ -251,9 +283,15 @@ export class PnrStateMachine {
       do { air = pick(airlines); } while (usadas.has(air) && usadas.size < airlines.length);
       usadas.add(air);
 
+      // Tipo de vuelo: ~45% largo radio (widebody, 3 cabinas, más horas),
+      // el resto corto radio (narrowbody, 2 cabinas, menos horas).
+      const largoRadio = rnd() < 0.45;
+      const equipment = largoRadio ? pick(PnrStateMachine.EQUIP_WIDE) : pick(PnrStateMachine.EQUIP_NARROW);
+      const cabins = largoRadio ? 3 : 2;
+
       const depH = Math.floor(rnd() * 24);
       const depM = pick([0, 15, 30, 45]);
-      const durH = 1 + Math.floor(rnd() * 9);
+      const durH = largoRadio ? 5 + Math.floor(rnd() * 8) : 1 + Math.floor(rnd() * 4);
       const arrH = (depH + durH) % 24;
 
       const hasStop = origin !== destination && rnd() < 0.35;
@@ -262,15 +300,16 @@ export class PnrStateMachine {
       flights.push({
         airline: air,
         flightNumber: String(1000 + Math.floor(rnd() * 8999)),
-        classes: this.buildClassLadder(1 + Math.floor(rnd() * 10)),
+        classes: this.buildClassLadder(1 + Math.floor(rnd() * 10), cabins),
+        cabins,
         origin,
         destination,
         departure: `${pad2(depH)}:${pad2(depM)}`,
         arrival: `${pad2(arrH)}:${pad2(depM)}`,
-        equipment: pick(PnrStateMachine.EQUIP_POOL),
+        equipment,
         stops: hasStop ? 1 : 0,
         via,
-        priceUSD: 150 + Math.floor(rnd() * 45) * 10
+        priceUSD: (largoRadio ? 400 : 120) + Math.floor(rnd() * 40) * 10
       });
     }
 
@@ -450,15 +489,7 @@ export class PnrStateMachine {
     // numera las líneas: pasajeros, segmentos, contactos, SSRs, OSIs,
     // remarks y ticketing. (Bug hallado por el profesor: XE3,4 sobre dos
     // remarks fallaba porque los remarks no estaban en este mapa.)
-    const elementos = [
-      ...this.state.passengers.map((_, i) => ({ tipo: 'passengers', idx: i })),
-      ...this.state.segments.map((_, i) => ({ tipo: 'segments', idx: i })),
-      ...this.state.contacts.map((_, i) => ({ tipo: 'contacts', idx: i })),
-      ...this.state.ssrs.map((_, i) => ({ tipo: 'ssrs', idx: i })),
-      ...this.state.osis.map((_, i) => ({ tipo: 'osis', idx: i })),
-      ...this.state.remarks.map((_, i) => ({ tipo: 'remarks', idx: i })),
-      ...(this.state.ticketing ? [{ tipo: 'ticketing' }] : [])
-    ];
+    const elementos = PnrStateMachine.getNumberedPnrElements(this.state);
 
     const invalidas = lines.filter((l) => l < 1 || l > elementos.length);
     if (invalidas.length > 0) {
@@ -467,13 +498,23 @@ export class PnrStateMachine {
 
     // Borrar de mayor a menor para que los índices no se corran.
     const ordenadas = [...new Set(lines)].sort((a, b) => b - a);
+    let baggageCancelled = false;
     for (const l of ordenadas) {
       const el = elementos[l - 1];
-      if (el.tipo === 'ticketing') {
+      if (el.type === 'ticketing') {
         this.state.ticketing = null;
       } else {
-        this.state[el.tipo].splice(el.idx, 1);
+        this.state[el.type].splice(el.index, 1);
+        baggageCancelled ||= el.type === 'baggage';
       }
+    }
+
+    // El TSM existe únicamente para el servicio XBAG. Al cancelar el último
+    // equipaje, también se invalida su documento y su forma de pago asociada.
+    if (baggageCancelled && this.state.baggage.length === 0) {
+      this.state.tsm = null;
+      this.state.fop = null;
+      this.state.tsmIssued = false;
     }
 
     const listado = [...new Set(lines)].sort((a, b) => a - b).join(',');
@@ -544,7 +585,7 @@ export class PnrStateMachine {
     });
 
     if (storeTst) {
-      this.state.tst = { priceUSD: baseUSD, currency, total, fareBasis };
+      this.state.tst = { number: 1, priceUSD: baseUSD, currency, total, fareBasis };
     }
 
     // Bandera pedagógica: el estudiante facturó (FXX o FXP)
@@ -880,8 +921,18 @@ export class PnrStateMachine {
     if (!this.state.tst) {
       return { success: false, error: 'NO TST PRESENT - USE FXP FIRST' };
     }
-    const linea = (rawInput.match(/\/T(\d+)/i) || [])[1] || '1';
-    return { success: true, type: 'TST_VIEW', data: { line: linea, tst: this.state.tst } };
+    const match = rawInput.match(/^TQT(?:\/T(\d+))?$/i);
+    if (!match) {
+      return { success: false, error: 'FORMAT ERROR - TQT' };
+    }
+
+    const line = parseInt(match[1] || '1', 10);
+    const storedNumber = this.state.tst.number || 1;
+    if (line !== storedNumber) {
+      return { success: false, error: 'CHECK TST NUMBER' };
+    }
+
+    return { success: true, type: 'TST_VIEW', data: { line: String(line), tst: this.state.tst } };
   }
 
   handleAddRemark(params, rawInput) {

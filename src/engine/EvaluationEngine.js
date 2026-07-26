@@ -238,6 +238,45 @@ export class EvaluationEngine {
     }
 
     // 16e. Navegación de páginas (MD/MU)
+    // Specific fare evidence prevents a generic FXX/FXP from satisfying a
+    // lesson that requires a particular fare family, modifier, or office.
+    if (target.requiredFareQuote) {
+      totalChecks++;
+      const requirement = target.requiredFareQuote;
+      const quoteFound = (state.pricingHistory || []).some((quote) =>
+        (!requirement.command || quote.command === requirement.command) &&
+        (!requirement.fareFamily || quote.fareFamily === requirement.fareFamily) &&
+        (!requirement.modifier || (quote.modifiers || []).includes(requirement.modifier)) &&
+        (!requirement.office || quote.office === requirement.office)
+      );
+      if (quoteFound) {
+        checksPassed++;
+        feedback.push(`[OK] Facturacion con ${requirement.command || 'FXX/FXP'} y los parametros solicitados.`);
+      } else {
+        feedback.push(`[PENDIENTE] Factura con ${requirement.command || 'FXX'} y los parametros requeridos.`);
+      }
+    }
+
+    // The INF detail must be attached to the adult in NM; passenger count alone
+    // cannot prove that this exercise was completed.
+    if (target.requiredInfant) {
+      totalChecks++;
+      const requirement = target.requiredInfant;
+      const infantFound = (state.infants || []).some((infant) => {
+        const linkedAdult = passengers.find((passenger) => passenger.id === infant.linkedPassengerId);
+        return infant.surname === requirement.surname &&
+          infant.firstName === requirement.firstName &&
+          infant.dateOfBirth === requirement.dateOfBirth &&
+          (!requirement.linkedAdult || linkedAdult?.name?.toUpperCase().startsWith(requirement.linkedAdult));
+      });
+      if (infantFound) {
+        checksPassed++;
+        feedback.push('[OK] Infante registrado y asociado al adulto (INF).');
+      } else {
+        feedback.push('[PENDIENTE] Registra el infante dentro del NM del adulto (INF apellido/nombre/fecha).');
+      }
+    }
+
     if (target.usedPaging) {
       totalChecks++;
       if (state.usedPaging) {
@@ -307,6 +346,33 @@ export class EvaluationEngine {
     }
 
     // 16k. Servicio de equipaje solicitado (SRXBAG)
+    // Counting any RM is insufficient when the scenario prescribes a specific
+    // operational note; compare normalized complete note text instead.
+    if (target.requiredRemarkText) {
+      totalChecks++;
+      const normalizeRemark = (text) => String(text || '').trim().toUpperCase().replace(/\s+/g, ' ');
+      const requiredRemark = normalizeRemark(target.requiredRemarkText);
+      if ((state.remarks || []).some((remark) => normalizeRemark(remark.text) === requiredRemark)) {
+        checksPassed++;
+        feedback.push('[OK] Nota correcta registrada con RM.');
+      } else {
+        feedback.push(`[PENDIENTE] Registra la nota exacta con RM: ${target.requiredRemarkText}.`);
+      }
+    }
+
+    // Verify the successful XE syntax for lessons that explicitly teach a
+    // range/list operation, rather than inferring it only from final state.
+    if (target.requiredCancelSpec) {
+      totalChecks++;
+      const expectedSpec = String(target.requiredCancelSpec).replace(/\s+/g, '');
+      if ((state.cancelOperations || []).some((operation) => operation.spec === expectedSpec)) {
+        checksPassed++;
+        feedback.push(`[OK] Borrado por rango ejecutado con XE${expectedSpec}.`);
+      } else {
+        feedback.push(`[PENDIENTE] Borra las celdas con XE${expectedSpec}.`);
+      }
+    }
+
     if (target.hasBaggage) {
       totalChecks++;
       if ((state.baggage || []).length > 0) {

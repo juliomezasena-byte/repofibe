@@ -4,6 +4,8 @@
  * Formatea disponibilidades, PNRs guardados, cotizaciones FXX/FXP y errores GDS nativos.
  */
 
+import { PnrStateMachine } from './PnrStateMachine.js';
+
 export class ResponseGenerator {
   /**
    * @param {Object} profileConfig - Perfil DSL (commands_meta.json) para la ayuda por comando.
@@ -192,61 +194,41 @@ export class ResponseGenerator {
     const codeStr = pnr.code ? `RP/${pnr.code}` : '--- PNR DRAFT ---';
     lines.push(`--- RLR --- ${codeStr}`);
 
-    let lineIndex = 1;
-
-    // Pasajeros
-    (pnr.passengers || []).forEach((p) => {
-      lines.push(`${lineIndex}. ${p.name}`);
-      lineIndex++;
-    });
-
-    // Segmentos
-    (pnr.segments || []).forEach((s) => {
-      lines.push(
-        `${lineIndex}  ${s.flight} ${s.class}  ${s.date} ${s.route.replace('-', '')} ${s.status}  1 ${s.departure || '0800'} ${s.arrival || '1200'}  +1`
-      );
-      lineIndex++;
-    });
-
-    // Contactos
-    (pnr.contacts || []).forEach((c) => {
-      lines.push(`${lineIndex} ${c.text}`);
-      lineIndex++;
-    });
-
-    // SSRs
-    (pnr.ssrs || []).forEach((ssr) => {
-      lines.push(`${lineIndex} SSR ${ssr}`);
-      lineIndex++;
-    });
-
-    // OSIs
-    (pnr.osis || []).forEach((osi) => {
-      lines.push(`${lineIndex} OS ${osi}`);
-      lineIndex++;
-    });
-
-    // Servicios de equipaje (SR XBAG)
-    (pnr.baggage || []).forEach((b) => {
-      lines.push(`${lineIndex} SSR ${b.code} HK1 /P${b.pax}/S${b.seg}`);
-      lineIndex++;
-    });
-
-    // Remarks (RM)
-    (pnr.remarks || []).forEach((rm) => {
-      lines.push(`${lineIndex} RM ${rm.text}`);
-      lineIndex++;
+    PnrStateMachine.getNumberedPnrElements(pnr).forEach((element, index) => {
+      const lineIndex = index + 1;
+      switch (element.type) {
+        case 'passengers':
+          lines.push(`${lineIndex}. ${element.value.name}`);
+          break;
+        case 'segments': {
+          const s = element.value;
+          lines.push(`${lineIndex}  ${s.flight} ${s.class}  ${s.date} ${s.route.replace('-', '')} ${s.status}  1 ${s.departure || '0800'} ${s.arrival || '1200'}  +1`);
+          break;
+        }
+        case 'contacts':
+          lines.push(`${lineIndex} ${element.value.text}`);
+          break;
+        case 'ssrs':
+          lines.push(`${lineIndex} SSR ${element.value}`);
+          break;
+        case 'osis':
+          lines.push(`${lineIndex} OS ${element.value}`);
+          break;
+        case 'baggage':
+          lines.push(`${lineIndex} SSR ${element.value.code} HK1 /P${element.value.pax}/S${element.value.seg}`);
+          break;
+        case 'remarks':
+          lines.push(`${lineIndex} RM ${element.value.text}`);
+          break;
+        case 'ticketing':
+          lines.push(`${lineIndex} ${element.value}`);
+          break;
+      }
     });
 
     // TSM / EMD del servicio
     if (pnr.tsm) {
       lines.push(`TSM 001 - XBAG ${pnr.tsm.status}${pnr.fop ? ' FP:' + pnr.fop : ''}`);
-    }
-
-    // Ticketing
-    if (pnr.ticketing) {
-      lines.push(`${lineIndex} ${pnr.ticketing}`);
-      lineIndex++;
     }
 
     // TST
