@@ -117,10 +117,10 @@ export class PnrStateMachine {
         return { success: true, message: 'ITINERARY CANCELLED' };
 
       case 'PRICE_INFORMATIVE':
-        return this.handlePrice(false);
+        return this.handlePrice(false, params, rawInput, locationsCatalog);
 
       case 'PRICE_AND_STORE':
-        return this.handlePrice(true);
+        return this.handlePrice(true, params, rawInput, locationsCatalog);
 
       case 'ADD_SSR':
         return this.handleAddSsr(params, rawInput);
@@ -428,20 +428,60 @@ export class PnrStateMachine {
     return { success: true, message: `ELEMENT ${listado} CANCELLED` };
   }
 
-  handlePrice(storeTst = false) {
+  // Tasas BSR (1 USD = X). Compartidas con FQC. La facturación FXX se emite
+  // en la moneda de la OFICINA del país desde donde se gestiona el vuelo.
+  static get USD_RATES() {
+    return {
+      USD: 1, COP: 4150.0, DOP: 59.0, MXN: 18.5, PEN: 3.75, EUR: 0.92,
+      ARS: 950.0, CLP: 950.0, BRL: 5.10, PAB: 1.0
+    };
+  }
+
+  static get COUNTRY_CURRENCY() {
+    return {
+      'COLOMBIA': 'COP', 'DOMINICAN REPUBLIC': 'DOP', 'MEXICO': 'MXN',
+      'PERU': 'PEN', 'ARGENTINA': 'ARS', 'CHILE': 'CLP', 'BRAZIL': 'BRL',
+      'PANAMA': 'PAB', 'UNITED STATES': 'USD', 'ECUADOR': 'USD',
+      'SPAIN': 'EUR', 'FRANCE': 'EUR', 'ITALY': 'EUR', 'GERMANY': 'EUR',
+      'NETHERLANDS': 'EUR', 'PORTUGAL': 'EUR'
+    };
+  }
+
+  /**
+   * Resuelve la moneda de facturación a partir de la oficina (código IATA
+   * al final de FXX/...,OFICINA). Devuelve { currency, rate } donde rate es
+   * 1 USD = rate moneda. Sin oficina reconocida => USD (rate 1).
+   */
+  resolveOfficeCurrency(rawInput, locationsCatalog = []) {
+    // Toma el último bloque tras la última coma: "FXX/FF-OPTIMA/RAD*IN, MAD"
+    const parts = (rawInput || '').split(',');
+    const officeRaw = parts.length > 1 ? parts[parts.length - 1].trim().toUpperCase() : '';
+    const office = (officeRaw.match(/[A-Z]{3}/) || [])[0];
+    if (!office) return { currency: 'USD', rate: 1, office: null };
+
+    const loc = locationsCatalog.find((l) => l.code === office);
+    const currency = loc ? (PnrStateMachine.COUNTRY_CURRENCY[loc.country] || 'USD') : 'USD';
+    const rate = PnrStateMachine.USD_RATES[currency] || 1;
+    return { currency, rate, office };
+  }
+
+  handlePrice(storeTst = false, params = {}, rawInput = '', locationsCatalog = []) {
     if (this.state.segments.length === 0) {
       return { success: false, error: 'NO ITINERARY TO PRICE' };
     }
 
-    const totalPrice = this.state.segments.reduce((acc, s) => acc + (s.priceUSD || 350), 0);
+    const baseUSD = this.state.segments.reduce((acc, s) => acc + (s.priceUSD || 350), 0);
+    const taxesUSD = 45;
     const fareBasis = `${this.state.segments[0].class}FLEX`;
 
+    // Facturar en la moneda de la oficina (bug hallado por David: MAD -> EUR).
+    const { currency, rate, office } = this.resolveOfficeCurrency(rawInput, locationsCatalog);
+    const baseFare = Math.round(baseUSD * rate);
+    const taxes = Math.round(taxesUSD * rate);
+    const total = baseFare + taxes;
+
     if (storeTst) {
-      this.state.tst = {
-        priceUSD: totalPrice,
-        currency: 'USD',
-        fareBasis
-      };
+      this.state.tst = { priceUSD: baseUSD, currency, total, fareBasis };
     }
 
     // Bandera pedagógica: el estudiante facturó (FXX o FXP)
@@ -449,8 +489,12 @@ export class PnrStateMachine {
 
     return {
       success: true,
-      priceUSD: totalPrice,
-      currency: 'USD',
+      priceUSD: baseUSD,
+      currency,
+      office,
+      baseFare,
+      taxes,
+      total,
       fareBasis,
       tstStored: storeTst
     };

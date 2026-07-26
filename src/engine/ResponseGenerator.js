@@ -208,7 +208,9 @@ export class ResponseGenerator {
 
     // TST
     if (pnr.tst) {
-      lines.push(`TST 001 - USD ${pnr.tst.priceUSD}.00 EQUIV FARE ${pnr.tst.fareBasis}`);
+      const c = pnr.tst.currency || 'USD';
+      const v = pnr.tst.total !== undefined ? pnr.tst.total : pnr.tst.priceUSD;
+      lines.push(`TST 001 - ${c} ${v}.00 EQUIV FARE ${pnr.tst.fareBasis || ''}`.trimEnd());
     }
 
     // Received From
@@ -224,12 +226,19 @@ export class ResponseGenerator {
   }
 
   formatPricing(result) {
+    // Facturación en la moneda de la oficina (result.currency). Compatibilidad:
+    // si el motor no calculó los importes convertidos, cae a USD.
+    const cur = result.currency || 'USD';
+    const base = result.baseFare !== undefined ? result.baseFare : result.priceUSD;
+    const taxes = result.taxes !== undefined ? result.taxes : 45;
+    const total = result.total !== undefined ? result.total : result.priceUSD + 45;
+    const officeLine = result.office ? ` - OFFICE ${result.office}` : '';
     return [
-      `LAST TKT DATE - ${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`,
+      `LAST TKT DATE - ${new Date().toISOString().slice(0, 10).replace(/-/g, '')}${officeLine}`,
       `AL PASSENGER`,
-      `USD ${result.priceUSD}.00  BASE FARE`,
-      `USD 45.00    TAXES / FEES`,
-      `USD ${result.priceUSD + 45}.00 TOTAL`,
+      `${cur} ${base}.00  BASE FARE`,
+      `${cur} ${taxes}.00    TAXES / FEES`,
+      `${cur} ${total}.00 TOTAL`,
       result.tstStored ? 'TST 001 STORED IN PNR OK' : 'FXX INFORMATIVE PRICING ONLY'
     ].join('\n');
   }
