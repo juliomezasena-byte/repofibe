@@ -220,8 +220,8 @@
     {
       "code": "RF",
       "category": "PNR Lifecycle",
-      "name": "Received From",
-      "description": "Registra la persona que solicita la transacción o modificación del PNR.",
+      "name": "Received From (Recibido De)",
+      "description": "RF = \"Recibido De\": registra QUIEN solicita la reserva o el cambio (el cliente o quien pide la gestion). Es un elemento OBLIGATORIO para poder cerrar y guardar el PNR con ER. Ej: RF CARLOS.",
       "syntax": [
         "RF {person}"
       ],
@@ -236,6 +236,21 @@
       "errors": {
         "MISSING_PARAM": "FORMAT ERROR - RECEIVED FROM"
       }
+    },
+    {
+      "code": "ERK",
+      "category": "PNR Lifecycle",
+      "name": "End and Redisplay (Keep)",
+      "description": "Guarda la reserva y la vuelve a mostrar, manteniendo el area de trabajo (variante de ER).",
+      "syntax": [
+        "ERK"
+      ],
+      "tokens": {},
+      "handler": "END_AND_REDISPLAY",
+      "examples": [
+        "ERK"
+      ],
+      "errors": {}
     },
     {
       "code": "ER",
@@ -772,6 +787,25 @@
       "errors": {
         "NO_TSM": "NO TSM TO ISSUE",
         "NEED_FOP": "NEED FORM OF PAYMENT (TMI/FP-)"
+      }
+    },
+    {
+      "code": "TQT",
+      "category": "Pricing",
+      "name": "Ver TST (Registro de Tarifa)",
+      "description": "Muestra los TST guardados para revisar los valores de la tarifa. TQT = todos; TQT/T{n} = una tarifa especifica. Ej: TQT, TQT/T1.",
+      "syntax": [
+        "TQT",
+        "TQT/T{nro}"
+      ],
+      "tokens": {},
+      "handler": "SHOW_TST",
+      "examples": [
+        "TQT",
+        "TQT/T1"
+      ],
+      "errors": {
+        "NO_TST": "NO TST PRESENT - USE FXP FIRST"
       }
     }
   ]

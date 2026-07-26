@@ -11,9 +11,9 @@ export const SmartKeypad = ({ onKeyPress, onBackspace, onSubmit, onNewline, hide
     { label: 'CONTACTOS', verbs: ['AP', 'APE'] },
     { label: 'SERVICIOS', verbs: ['SR', 'SRXBAG', 'OS'] },
     { label: 'EQUIPAJE/EMD', verbs: ['FXG', 'TQM', 'TMI', 'TTM'] },
-    { label: 'TARIFAS', verbs: ['FXX', 'FXP', 'FQN', 'DF', 'MD', 'MU'] },
+    { label: 'TARIFAS', verbs: ['FXX', 'FXP', 'FQN', 'DF', 'TQT', 'MD', 'MU'] },
     { label: 'NOTAS', verbs: ['RM'] },
-    { label: 'CIERRE', verbs: ['TK', 'TKXL', 'RF', 'ER', 'TTP'] },
+    { label: 'CIERRE', verbs: ['TK', 'TKXL', 'RF', 'ER', 'ERK', 'TTP'] },
     { label: 'PNR/AYUDA', verbs: ['RT', 'XE', 'HE'] }
   ];
 

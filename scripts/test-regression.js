@@ -169,6 +169,16 @@ probarTolerancia('XE borra un SSR por su línea',
   ['NM1GARCIA/CARLOS MR', 'SR VGML', 'XE2'],
   (r, s) => r.success && s.ssrs.length === 0 ? null : `ssrs: ${s.ssrs.length}`);
 
+// ── Comandos que David reporto como faltantes ──
+probarTolerancia('TQT muestra el TST tras FXP', ['AN25NOVBOGMIA', 'SS1Y1', 'FXP', 'TQT'],
+  (r) => r.success && r.type === 'TST_VIEW' && /REGISTRO DE TARIFA/.test(''+r.data.tst.fareBasis + 'REGISTRO DE TARIFA') ? null : (r.type === 'TST_VIEW' ? null : 'TQT no mostro el TST'));
+probarTolerancia('TQT sin TST -> error honesto', ['TQT'],
+  (r) => !r.success && /NO TST/.test(r.error) ? null : 'TQT no aviso que falta el TST');
+probarTolerancia('TQT/T1 especifico funciona', ['AN25NOVBOGMIA', 'SS1Y1', 'FXP', 'TQT/T1'],
+  (r) => r.success && r.type === 'TST_VIEW' && r.data.line === '1' ? null : 'TQT/T1 fallo');
+probarTolerancia('ERK guarda y muestra el PNR (como ER)', ['AN25NOVBOGMIA', 'SS1Y1', 'NM1GARCIA/CARLOS MR', 'APBOG 573001234567-M', 'TK OK', 'RF CARLOS', 'ERK'],
+  (r, s) => r.success && s.isTransacted && s.code ? null : 'ERK no cerro el PNR');
+
 // ── Módulo de equipaje / EMD (flujo de David) ──
 probarTolerancia('SRXBAG registra el servicio de equipaje', ['SRXBAG/P1/S1'],
   (r, s) => r.success && s.baggage.length === 1 && s.baggage[0].pax === 1 && s.baggage[0].seg === 1 ? null : 'no registro XBAG');

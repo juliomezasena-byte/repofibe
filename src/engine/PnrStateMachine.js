@@ -166,6 +166,9 @@ export class PnrStateMachine {
       case 'SHOW_FARE_RULES':
         return this.handleFareComponents(params);
 
+      case 'SHOW_TST':
+        return this.handleShowTst(rawInput);
+
       case 'PAGE_DOWN':
         return this.handlePaging(1);
 
@@ -835,6 +838,15 @@ export class PnrStateMachine {
       emd: `3-${Math.floor(1000000000 + Math.random() * 9000000000)}`,
       message: 'OK EMD ISSUED'
     };
+  }
+
+  // TQT / TQT/T{n}: mostrar el TST guardado (revisar valores de la tarifa).
+  handleShowTst(rawInput) {
+    if (!this.state.tst) {
+      return { success: false, error: 'NO TST PRESENT - USE FXP FIRST' };
+    }
+    const linea = (rawInput.match(/\/T(\d+)/i) || [])[1] || '1';
+    return { success: true, type: 'TST_VIEW', data: { line: linea, tst: this.state.tst } };
   }
 
   handleAddRemark(params, rawInput) {

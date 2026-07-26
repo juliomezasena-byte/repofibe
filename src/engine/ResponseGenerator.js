@@ -95,6 +95,20 @@ export class ResponseGenerator {
       return `${result.message}\nRM: ${result.data.text}`;
     }
 
+    // Ver TST (TQT / TQT/T1)
+    if (result.type === 'TST_VIEW') {
+      const t = result.data.tst;
+      const cur = t.currency || 'USD';
+      const val = t.total !== undefined ? t.total : t.priceUSD;
+      return [
+        `** TST 00${result.data.line} - REGISTRO DE TARIFA **`,
+        `FARE BASIS: ${t.fareBasis || 'YFLEX'}`,
+        `BASE FARE : ${cur} ${t.priceUSD}.00`,
+        `TOTAL     : ${cur} ${val}.00`,
+        `STATUS    : STORED - LISTO PARA EMISION`
+      ].join('\n');
+    }
+
     // Servicio de equipaje (SRXBAG / FXG / TQM / TTM)
     if (result.type === 'BAGGAGE') {
       return result.message;
