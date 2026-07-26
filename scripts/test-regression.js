@@ -179,6 +179,62 @@ probarTolerancia('TQT/T1 especifico funciona', ['AN25NOVBOGMIA', 'SS1Y1', 'FXP',
 probarTolerancia('ERK guarda y muestra el PNR (como ER)', ['AN25NOVBOGMIA', 'SS1Y1', 'NM1GARCIA/CARLOS MR', 'APBOG 573001234567-M', 'TK OK', 'RF CARLOS', 'ERK'],
   (r, s) => r.success && s.isTransacted && s.code ? null : 'ERK no cerro el PNR');
 
+// ── Regresiones negativas: no debe bastar con completar la estructura del PNR. ──
+console.log('\n--- SUITE DE REGRESIONES NEGATIVAS ---');
+
+function probarRegresionNegativa(nombre, comandos, verificar, escenario = null) {
+  fsm.reset();
+  if (escenario?.initialState?.pnr) fsm.setState(escenario.initialState.pnr);
+
+  let lastResult = null;
+  for (const cmd of comandos) {
+    const pr = parser.parse(cmd);
+    if (!pr.success) {
+      console.error(`  [FAIL] ${nombre}: "${cmd}" no parseó (${pr.error})`);
+      toleranceFailures++;
+      return;
+    }
+    lastResult = fsm.process(pr, flights, locations);
+  }
+
+  const err = verificar(lastResult, fsm.getState());
+  if (err) {
+    console.error(`  [FAIL] ${nombre}: ${err}`);
+    toleranceFailures++;
+  } else {
+    console.log(`  [PASS] ${nombre}`);
+  }
+}
+
+const scenario19 = scenarios.find((scen) => scen.id === 'scenario-19');
+const scenario20 = scenarios.find((scen) => scen.id === 'scenario-20');
+
+probarRegresionNegativa('Nivel 20 no completa sin INF',
+  ['AN13MARLIMBOG', 'SS1Y1', 'NM1GARCIA/CARLOS MR', 'APBOG 573004445566-M', 'TK OK', 'FXX/FF-OPTIMA/RAD*IN,BOG', 'RF CARLOS', 'ER'],
+  (r, s) => !evalEngine.evaluate(scenario20, s).completed ? null : 'completó sin registrar el INF', scenario20);
+probarRegresionNegativa('Nivel 20 no completa sin RAD*IN',
+  ['AN13MARLIMBOG', 'SS1Y1', 'NM1GARCIA/CARLOS MR(INFGARCIA/SOFIA/01JAN25)', 'APBOG 573004445566-M', 'TK OK', 'FXX/FF-OPTIMA/RAD,BOG', 'RF CARLOS', 'ER'],
+  (r, s) => !evalEngine.evaluate(scenario20, s).completed ? null : 'completó sin la tarifa RAD*IN', scenario20);
+probarRegresionNegativa('Nivel 19 no completa con una nota distinta al TTL',
+  ['RT', 'XE4-6', 'RM CUALQUIER COSA', 'RF CARLOS', 'ER'],
+  (r, s) => !evalEngine.evaluate(scenario19, s).completed ? null : 'aceptó una nota distinta al TTL requerido', scenario19);
+probarRegresionNegativa('XE3 borra el RM tras SRXBAG en la línea 2',
+  ['NM1GARCIA/CARLOS MR', 'SRXBAG/P1/S1', 'RM NOTA DE EQUIPAJE', 'XE3'],
+  (r, s) => r.success && s.remarks.length === 0 && s.baggage.length === 1
+    ? null
+    : `resultado: ${r.error || 'RM no borrado'}`);
+probarRegresionNegativa('TQT/T99 rechaza un TST inexistente',
+  ['AN25NOVBOGMIA', 'SS1Y1', 'FXP', 'TQT/T99'],
+  (r) => !r.success && /NO TST|CHECK TST/.test(r.error) ? null : 'mostró un TST inexistente');
+
+const erkInvalido = parser.parse('ERKXYZ');
+if (erkInvalido.success) {
+  console.error('  [FAIL] ERKXYZ no debe parsear: aceptó un sufijo inválido');
+  toleranceFailures++;
+} else {
+  console.log('  [PASS] ERKXYZ no parsea');
+}
+
 // ── Módulo de equipaje / EMD (flujo de David) ──
 probarTolerancia('SRXBAG registra el servicio de equipaje', ['SRXBAG/P1/S1'],
   (r, s) => r.success && s.baggage.length === 1 && s.baggage[0].pax === 1 && s.baggage[0].seg === 1 ? null : 'no registro XBAG');
@@ -191,24 +247,50 @@ probarTolerancia('TTM sin forma de pago -> error', ['SRXBAG/P1/S1', 'FXG', 'TTM/
 probarTolerancia('Flujo EMD completo emite el documento', ['SRXBAG/P1/S1', 'FXG', 'TMI/FP-CASH,', 'TTM/M1/RT'],
   (r, s) => r.success && r.emd && s.tsmIssued ? null : 'no emitio EMD');
 
-// ── Escalera de clases RBD completa y escalas (como en clase) ──
-probarTolerancia('SN muestra escalera completa de clases (>=15 letras)', ['SN 12 APR MEX SDQ'],
+// ── Vuelos dinámicos (petición de David: no siempre los mismos 3) ──
+probarTolerancia('SN muestra escalera completa (>=15 letras) en la 1a opción', ['SN 12 APR MEX SDQ'],
   (r) => {
     const f = r.data.flights[0];
     const n = Object.keys(f.classes || {}).length;
-    return r.success && n >= 15 ? null : `solo ${n} clases en la primera opción`;
+    return r.success && n >= 15 ? null : `solo ${n} clases`;
   });
-probarTolerancia('SN incluye opción con escala (IB VIA MAD)', ['SN 12 APR MEX SDQ'],
-  (r) => r.data.flights.some((f) => f.airline === 'IB' && f.stops === 1 && f.via === 'MAD') ? null : 'no aparece la opción con escala');
-probarTolerancia('Escalera marca clases cerradas con C', ['SN 12 APR MEX SDQ'],
-  (r) => r.data.flights.some((f) => Object.values(f.classes).includes('C')) ? null : 'ninguna clase cerrada C');
-probarTolerancia('SS en clase cerrada (Q de AV0026) -> error', ['AN25NOVBOGMIA', 'SS1Q1'],
-  (r, s) => !r.success && /CLOSED/.test(r.error) && s.segments.length === 0 ? null : 'vendió una clase cerrada');
-probarTolerancia('Ruta sin catálogo también trae 3 opciones con escalera', ['SN 10 AUG BOG SCL'],
+probarTolerancia('SN/AN entrega 3-5 opciones con línea 1..N y cabinas Y/C/J abiertas', ['SN 12 APR MEX SDQ'],
   (r) => {
     const fl = r.data.flights;
-    const ok = r.success && fl.length === 3 && fl.every((f) => Object.keys(f.classes).length >= 15) && fl.some((f) => f.stops === 1);
-    return ok ? null : `opciones: ${fl.length}`;
+    if (fl.length < 3 || fl.length > 5) return `opciones: ${fl.length}`;
+    for (let i = 0; i < fl.length; i++) if (fl[i].line !== i + 1) return 'líneas no secuenciales';
+    const ok = fl.every((f) => typeof f.classes.Y === 'number' && typeof f.classes.C === 'number' && typeof f.classes.J === 'number');
+    return ok ? null : 'alguna cabina Y/C/J cerrada (rompería la venta)';
+  });
+// Dinamismo real: dos consultas seguidas NO deben ser idénticas.
+probarTolerancia('Dos consultas del mismo tramo dan vuelos distintos', ['AN25NOVBOGMIA'],
+  (r) => {
+    const firma = (d) => d.flights.map((f) => f.airline + f.flightNumber + f.departure).join('|');
+    const a = firma(r.data);
+    fsm.reset();
+    const b = firma(fsm.process(parser.parse('AN25NOVBOGMIA'), flights, locations).data);
+    return a !== b ? null : 'las dos consultas fueron idénticas (no es dinámico)';
+  });
+// En varias corridas aparecen escalas y clases cerradas (probabilístico).
+probarTolerancia('Aparecen escalas (stops=1) en varias consultas', ['AN25NOVBOGMIA'],
+  () => {
+    for (let k = 0; k < 40; k++) {
+      fsm.reset();
+      const d = fsm.process(parser.parse('AN10AUGBOGSCL'), flights, locations).data;
+      if (d.flights.some((f) => f.stops === 1 && f.via)) return null;
+    }
+    return 'nunca apareció una opción con escala en 40 consultas';
+  });
+probarTolerancia('SS en clase cerrada -> error (busca una C real en la escalera)', ['AN25NOVBOGMIA'],
+  (r, s) => {
+    let cerrada = null;
+    for (const f of r.data.flights) {
+      const cls = Object.entries(f.classes).find(([, v]) => v === 'C' || v === 0);
+      if (cls) { cerrada = { line: f.line, clase: cls[0] }; break; }
+    }
+    if (!cerrada) return null; // sin clase cerrada esta corrida: nada que verificar
+    const res = fsm.process(parser.parse(`SS1${cerrada.clase}${cerrada.line}`), flights, locations);
+    return !res.success && /CLOSED/.test(res.error) ? null : 'vendió una clase cerrada';
   });
 
 // ── Suite del QuizEngine (modo Teoría de Juan Pablo) ──

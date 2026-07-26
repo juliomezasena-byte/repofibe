@@ -38,7 +38,12 @@ export class PnrStateMachine {
       baggage: [],
       tsm: null,
       fop: null,
-      tsmIssued: false
+      tsmIssued: false,
+      // Structured evidence for scenarios that require specific operations
+      // rather than a generic final PNR state.
+      infants: [],
+      pricingHistory: [],
+      cancelOperations: []
     };
   }
 
@@ -54,7 +59,10 @@ export class PnrStateMachine {
       ssrs: newState.ssrs ? [...newState.ssrs] : [],
       osis: newState.osis ? [...newState.osis] : [],
       remarks: newState.remarks ? [...newState.remarks] : [],
-      baggage: newState.baggage ? [...newState.baggage] : []
+      baggage: newState.baggage ? [...newState.baggage] : [],
+      infants: newState.infants ? [...newState.infants] : [],
+      pricingHistory: newState.pricingHistory ? [...newState.pricingHistory] : [],
+      cancelOperations: newState.cancelOperations ? [...newState.cancelOperations] : []
     };
   }
 
@@ -203,58 +211,73 @@ export class PnrStateMachine {
       const v = (seed * 7 + i * 3) % 11;
       ladder[letra] = v === 0 ? 'C' : v === 1 ? 0 : Math.min(9, v);
     });
-    // Y (turista base) siempre abierta para no bloquear los ejercicios
-    ladder.Y = 9;
+    // Cabinas vendibles siempre abiertas (economía Y, business C/J) para no
+    // bloquear los ejercicios; el resto de letras varía (algunas cerradas 'C').
+    ladder.Y = 4 + Math.floor(Math.random() * 6); // 4-9
+    ladder.C = 2 + Math.floor(Math.random() * 6);
+    ladder.J = 2 + Math.floor(Math.random() * 6);
     return ladder;
   }
 
+  // Aerolíneas / equipos / hubs para generar variedad realista.
+  static get AIRLINE_POOL() {
+    return ['AV', 'LA', 'AA', 'IB', 'UX', 'AM', 'CM', 'DL', 'AF', 'AR', 'JJ', 'AD', 'BA', 'KL', 'TP'];
+  }
+  static get EQUIP_POOL() {
+    return ['788', '738', '320', '321', 'A320', 'B789', '350', '737', '319', '73H'];
+  }
+  static get HUB_POOL() {
+    return ['MAD', 'BOG', 'PTY', 'MEX', 'MIA', 'LIM', 'GRU', 'SCL'];
+  }
+
   /**
-   * Opciones sintéticas cuando la ruta no está en el catálogo: directos +
-   * una opción con escala vía el hub de Iberia (MAD), como en clase.
+   * Genera vuelos DINÁMICOS para cualquier ruta (petición de David: que no
+   * salgan siempre los mismos 3). Cada consulta produce 3-5 opciones con
+   * aerolíneas, horarios, escaleras y equipos aleatorios, y una mezcla de
+   * directos y con escala. Y/C/J quedan abiertas para no romper ejercicios.
    */
-  buildSyntheticFlights(origin, destination) {
-    return [
-      {
-        line: 1,
-        airline: 'AV',
-        flightNumber: '0026',
-        classes: this.buildClassLadder(2),
+  generateDynamicFlights(origin, destination) {
+    const rnd = Math.random;
+    const pick = (arr) => arr[Math.floor(rnd() * arr.length)];
+    const pad2 = (n) => String(n).padStart(2, '0');
+    const n = 3 + Math.floor(rnd() * 3); // 3-5 opciones
+
+    const airlines = PnrStateMachine.AIRLINE_POOL;
+    const usadas = new Set();
+    const flights = [];
+
+    for (let i = 0; i < n; i++) {
+      let air;
+      do { air = pick(airlines); } while (usadas.has(air) && usadas.size < airlines.length);
+      usadas.add(air);
+
+      const depH = Math.floor(rnd() * 24);
+      const depM = pick([0, 15, 30, 45]);
+      const durH = 1 + Math.floor(rnd() * 9);
+      const arrH = (depH + durH) % 24;
+
+      const hasStop = origin !== destination && rnd() < 0.35;
+      const via = hasStop ? pick(PnrStateMachine.HUB_POOL.filter((h) => h !== origin && h !== destination)) : null;
+
+      flights.push({
+        airline: air,
+        flightNumber: String(1000 + Math.floor(rnd() * 8999)),
+        classes: this.buildClassLadder(1 + Math.floor(rnd() * 10)),
         origin,
         destination,
-        departure: '08:15',
-        arrival: '12:45',
-        equipment: '788',
-        stops: 0,
-        priceUSD: 420
-      },
-      {
-        line: 2,
-        airline: 'LA',
-        flightNumber: '2410',
-        classes: this.buildClassLadder(5),
-        origin,
-        destination,
-        departure: '17:10',
-        arrival: '20:25',
-        equipment: 'B789',
-        stops: 0,
-        priceUSD: 380
-      },
-      {
-        line: 3,
-        airline: 'IB',
-        flightNumber: '6402',
-        classes: this.buildClassLadder(8),
-        origin,
-        destination,
-        departure: '19:30',
-        arrival: '14:55',
-        equipment: '350',
-        stops: 1,
-        via: 'MAD',
-        priceUSD: 650
-      }
-    ];
+        departure: `${pad2(depH)}:${pad2(depM)}`,
+        arrival: `${pad2(arrH)}:${pad2(depM)}`,
+        equipment: pick(PnrStateMachine.EQUIP_POOL),
+        stops: hasStop ? 1 : 0,
+        via,
+        priceUSD: 150 + Math.floor(rnd() * 45) * 10
+      });
+    }
+
+    // Ordenar por hora de salida y numerar las líneas 1..N.
+    flights.sort((a, b) => a.departure.localeCompare(b.departure));
+    flights.forEach((f, i) => { f.line = i + 1; });
+    return flights;
   }
 
   handleAvailability(params, flightsCatalog) {
@@ -262,14 +285,8 @@ export class PnrStateMachine {
     const destination = params.destination || 'MIA';
     const date = params.date || '25NOV';
 
-    // Filtrar catálogo de vuelos por ruta
-    let matches = flightsCatalog.filter(
-      f => f.origin === origin && f.destination === destination
-    );
-
-    if (matches.length === 0) {
-      matches = this.buildSyntheticFlights(origin, destination);
-    }
+    // Vuelos dinámicos en cada consulta (variedad para aprender).
+    const matches = this.generateDynamicFlights(origin, destination);
 
     this.state.lastAvailability = { date, origin, destination, flights: matches };
     return { success: true, type: 'AVAILABILITY', data: this.state.lastAvailability };
@@ -334,6 +351,18 @@ export class PnrStateMachine {
         name: `${surname.trim()}/${firstName}`
       };
       this.state.passengers.push(passenger);
+
+      // An infant travels linked to the adult and does not consume a separate
+      // passenger line. Preserve its structured data for scenario evaluation.
+      const infantMatch = firstName.match(/\(\s*INF([A-Z]+)\/([A-Z]+)\/(\d{2}[A-Z]{3}\d{2})\s*\)/i);
+      if (infantMatch) {
+        this.state.infants.push({
+          surname: infantMatch[1].toUpperCase(),
+          firstName: infantMatch[2].toUpperCase(),
+          dateOfBirth: infantMatch[3].toUpperCase(),
+          linkedPassengerId: passenger.id
+        });
+      }
       return passenger;
     });
 
@@ -448,6 +477,7 @@ export class PnrStateMachine {
     }
 
     const listado = [...new Set(lines)].sort((a, b) => a - b).join(',');
+    this.state.cancelOperations.push({ spec, lines: [...new Set(lines)].sort((a, b) => a - b) });
     return { success: true, message: `ELEMENT ${listado} CANCELLED` };
   }
 
@@ -502,6 +532,16 @@ export class PnrStateMachine {
     const baseFare = Math.round(baseUSD * rate);
     const taxes = Math.round(taxesUSD * rate);
     const total = baseFare + taxes;
+    const normalizedInput = rawInput.trim().toUpperCase().replace(/\s+/g, '');
+    const fareFamily = (normalizedInput.match(/\/FF-([A-Z0-9-]+)/) || [])[1] || null;
+    const modifiers = [...normalizedInput.matchAll(/\/RAD\*([A-Z]+(?:\*[A-Z]+)*)/g)]
+      .map((match) => `RAD*${match[1]}`);
+    this.state.pricingHistory.push({
+      command: storeTst ? 'FXP' : 'FXX',
+      fareFamily,
+      modifiers,
+      office
+    });
 
     if (storeTst) {
       this.state.tst = { priceUSD: baseUSD, currency, total, fareBasis };
@@ -639,13 +679,8 @@ export class PnrStateMachine {
     const destination = params.destination || 'BOG';
     const date = params.date || '13MAR';
 
-    let matches = flightsCatalog.filter(
-      f => f.origin === origin && f.destination === destination
-    );
-
-    if (matches.length === 0) {
-      matches = this.buildSyntheticFlights(origin, destination);
-    }
+    // Vuelos dinámicos en cada consulta (variedad para aprender).
+    const matches = this.generateDynamicFlights(origin, destination);
 
     this.state.lastAvailability = { date, origin, destination, flights: matches };
 
