@@ -253,21 +253,30 @@ export class ResponseGenerator {
   }
 
   formatPricing(result) {
-    // Facturación en la moneda de la oficina (result.currency). Compatibilidad:
-    // si el motor no calculó los importes convertidos, cae a USD.
+    // Facturación en la moneda de la oficina, DESGLOSADA por tipo de pasajero
+    // (petición de David: la tarifa individual de ADT/CHD/INF, no una sola).
     const cur = result.currency || 'USD';
-    const base = result.baseFare !== undefined ? result.baseFare : result.priceUSD;
-    const taxes = result.taxes !== undefined ? result.taxes : 45;
-    const total = result.total !== undefined ? result.total : result.priceUSD + 45;
+    const total = result.total !== undefined ? result.total
+      : (result.baseFare !== undefined ? result.baseFare : result.priceUSD) + 45;
     const officeLine = result.office ? ` - OFFICE ${result.office}` : '';
-    return [
-      `LAST TKT DATE - ${new Date().toISOString().slice(0, 10).replace(/-/g, '')}${officeLine}`,
-      `AL PASSENGER`,
-      `${cur} ${base}.00  BASE FARE`,
-      `${cur} ${taxes}.00    TAXES / FEES`,
-      `${cur} ${total}.00 TOTAL`,
-      result.tstStored ? 'TST 001 STORED IN PNR OK' : 'FXX INFORMATIVE PRICING ONLY'
-    ].join('\n');
+    const nombre = { ADT: 'ADULTO', CHD: 'NIÑO ', INF: 'INFANTE' };
+
+    const lines = [`LAST TKT DATE - ${new Date().toISOString().slice(0, 10).replace(/-/g, '')}${officeLine}`];
+    lines.push('TARIFA POR PASAJERO:');
+
+    const perPax = result.perPax && result.perPax.length
+      ? result.perPax
+      : [{ type: 'ADT', count: 1, fare: result.baseFare ?? result.priceUSD, taxes: result.taxes ?? 45 }];
+
+    perPax.forEach((p) => {
+      const sub = (p.fare + p.taxes) * p.count;
+      lines.push(`  ${p.type} x${p.count}  ${cur} ${p.fare}.00 + ${cur} ${p.taxes}.00 TAX = ${cur} ${sub}.00`);
+    });
+
+    lines.push('----------------------------------------');
+    lines.push(`TOTAL (${cur}): ${total}.00`);
+    lines.push(result.tstStored ? 'TST 001 STORED IN PNR OK' : 'FXX INFORMATIVE PRICING ONLY');
+    return lines.join('\n');
   }
 
   formatHelp(topic) {

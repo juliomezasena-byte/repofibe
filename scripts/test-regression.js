@@ -247,6 +247,25 @@ probarTolerancia('TTM sin forma de pago -> error', ['SRXBAG/P1/S1', 'FXG', 'TTM/
 probarTolerancia('Flujo EMD completo emite el documento', ['SRXBAG/P1/S1', 'FXG', 'TMI/FP-CASH,', 'TTM/M1/RT'],
   (r, s) => r.success && r.emd && s.tsmIssued ? null : 'no emitio EMD');
 
+// ── FXX desglosa por tipo de pasajero (petición de David) ──
+probarTolerancia('FXX con ADT+CHD desglosa dos tarifas (CHD 75%)',
+  ['AN13MARLIMBOG', 'SS2Y1', 'NM2PEREZ/CARLOS MR/JUAN(CHD/10MAY18)', 'FXX/FF-OPTIMA/RAD*CH,BOG'],
+  (r) => {
+    if (!r.perPax) return 'sin desglose perPax';
+    const adt = r.perPax.find((p) => p.type === 'ADT');
+    const chd = r.perPax.find((p) => p.type === 'CHD');
+    if (!adt || !chd) return 'faltan ADT o CHD';
+    return chd.fare === Math.round(adt.fare * 0.75) ? null : 'CHD no es 75% del ADT';
+  });
+probarTolerancia('FXX con ADT+INF: el infante (10%) sale del nombre del adulto',
+  ['AN13MARLIMBOG', 'SS1Y1', 'NM1GARCIA/CARLOS MR(INFGARCIA/SOFIA/01JAN25)', 'FXX/FF-OPTIMA/RAD*IN,BOG'],
+  (r) => {
+    const adt = (r.perPax || []).find((p) => p.type === 'ADT');
+    const inf = (r.perPax || []).find((p) => p.type === 'INF');
+    if (!adt || !inf) return 'faltan ADT o INF';
+    return inf.fare === Math.round(adt.fare * 0.10) ? null : 'INF no es 10% del ADT';
+  });
+
 // ── Vuelos dinámicos (petición de David: no siempre los mismos 3) ──
 probarTolerancia('SN muestra escalera completa (>=15 letras) en la 1a opción', ['SN 12 APR MEX SDQ'],
   (r) => {

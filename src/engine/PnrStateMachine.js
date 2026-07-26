@@ -559,6 +559,30 @@ export class PnrStateMachine {
     return { currency, rate, office };
   }
 
+  /**
+   * Cuenta los tipos de pasajero para facturar por separado (petición de
+   * David: FXX debe soltar la tarifa por tipo, no una sola). El infante viaja
+   * en el nombre del adulto (INF...), así que ese pax cuenta ADT + INF.
+   */
+  detectPaxTypes(rawInput = '') {
+    let adt = 0, chd = 0, inf = 0;
+    for (const p of this.state.passengers || []) {
+      const nm = (p.name || '').toUpperCase();
+      if (nm.includes('(INF')) { adt++; inf++; }       // adulto con infante en brazos
+      else if (nm.includes('(CH')) { chd++; }          // niño (pax propio)
+      else { adt++; }
+    }
+    if (adt + chd + inf === 0) {
+      // Sin nombres aún: derivar de los modificadores del comando (RAD/CH/IN).
+      const toks = (rawInput.toUpperCase().match(/[A-Z]+/g) || []);
+      if (toks.includes('RAD')) adt = 1;
+      if (toks.includes('CH')) chd = 1;
+      if (toks.includes('IN')) inf = 1;
+      if (adt + chd + inf === 0) adt = 1;
+    }
+    return { adt, chd, inf };
+  }
+
   handlePrice(storeTst = false, params = {}, rawInput = '', locationsCatalog = []) {
     if (this.state.segments.length === 0) {
       return { success: false, error: 'NO ITINERARY TO PRICE' };
@@ -572,7 +596,14 @@ export class PnrStateMachine {
     const { currency, rate, office } = this.resolveOfficeCurrency(rawInput, locationsCatalog);
     const baseFare = Math.round(baseUSD * rate);
     const taxes = Math.round(taxesUSD * rate);
-    const total = baseFare + taxes;
+
+    // Desglose por tipo de pasajero: ADT completo, CHD 75%, INF 10%.
+    const { adt, chd, inf } = this.detectPaxTypes(rawInput);
+    const perPax = [];
+    if (adt > 0) perPax.push({ type: 'ADT', count: adt, fare: baseFare, taxes });
+    if (chd > 0) perPax.push({ type: 'CHD', count: chd, fare: Math.round(baseFare * 0.75), taxes: Math.round(taxes * 0.75) });
+    if (inf > 0) perPax.push({ type: 'INF', count: inf, fare: Math.round(baseFare * 0.10), taxes: Math.round(taxes * 0.10) });
+    const total = perPax.reduce((acc, p) => acc + (p.fare + p.taxes) * p.count, 0);
     const normalizedInput = rawInput.trim().toUpperCase().replace(/\s+/g, '');
     const fareFamily = (normalizedInput.match(/\/FF-([A-Z0-9-]+)/) || [])[1] || null;
     const modifiers = [...normalizedInput.matchAll(/\/RAD\*([A-Z]+(?:\*[A-Z]+)*)/g)]
@@ -599,6 +630,7 @@ export class PnrStateMachine {
       baseFare,
       taxes,
       total,
+      perPax,
       fareBasis,
       tstStored: storeTst
     };
