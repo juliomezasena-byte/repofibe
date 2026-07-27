@@ -95,6 +95,36 @@ export class QuizEngine {
 
   static TYPES = ['cmd-func', 'func-cmd', 'iata-city', 'city-iata', 'syntax', 'rbd', 'flow'];
 
+  // Tips de "cómo se usa" para los comandos que más confunden (idea de Juan
+  // Pablo: que la explicación diga cómo se usa, no solo qué es).
+  static get USAGE_TIPS() {
+    return {
+      SN: 'Recuerda el orden: FECHA + ORIGEN + DESTINO. No inviertas los IATA.',
+      AN: 'Igual que SN pero muestra clases abiertas. Ojo con el orden ORIGEN→DESTINO.',
+      SS: 'Se lee: NRO_PASAJEROS + CLASE + NRO_VUELO. Ej: SS1Y1 = 1 puesto, clase Y, vuelo 1.',
+      NM: 'El número va DESPUÉS de NM: NM1APELLIDO/NOMBRE. El niño lleva (CHD/fecha), el infante (INF...).',
+      FQC: 'La emisión va en USD y se convierte a la moneda del país del cliente. Ej: FQC 35USD/DOP.',
+      FXX: 'Factura por tipo de pasajero (ADT/CHD/INF) en la moneda de la OFICINA (el último dato tras la coma).',
+      FXP: 'Como FXX pero GUARDA la tarifa (crea el TST) para poder emitir.',
+      DF: 'Suma todas las tarifas. Usa * para multiplicar (valor*cantidad) y ; para separar.',
+      RM: 'Nota libre. Se usa para el desglose por pasajero, el total y la política de reembolso.',
+      DAN: 'Nombre de ciudad → código IATA. Ej: DAN MEXICO → MEX.',
+      DAC: 'Código IATA → nombre de ciudad. Ej: DAC MEX → CIUDAD DE MEXICO.',
+      RF: 'Recibido De: quién solicita la reserva. Es OBLIGATORIO para cerrar con ER.',
+      ER: 'Cierra y guarda el PNR. Antes necesitas nombre, itinerario, teléfono, TK y RF.',
+      XE: 'Borra líneas: XE1 (una), XE1-3 (rango), XE4,8 (lista).'
+    };
+  }
+
+  explainCommand(cmd) {
+    const partes = [`${cmd.code} — ${cmd.name}: ${cmd.description}`];
+    if (cmd.syntax && cmd.syntax.length) partes.push(`SINTAXIS: ${cmd.syntax[0]}`);
+    if (cmd.examples && cmd.examples.length) partes.push(`EJEMPLO: ${cmd.examples[0]}`);
+    const tip = QuizEngine.USAGE_TIPS[cmd.code];
+    if (tip) partes.push(`💡 ${tip}`);
+    return partes.join('\n');
+  }
+
   pick(arr, rnd) {
     return arr[Math.floor(rnd() * arr.length)];
   }
@@ -133,7 +163,7 @@ export class QuizEngine {
           prompt: `¿Para qué sirve el comando ${cmd.code}?`,
           options,
           correctIndex,
-          explain: `${cmd.code} — ${cmd.name}: ${cmd.description}`
+          explain: this.explainCommand(cmd)
         };
       }
 
@@ -146,7 +176,7 @@ export class QuizEngine {
           prompt: `¿Qué comando usas para esto?: "${cmd.description}"`,
           options,
           correctIndex,
-          explain: `Es ${cmd.code} (${cmd.name}). Ejemplo: ${(cmd.examples || [])[0] || cmd.code}`
+          explain: this.explainCommand(cmd)
         };
       }
 

@@ -1,5 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Target, CheckCircle2, Circle, RefreshCw, GraduationCap, Dumbbell, Send, Clock, Eye } from 'lucide-react';
+import { Target, CheckCircle2, Circle, RefreshCw, GraduationCap, Dumbbell, Send, Clock, Eye, ChevronDown, ChevronRight, BookOpen } from 'lucide-react';
+
+// Sección desplegable (idea de Juan Pablo: menús desplegables para no abrumar).
+const Collapse = ({ title, icon, children, defaultOpen = true }) => {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="collapse-section">
+      <button className="collapse-head" onClick={() => setOpen((v) => !v)}>
+        {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+        {icon}
+        <span>{title}</span>
+      </button>
+      {open && <div className="collapse-body">{children}</div>}
+    </div>
+  );
+};
 
 function fmt(ms) {
   const s = Math.floor(ms / 1000);
@@ -110,83 +125,95 @@ export const ScenarioSelector = ({
         </button>
       </div>
 
-      {activeScenario && (
-        <div style={{ fontSize: '0.88rem', color: '#cbd5e1', lineHeight: '1.4' }}>
-          {activeScenario.description}
-        </div>
-      )}
-
-      {/* Verificación descubrible: fichas de datos extraídos del enunciado */}
-      {activeScenario && dataFields.length > 0 && (
-        <div>
-          <button className="link-btn" onClick={() => setShowData((v) => !v)}>
-            <Eye size={12} /> {showData ? 'Ocultar datos' : 'Ver datos extraídos'}
-          </button>
-          {showData && (
-            <div className="data-fields">
-              {dataFields.map((f, i) => (
-                <div key={i} className="data-field">
-                  <span className="data-label">{f.label}</span>
-                  <span className="data-value">{f.value}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ── MODO PRÁCTICA: chips de comandos (andamiaje) + progreso ── */}
+      {/* ── MODO PRÁCTICA ── */}
       {examMode === 'practice' && activeScenario && (
         <>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
-              {activeScenario.difficulty === 'Avanzado' ? 'FLUJO (NIVEL AVANZADO)' : 'PASOS SUGERIDOS:'}
-            </span>
-            <button onClick={onResetScenario} className="link-btn">
-              <RefreshCw size={12} /> Reiniciar PNR
-            </button>
-          </div>
-
-          {activeScenario.difficulty === 'Avanzado' ? (
-            <div style={{ fontSize: '0.72rem', color: '#64748b', lineHeight: '1.5' }}>
-              Nivel avanzado: sin ayudas de comando. Escríbelos de memoria a
-              partir del enunciado.
-            </div>
-          ) : (
-            <div className="chip-list">
-              {activeScenario.suggestedFlow.map((cmd, i) => {
-                const text = chipText(cmd, activeScenario.difficulty);
-                const status = chipStatus[i] || 'pending';
-                return (
-                  <button
-                    key={i}
-                    className={`work-chip ${status}`}
-                    onClick={() => onChipTap && onChipTap(cmd)}
-                    title="Escribir en la terminal (no lo ejecuta)"
-                  >
-                    <span className="chip-num">{String(i + 1).padStart(2, '0')}</span>
-                    <span className="chip-cmd">{text}</span>
-                    {status === 'done' && <CheckCircle2 size={13} className="chip-check" />}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
+          {/* Barra de progreso SIEMPRE arriba (idea de Juan: "la barrita
+              arribita"; si avanza, vas bien). No sube si hay un error. */}
           {evaluationResult && (
-            <div className="progress-card">
+            <div className="progress-top">
               <div className="progress-header">
-                <span>Progreso del Objetivo</span>
+                <span>Tu progreso</span>
                 <span style={{ color: evaluationResult.completed ? 'var(--crt-green)' : 'var(--crt-cyan)' }}>
-                  {evaluationResult.score}% {evaluationResult.completed && '(¡COMPLETADO!)'}
+                  {evaluationResult.score}% {evaluationResult.completed && '✓'}
                 </span>
               </div>
               <div className="progress-bar-bg">
                 <div className="progress-bar-fill" style={{ width: `${evaluationResult.score}%` }}></div>
               </div>
-              <Checklist feedback={evaluationResult.feedback} />
             </div>
           )}
+
+          <Collapse title="Enunciado del ejercicio" icon={<BookOpen size={14} />} defaultOpen>
+            <div style={{ fontSize: '0.88rem', color: '#cbd5e1', lineHeight: '1.4' }}>
+              {activeScenario.description}
+            </div>
+            {dataFields.length > 0 && (
+              <button className="link-btn" style={{ marginTop: '8px' }} onClick={() => setShowData((v) => !v)}>
+                <Eye size={12} /> {showData ? 'Ocultar datos' : 'Ver datos extraídos'}
+              </button>
+            )}
+            {showData && (
+              <div className="data-fields">
+                {dataFields.map((f, i) => (
+                  <div key={i} className="data-field">
+                    <span className="data-label">{f.label}</span>
+                    <span className="data-value">{f.value}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Collapse>
+
+          <Collapse
+            title={activeScenario.difficulty === 'Avanzado' ? 'Flujo (nivel avanzado)' : 'Pasos sugeridos'}
+            icon={<Target size={14} />}
+            defaultOpen
+          >
+            {activeScenario.difficulty === 'Avanzado' ? (
+              <div style={{ fontSize: '0.72rem', color: '#64748b', lineHeight: '1.5' }}>
+                Nivel avanzado: sin ayudas de comando. Escríbelos de memoria a
+                partir del enunciado.
+              </div>
+            ) : (
+              <div className="chip-list">
+                {activeScenario.suggestedFlow.map((cmd, i) => {
+                  const text = chipText(cmd, activeScenario.difficulty);
+                  const status = chipStatus[i] || 'pending';
+                  return (
+                    <button
+                      key={i}
+                      className={`work-chip ${status}`}
+                      onClick={() => onChipTap && onChipTap(cmd)}
+                      title="Escribir en la terminal (no lo ejecuta)"
+                    >
+                      <span className="chip-num">{String(i + 1).padStart(2, '0')}</span>
+                      <span className="chip-cmd">{text}</span>
+                      {status === 'done' && <CheckCircle2 size={13} className="chip-check" />}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            <button onClick={onResetScenario} className="link-btn" style={{ marginTop: '8px' }}>
+              <RefreshCw size={12} /> Reiniciar PNR
+            </button>
+          </Collapse>
+
+          {evaluationResult && (
+            <Collapse title="Checklist detallado" icon={<CheckCircle2 size={14} />} defaultOpen={false}>
+              <Checklist feedback={evaluationResult.feedback} />
+            </Collapse>
+          )}
+
+          <Collapse title="Referencias Amadeus" icon={<BookOpen size={14} />} defaultOpen={false}>
+            <div className="ref-links">
+              <a href="https://servicehub.amadeus.com/c/portal/view-solution/FAQ12345/es" target="_blank" rel="noreferrer">Amadeus Service Hub (ayuda oficial)</a>
+              <a href="https://amadeus.com/es/portfolio/viajes/soluciones-para-agencias-de-viajes" target="_blank" rel="noreferrer">Amadeus para agencias de viajes</a>
+              <a href="https://es.wikipedia.org/wiki/C%C3%B3digo_de_aeropuerto_IATA" target="_blank" rel="noreferrer">Códigos IATA de aeropuertos</a>
+              <span className="ref-note">Escribe <b>HE {'{'}comando{'}'}</b> en la terminal para ver su sintaxis (ej: HE SN).</span>
+            </div>
+          </Collapse>
         </>
       )}
 

@@ -704,6 +704,72 @@ body {
   color: var(--text-muted);
 }
 
+/* ── Secciones desplegables del panel (menos abrumador, Juan Pablo) ── */
+.progress-top {
+  background: #0e1724;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.collapse-section {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg-card);
+}
+
+.collapse-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #0e1724;
+  border: none;
+  color: var(--text-light);
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+}
+
+.collapse-head:hover { color: var(--crt-cyan); }
+.collapse-head span { flex: 1; }
+
+.collapse-body {
+  padding: 12px;
+  border-top: 1px solid var(--border-color);
+}
+
+.ref-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ref-links a {
+  color: var(--crt-cyan);
+  font-size: 0.82rem;
+  text-decoration: none;
+  border-bottom: 1px dashed transparent;
+}
+
+.ref-links a:hover { border-bottom-color: var(--crt-cyan); }
+
+.ref-note {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-top: 4px;
+}
+
+.ref-note b { color: var(--crt-green); }
+
 /* ── Chips de comandos: estética "orden de trabajo", no Duolingo ── */
 .chip-list {
   display: flex;

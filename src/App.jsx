@@ -7,6 +7,10 @@ import { EvaluationEngine } from './engine/EvaluationEngine';
 import { Terminal } from './components/Terminal';
 import { ScenarioSelector } from './components/ScenarioSelector';
 import { QuizPanel } from './components/QuizPanel';
+import { LoginScreen } from './components/LoginScreen';
+import { auth } from './lib/firebase';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { getUserData, updateStreak } from './lib/db';
 
 export function App() {
   const [profileConfig, setProfileConfig] = useState(null);
@@ -19,6 +23,9 @@ export function App() {
   const [examMode, setExamMode] = useState('practice'); // 'practice' | 'exam' | 'delivered'
   const [examStartTs, setExamStartTs] = useState(null);
   const [examResult, setExamResult] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [streak, setStreak] = useState(0);
 
   const terminalRef = useRef(null);
 
@@ -30,6 +37,38 @@ export function App() {
   const dslParser = useMemo(() => {
     return new DslParser(profileConfig);
   }, [profileConfig]);
+
+  // Escuchar estado de autenticación
+  useEffect(() => {
+    let isMounted = true;
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          const userData = await getUserData(user.uid);
+          const currentStreak = userData?.streakCount || 0;
+          const lastDate = userData?.lastStreakDate || null;
+          const newStreak = await updateStreak(user.uid, currentStreak, lastDate);
+          if (isMounted) setStreak(newStreak);
+        } catch (e) {
+          console.error("Error al actualizar la racha:", e);
+        }
+        if (isMounted) {
+          setIsAuthenticated(true);
+          setAuthLoading(false);
+        }
+      } else {
+        if (isMounted) {
+          setIsAuthenticated(false);
+          setStreak(0);
+          setAuthLoading(false);
+        }
+      }
+    });
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
+  }, []);
 
   // Cargar datos JSON de especificación DSL
   useEffect(() => {
@@ -166,6 +205,22 @@ export function App() {
     if (terminalRef.current) terminalRef.current.setInput(cmd);
   };
 
+  if (authLoading) {
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#ffffff' }}>Cargando sistema...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return <LoginScreen onLogin={() => setIsAuthenticated(true)} />;
+  }
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Error signing out: ", error);
+    }
+  };
+
   return (
     <div className="app-container">
       <header className="app-header">
@@ -173,6 +228,27 @@ export function App() {
           <TerminalSquare className="brand-icon" />
           <h1 className="brand-title">Cryptic Trainer</h1>
           <span className="brand-tag">GDS AMADEUS PWA</span>
+          {streak > 0 && (
+            <span style={{
+              marginLeft: '8px',
+              padding: '2px 8px',
+              borderRadius: '6px',
+              fontSize: '0.85rem',
+              fontWeight: '600',
+              fontFamily: 'var(--font-sans)',
+              backgroundColor: streak > 2 ? 'rgba(255, 152, 0, 0.15)' : 'rgba(100, 116, 139, 0.15)',
+              color: streak > 2 ? '#ff9800' : '#94a3b8',
+              border: `1px solid ${streak > 2 ? 'rgba(255, 152, 0, 0.3)' : 'rgba(100, 116, 139, 0.3)'}`,
+              display: 'inline-flex',
+              alignItems: 'center',
+              whiteSpace: 'nowrap'
+            }}>
+              🔥 {streak} {streak === 1 ? 'Día' : 'Días'}
+            </span>
+          )}
+          <button onClick={handleLogout} className="ghost-btn" style={{ marginLeft: '1rem' }}>
+            Salir
+          </button>
         </div>
 
         <div className="header-controls">

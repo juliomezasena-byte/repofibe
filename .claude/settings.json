@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node scripts/test-regression.js)",
+      "Bash(node scripts/test-parser.js)",
+      "Bash(npx vite *)",
+      "WebFetch(domain:github.com)",
+      "Bash(ls 'C:\\\\Users\\\\mesw/.repofibe/app/plantillas/')",
+      "Bash(echo \"===PREAMBULO===\")",
+      "Bash(cat 'C:\\\\Users\\\\mesw/.repofibe/app/plantillas/preambulo.md')",
+      "Bash(node 'C:\\\\Users\\\\mesw/.repofibe/app/nucleo/estado.mjs' ver)",
+      "Bash(npm ls *)",
+      "Bash(node 'C:\\\\Users\\\\mesw/.repofibe/app/nucleo/navegador.mjs')",
+      "Bash(node .fabrica/audit-visual.mjs)",
+      "Bash(node __TRACKED_VAR__/nucleo/estado.mjs registrar design-review '4 hallazgos moviles corregidos con evidencia antes/despues; vista unica responsive confirmada; redesplegado en Firebase')",
+      "Bash(node __TRACKED_VAR__/nucleo/memoria.mjs agregar aprendizaje 'En Cryptic Trainer movil: 100dvh \\(no 100vh\\) para que el teclado no tape el input; keypad 2 filas con ESP/ENVIAR; brand-tag nowrap. Verificar siempre con screenshot movil real 390px, el header es lo primero que se rompe')",
+      "Bash(node __TRACKED_VAR__/nucleo/estado.mjs registrar construir 'Fix layout PC \\(keypad 1 fila\\), bug FXX moneda de oficina \\(David MAD->EUR\\), modulo equipaje/EMD completo \\(SRXBAG/FXG/TQM/TMI/TTM\\) + escenario 21. 21/21 + 7/7 e2e verde, desplegado')",
+      "Bash(node __TRACKED_VAR__/nucleo/estado.mjs registrar construir 'Blindado feedback David: input multilinea, TQT/ERK, RF explicado, Nivel 1 coherente \\(MEX/MXN, opcion A confirmada\\). 21/21 + 7/7 e2e verde, desplegado')",
+      "Bash(node)",
+      "Bash(node __TRACKED_VAR__/nucleo/estado.mjs registrar construir 'David: vuelos dinamicos + cabinas por radio \\(LR 3cab / CR 2cab\\). Resuelta colision con sesion paralela \\(payloadPattern para SRXBAG/TMI/TTM/TQT\\). 21/21 estable, desplegado')"
+    ]
+  }
+}
