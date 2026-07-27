@@ -145,7 +145,7 @@ export const ScenarioSelector = ({
           )}
 
           <Collapse title="Enunciado del ejercicio" icon={<BookOpen size={14} />} defaultOpen>
-            <div style={{ fontSize: '0.88rem', color: '#cbd5e1', lineHeight: '1.4' }}>
+            <div style={{ fontSize: '0.88rem', color: '#cbd5e1', lineHeight: '1.4', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
               {activeScenario.description}
             </div>
             {dataFields.length > 0 && (
