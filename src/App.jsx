@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { TerminalSquare, BookOpen, Brain, Layout } from 'lucide-react';
+import { TerminalSquare, BookOpen, Brain, Layout, Volume2, VolumeX } from 'lucide-react';
 import { DslParser } from './engine/DslParser';
 import { PnrStateMachine } from './engine/PnrStateMachine';
 import { ResponseGenerator } from './engine/ResponseGenerator';
@@ -11,6 +11,8 @@ import { LoginScreen } from './components/LoginScreen';
 import { auth } from './lib/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { getUserData, updateStreak } from './lib/db';
+import { useAudio } from './hooks/useAudio';
+import { useLocalStorage } from './hooks/useLocalStorage';
 
 export function App() {
   const [profileConfig, setProfileConfig] = useState(null);
@@ -28,6 +30,8 @@ export function App() {
   const [streak, setStreak] = useState(0);
 
   const terminalRef = useRef(null);
+  const { isMuted, toggleMute, playSound } = useAudio();
+  const [confettiShown, setConfettiShown] = useLocalStorage('amadeus_confetti_shown', {});
 
   // Instancias de los motores del simulador
   const pnrFsm = useMemo(() => new PnrStateMachine(), []);
@@ -156,17 +160,24 @@ export function App() {
 
   // Ejecución de comandos ingresados en la Terminal
   const handleExecuteCommand = (rawCommand) => {
+    playSound('key'); // Sonido de tipeo (simulando Enter)
+    
     const parseResult = dslParser.parse(rawCommand);
 
     if (!parseResult.success) {
       const output = responseGen.formatResponse(parseResult, pnrFsm.getState());
       setHistory((prev) => [...prev, { command: rawCommand, output, isError: true }]);
+      playSound('error');
       return;
     }
 
     const processResult = pnrFsm.process(parseResult, flightsCatalog, locationsCatalog);
     const pnrState = pnrFsm.getState();
     const output = responseGen.formatResponse(processResult, pnrState);
+    
+    if (!processResult.success) {
+      playSound('error');
+    }
 
     setHistory((prev) => [
       ...prev,
@@ -183,6 +194,32 @@ export function App() {
     if (!activeScenario) return null;
     return evalEngine.evaluate(activeScenario, pnrFsm.getState());
   }, [activeScenario, history, evalEngine, pnrFsm]);
+
+  // Efecto para lanzar Confeti y Sonido de Éxito cuando se completa
+  useEffect(() => {
+    if (evaluationResult?.completed && examMode === 'practice' && activeScenarioId) {
+      if (!confettiShown[activeScenarioId]) {
+        // Reproducir campana de éxito
+        playSound('success');
+        
+        // Carga diferida de canvas-confetti y verificación de prefers-reduced-motion
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (!prefersReducedMotion) {
+          import('canvas-confetti').then(({ default: confetti }) => {
+            confetti({
+              particleCount: 150,
+              spread: 70,
+              origin: { y: 0.6 },
+              disableForReducedMotion: true
+            });
+          }).catch(err => console.warn("Error cargando confetti:", err));
+        }
+
+        // Marcar como visto usando localStorage seguro
+        setConfettiShown(prev => ({ ...prev, [activeScenarioId]: true }));
+      }
+    }
+  }, [evaluationResult?.completed, examMode, activeScenarioId, confettiShown, playSound, setConfettiShown]);
 
   // Estado de cada chip (paso sugerido): 'done' | 'current' | 'pending'.
   // Matching best-effort compact (SS 3 J 3 === SS3J3); es guía visual, NO
@@ -246,6 +283,16 @@ export function App() {
               🔥 {streak} {streak === 1 ? 'Día' : 'Días'}
             </span>
           )}
+          
+          <button 
+            onClick={toggleMute} 
+            className="ghost-btn" 
+            style={{ marginLeft: '1rem', color: isMuted ? '#94a3b8' : '#0284c7' }}
+            title={isMuted ? "Activar Sonido" : "Silenciar"}
+          >
+            {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+          </button>
+
           <button onClick={handleLogout} className="ghost-btn" style={{ marginLeft: '1rem' }}>
             Salir
           </button>

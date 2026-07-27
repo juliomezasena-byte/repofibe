@@ -1137,3 +1137,25 @@ body {
 .quiz-card-back {
   color: var(--crt-cyan);
 }
+
+/* Animación de Shake (Error en Terminal) */
+@keyframes shake-horizontal {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-5px); }
+  40%, 80% { transform: translateX(5px); }
+}
+
+.terminal-shake {
+  animation: shake-horizontal 0.3s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* Fallback de Accesibilidad para el Shake */
+@media (prefers-reduced-motion: reduce) {
+  .terminal-shake {
+    animation: none;
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 1px #ef4444 inset;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+}
+

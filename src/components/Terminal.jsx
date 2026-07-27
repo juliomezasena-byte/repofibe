@@ -22,6 +22,17 @@ export const Terminal = forwardRef(({ onExecuteCommand, history, hideVerbs = fal
   const last = history[history.length - 1];
   const lastErrorCmd = last && last.isError ? last.command : null;
 
+  // Estado para la animación de Shake
+  const [isShaking, setIsShaking] = useState(false);
+
+  useEffect(() => {
+    if (history.length === 0) return;
+    const item = history[history.length - 1];
+    if (item && item.isError) {
+      setIsShaking(true);
+    }
+  }, [history]);
+
   // Auto-scroll al final de la pantalla CRT
   useEffect(() => {
     if (screenRef.current) {
@@ -100,23 +111,28 @@ export const Terminal = forwardRef(({ onExecuteCommand, history, hideVerbs = fal
   };
 
   return (
-    <div className="terminal-wrapper">
-      {/* La victoria vive en el CHROME del emulador, nunca en el scroll GDS
-          (Ley de Pantalla Limpia). El glow de 2s es puro CSS derivado del
-          render — sin efectos ni entradas sinteticas en history. */}
-      <div className={`terminal-header ${missionComplete ? 'mission-done' : ''}`}>
-        <div>
-          <span className="status-dot"></span>
-          <span>AMADEUS 1A GDS<span className="hide-mobile"> TERMINAL (80 COLS)</span></span>
+    <div className="terminal-wrapper" style={{ overflowX: 'hidden' }}>
+      <div 
+        className={`terminal-inner ${isShaking ? 'terminal-shake' : ''}`} 
+        onAnimationEnd={() => setIsShaking(false)}
+        style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
+      >
+        {/* La victoria vive en el CHROME del emulador, nunca en el scroll GDS
+            (Ley de Pantalla Limpia). El glow de 2s es puro CSS derivado del
+            render — sin efectos ni entradas sinteticas en history. */}
+        <div className={`terminal-header ${missionComplete ? 'mission-done' : ''}`}>
+          <div>
+            <span className="status-dot"></span>
+            <span>AMADEUS 1A GDS<span className="hide-mobile"> TERMINAL (80 COLS)</span></span>
+          </div>
+          <div>
+            {missionComplete
+              ? 'MISION 100% ✓'
+              : <>SESSION: ACTIVE<span className="hide-mobile"> (ONLINE)</span></>}
+          </div>
         </div>
-        <div>
-          {missionComplete
-            ? 'MISION 100% ✓'
-            : <>SESSION: ACTIVE<span className="hide-mobile"> (ONLINE)</span></>}
-        </div>
-      </div>
 
-      <div className="terminal-screen" ref={screenRef}>
+        <div className="terminal-screen" ref={screenRef}>
         <div className="output-block">
           <div className="response-text">
             A4Z9 - AMADEUS TRAINING SYSTEM - MEX1A0980{'\n'}
@@ -163,6 +179,7 @@ export const Terminal = forwardRef(({ onExecuteCommand, history, hideVerbs = fal
         onNewline={handleNewline}
         hideVerbs={hideVerbs}
       />
+      </div>
     </div>
   );
 });
