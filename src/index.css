@@ -630,6 +630,27 @@ body {
   overflow-y: auto;
 }
 
+.sidebar-panel > * {
+  flex-shrink: 0;
+}
+
+.sidebar-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-panel::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+.sidebar-panel::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
 .panel-title {
   font-size: 1rem;
   font-weight: 700;
