@@ -2,6 +2,13 @@
 
 Todas las novedades de repofibe, versión por versión.
 
+## [1.1.0] — 2026-07-26
+### Añadido — Interactividad Premium y Recompensas
+- **Diseño Defensivo (Shake):** Animación en la terminal que se dispara automáticamente cuando un comando evaluado devuelve un error. La clase `.terminal-shake` se limpia con un handler `onAnimationEnd` para no bloquear el flujo de React.
+- **Feedback Auditivo (SFX):** Se implementó `useAudio.js` con síntesis de sonido (Web Audio API) para 0KB de payload. El sonido arranca silenciado (opt-in) por defecto, persistiendo la decisión en `localStorage`.
+- **Recompensa Gamificada (Confeti):** Efecto `canvas-confetti` cargado de forma diferida (lazy load) cuando el usuario completa un escenario por primera vez. Se preserva el estado en memoria para no repetir en la misma sesión.
+
+
 ## [0.6.2] — 2026-07-25
 ### Corregido — la capa de inteligencia estaba construida pero SIN CONECTAR
 - **`docs/PLAN-SUPERACION.md` marcaba ✅ el orquestador.** La capa
