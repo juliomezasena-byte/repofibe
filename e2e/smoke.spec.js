@@ -4,6 +4,11 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('smoke', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('PLAYWRIGHT_TEST', '1');
+    });
+  });
   test('el terminal responde SN 12 APR MEX SDQ con SCHEDULE NEUTRAL', async ({ page }) => {
     await page.goto('/');
 

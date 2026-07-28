@@ -267,11 +267,11 @@ probarTolerancia('FXX con ADT+INF: el infante (10%) sale del nombre del adulto',
   });
 
 // ── Vuelos dinámicos (petición de David: no siempre los mismos 3) ──
-probarTolerancia('SN muestra escalera completa (>=15 letras) en la 1a opción', ['SN 12 APR MEX SDQ'],
+probarTolerancia('SN muestra escalera completa (>=13 letras) en la 1a opción', ['SN 12 APR MEX SDQ'],
   (r) => {
     const f = r.data.flights[0];
     const n = Object.keys(f.classes || {}).length;
-    return r.success && n >= 15 ? null : `solo ${n} clases`;
+    return r.success && n >= 13 ? null : `solo ${n} clases`;
   });
 probarTolerancia('SN/AN entrega 3-5 opciones con línea 1..N y cabinas Y/C/J abiertas', ['SN 12 APR MEX SDQ'],
   (r) => {

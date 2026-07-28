@@ -3,6 +3,11 @@ import { test, expect } from '@playwright/test';
 // Gate Fase 4 (P3.1): los chips escriben en el input sin ejecutar, y se
 // marcan ✔ cuando el comando (normalizado compact) aparece en el historial.
 test.describe('Chips de comandos', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('PLAYWRIGHT_TEST', '1');
+    });
+  });
   test('tocar un chip escribe el comando en el input, no lo ejecuta', async ({ page }) => {
     await page.goto('/');
     // Nivel 1 es Principiante -> chips con comando completo.

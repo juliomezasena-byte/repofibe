@@ -1,0 +1,11 @@
+{
+  "equipment": {
+    "320": { "name": "Airbus A320", "cabins": ["J", "Y"] },
+    "350": { "name": "Airbus A350", "cabins": ["J", "W", "Y"] },
+    "738": { "name": "Boeing 737-800", "cabins": ["J", "Y"] },
+    "788": { "name": "Boeing 787-8", "cabins": ["J", "W", "Y"] },
+    "789": { "name": "Boeing 787-9", "cabins": ["J", "W", "Y"] },
+    "A320": { "name": "Airbus A320", "cabins": ["J", "Y"] },
+    "B789": { "name": "Boeing 787-9", "cabins": ["J", "W", "Y"] }
+  }
+}

@@ -10,8 +10,37 @@ export class ResponseGenerator {
   /**
    * @param {Object} profileConfig - Perfil DSL (commands_meta.json) para la ayuda por comando.
    */
-  constructor(profileConfig = null) {
+  constructor(profileConfig = null, equipmentCatalog = {}) {
     this.commandsSpec = profileConfig?.commands || [];
+    this.equipmentCatalog = equipmentCatalog;
+  }
+
+  formatFlightClasses(classesObj, equipmentCode) {
+    const equip = this.equipmentCatalog[equipmentCode] || { cabins: ['Y'] };
+    const hasBusiness = equip.cabins.includes('J');
+    const hasPremium = equip.cabins.includes('W');
+
+    const businessKeys = ['J', 'C', 'D', 'R', 'I', 'U'];
+    const premiumKeys = ['W', 'E', 'T', 'P'];
+    const economyKeys = ['Y', 'B', 'H', 'K', 'M', 'L', 'V', 'S', 'N', 'Q', 'O', 'A', 'Z', 'G', 'X'];
+
+    let out = [];
+    if (hasBusiness) {
+      businessKeys.forEach(k => {
+        if (classesObj[k] !== undefined) out.push(`${k}${classesObj[k]}`);
+      });
+    }
+    if (hasPremium) {
+      premiumKeys.forEach(k => {
+        if (classesObj[k] !== undefined) out.push(`${k}${classesObj[k]}`);
+      });
+    }
+    economyKeys.forEach(k => {
+      if (classesObj[k] !== undefined) out.push(`${k}${classesObj[k]}`);
+    });
+
+    if (out.length === 0) out.push('Y9');
+    return out.join(' ');
   }
 
   setProfileConfig(profileConfig) {
@@ -59,11 +88,11 @@ export class ResponseGenerator {
       let lines = [`SN ${date} ${origin}${destination}`];
       lines.push(`** AMADEUS SCHEDULE NEUTRAL - SN ** ${origin} ${destination}  ${date}`);
       (flights || []).forEach((f, idx) => {
-        const classStr = Object.entries(f.classes || { Y: 9 })
-          .map(([cls, seats]) => `${cls}${seats}`)
-          .join(' ');
+        const classStr = this.formatFlightClasses(f.classes || { Y: 9 }, f.equipment || 'A320');
         const viaStr = f.via ? ` VIA ${f.via}` : '';
-        const cabStr = f.cabins === 3 ? ' [LR 3CAB]' : f.cabins === 2 ? ' [CR 2CAB]' : '';
+        const equip = this.equipmentCatalog[f.equipment || 'A320'] || { cabins: ['Y'] };
+        const cabins = equip.cabins || ['Y'];
+        const cabStr = cabins.length === 3 ? ' [LR 3CAB]' : cabins.length === 2 ? ' [CR 2CAB]' : '';
         lines.push(
           `${f.line || idx + 1}  ${f.airline} ${f.flightNumber}  ${classStr}`
         );
@@ -176,11 +205,11 @@ export class ResponseGenerator {
 
     (flights || []).forEach((f, idx) => {
       const lineNo = f.line || idx + 1;
-      const classStr = Object.entries(f.classes || { Y: 9 })
-        .map(([cls, seats]) => `${cls}${seats}`)
-        .join(' ');
+      const classStr = this.formatFlightClasses(f.classes || { Y: 9 }, f.equipment || 'A320');
       const viaStr = f.via ? ` VIA ${f.via}` : '';
-      const cabStr = f.cabins === 3 ? ' [LR 3CAB]' : f.cabins === 2 ? ' [CR 2CAB]' : '';
+      const equip = this.equipmentCatalog[f.equipment || 'A320'] || { cabins: ['Y'] };
+      const cabins = equip.cabins || ['Y'];
+      const cabStr = cabins.length === 3 ? ' [LR 3CAB]' : cabins.length === 2 ? ' [CR 2CAB]' : '';
 
       lines.push(`${lineNo}  ${f.airline} ${f.flightNumber} ${classStr}`);
       lines.push(

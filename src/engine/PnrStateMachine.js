@@ -342,7 +342,10 @@ export class PnrStateMachine {
 
     const flight = this.state.lastAvailability.flights.find(f => f.line === lineNum) || this.state.lastAvailability.flights[0];
 
-    const classStatus = flight.classes ? flight.classes[bookingClass] : 9;
+    if (!flight.classes || flight.classes[bookingClass] === undefined) {
+      return { success: false, error: `INVALID CLASS` };
+    }
+    const classStatus = flight.classes[bookingClass];
     if (classStatus === 0 || classStatus === 'C' || classStatus === 'X') {
       return { success: false, error: `CLASS ${bookingClass} CLOSED / NO SEATS AVAILABLE` };
     }
@@ -588,7 +591,15 @@ export class PnrStateMachine {
       return { success: false, error: 'NO ITINERARY TO PRICE' };
     }
 
-    const baseUSD = this.state.segments.reduce((acc, s) => acc + (s.priceUSD || 350), 0);
+    const baseUSD = this.state.segments.reduce((acc, s) => {
+      const p = s.priceUSD || 350;
+      const c = s.class || 'Y';
+      const businessKeys = ['J', 'C', 'D', 'R', 'I', 'U'];
+      const premiumKeys = ['W', 'E', 'T', 'P'];
+      if (businessKeys.includes(c)) return acc + (p * 3);
+      if (premiumKeys.includes(c)) return acc + (p * 1.5);
+      return acc + p;
+    }, 0);
     const taxesUSD = 45;
     const fareBasis = `${this.state.segments[0].class}FLEX`;
 

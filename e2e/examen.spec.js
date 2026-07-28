@@ -3,6 +3,11 @@ import { test, expect } from '@playwright/test';
 // Gate de la Fase 2 (P1 PLAN_UX): el Modo Examen quita todas las ayudas,
 // oculta la fila de comandos del keypad y solo entrega resultado al ENTREGAR.
 test.describe('Modo Examen', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('PLAYWRIGHT_TEST', '1');
+    });
+  });
   test('EXAMEN oculta las ayudas y el keypad de verbos', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('tab', { name: 'Examen' }).click();

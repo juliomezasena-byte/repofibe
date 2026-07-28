@@ -2,6 +2,13 @@
 
 Todas las novedades de repofibe, versión por versión.
 
+## [1.2.0] — 2026-07-27
+### Añadido — Catálogo de Equipos y Escaleras Dinámicas
+- **Catálogo de Equipos (`equipment.json`):** Nuevo catálogo de perfiles Amadeus que define las cabinas físicas (Ej: J, W, Y) para cada modelo de avión (Ej: A350, A320, B738).
+- **Escaleras de Clases Dinámicas:** El motor `ResponseGenerator` ahora construye la escalera de clases dinámicamente en los comandos de disponibilidad (`SN`, `AN`) omitiendo las clases de cabinas que el equipo no posee (e.g. elimina W, E, T, P si el avión no tiene Premium Economy).
+- **Bypass E2E Auth:** Se implementó una inyección en el inicializador de Playwright para usar `localStorage` (`PLAYWRIGHT_TEST`) y bypassear la pantalla de Login, permitiendo que la suite E2E corra exitosamente sin fricción de Firebase.
+- **Validación de Clases de Reserva:** Se corrigió un bug en `PnrStateMachine.js` donde intentar reservar (SS) una clase no existente (purgada de la escalera) fallaba silenciosamente; ahora retorna correctamente `INVALID CLASS`.
+
 ## [1.1.0] — 2026-07-26
 ### Añadido — Interactividad Premium y Recompensas
 - **Diseño Defensivo (Shake):** Animación en la terminal que se dispara automáticamente cuando un comando evaluado devuelve un error. La clase `.terminal-shake` se limpia con un handler `onAnimationEnd` para no bloquear el flujo de React.

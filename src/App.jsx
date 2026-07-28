@@ -18,6 +18,7 @@ export function App() {
   const [profileConfig, setProfileConfig] = useState(null);
   const [flightsCatalog, setFlightsCatalog] = useState([]);
   const [locationsCatalog, setLocationsCatalog] = useState([]);
+  const [equipmentCatalog, setEquipmentCatalog] = useState({});
   const [scenarios, setScenarios] = useState([]);
   const [activeScenarioId, setActiveScenarioId] = useState('scenario-1');
   const [history, setHistory] = useState([]);
@@ -35,7 +36,7 @@ export function App() {
 
   // Instancias de los motores del simulador
   const pnrFsm = useMemo(() => new PnrStateMachine(), []);
-  const responseGen = useMemo(() => new ResponseGenerator(profileConfig), [profileConfig]);
+  const responseGen = useMemo(() => new ResponseGenerator(profileConfig, equipmentCatalog), [profileConfig, equipmentCatalog]);
   const evalEngine = useMemo(() => new EvaluationEngine(), []);
 
   const dslParser = useMemo(() => {
@@ -44,6 +45,11 @@ export function App() {
 
   // Escuchar estado de autenticación
   useEffect(() => {
+    if (localStorage.getItem('PLAYWRIGHT_TEST') === '1') {
+      setIsAuthenticated(true);
+      setAuthLoading(false);
+      return;
+    }
     let isMounted = true;
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -78,22 +84,25 @@ export function App() {
   useEffect(() => {
     async function loadProfile() {
       try {
-        const [cmdRes, flightRes, scenRes, locRes] = await Promise.all([
+        const [cmdRes, flightRes, scenRes, locRes, equipRes] = await Promise.all([
           fetch('/profiles/amadeus/commands_meta.json'),
           fetch('/profiles/amadeus/flights.json'),
           fetch('/profiles/amadeus/scenarios.json'),
-          fetch('/profiles/amadeus/locations.json')
+          fetch('/profiles/amadeus/locations.json'),
+          fetch('/profiles/amadeus/equipment.json')
         ]);
 
         const cmdData = await cmdRes.json();
         const flightData = await flightRes.json();
         const scenData = await scenRes.json();
         const locData = await locRes.json();
+        const equipData = await equipRes.json();
 
         setProfileConfig(cmdData);
         setFlightsCatalog(flightData.flights || []);
         setScenarios(scenData.scenarios || []);
         setLocationsCatalog(locData.locations || []);
+        setEquipmentCatalog(equipData.equipment || {});
       } catch (err) {
         console.error('Error cargando perfil Amadeus DSL:', err);
       }
