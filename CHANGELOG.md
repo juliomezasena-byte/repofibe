@@ -2,6 +2,10 @@
 
 Todas las novedades de repofibe, versión por versión.
 
+## [1.4.2] - 2026-07-29
+### Correcciones
+- **Scroll del Quiz (PC):** Se corrigió un bug donde al avanzar a la siguiente pregunta en pantallas grandes, la ventana se quedaba "anclada" abajo en lugar de subir automáticamente al inicio de la nueva pregunta.
+
 ## [1.4.1] - 2026-07-29
 ### Refactor - Módulo Independiente para Certificación
 - **Desacoplamiento:** El examen oficial de Iberia ahora corre en su propio componente `IberiaExamPanel.jsx`, completamente aislado del componente de teoría general.

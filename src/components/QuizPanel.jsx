@@ -61,6 +61,7 @@ export const QuizPanel = ({ profileConfig, locationsCatalog, flightsCatalog, cou
     setFailedThisRun([]);
     setReviewPhase(false);
     setMode('quiz');
+    window.scrollTo(0, 0);
   }, [engine, stats, count]);
 
   const nextCard = useCallback(() => {
@@ -70,6 +71,7 @@ export const QuizPanel = ({ profileConfig, locationsCatalog, flightsCatalog, cou
     const q = engine.generateQuestion(tipo, rnd);
     setCard(q);
     setCardFlipped(false);
+    window.scrollTo(0, 0);
   }, [engine]);
 
   const answer = (idx) => {
@@ -92,6 +94,7 @@ export const QuizPanel = ({ profileConfig, locationsCatalog, flightsCatalog, cou
     if (!isLast) {
       setCurrent((c) => c + 1);
       setPicked(null);
+      window.scrollTo(0, 0);
       return;
     }
 
@@ -108,6 +111,7 @@ export const QuizPanel = ({ profileConfig, locationsCatalog, flightsCatalog, cou
       setCurrent(0);
       setPicked(null);
       setReviewPhase(true);
+      window.scrollTo(0, 0);
       return;
     }
 
@@ -130,6 +134,7 @@ export const QuizPanel = ({ profileConfig, locationsCatalog, flightsCatalog, cou
     saveStats(updated);
     setStats(updated);
     setMode('done');
+    window.scrollTo(0, 0);
   };
 
   const q = questions[current];

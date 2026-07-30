@@ -27,6 +27,7 @@ export const IberiaExamPanel = ({ profileConfig, locationsCatalog, flightsCatalo
     setPicked(null);
     setScore(0);
     setMode('exam');
+    window.scrollTo(0, 0);
   }, [engine]);
 
   const answer = (idx) => {
@@ -44,9 +45,11 @@ export const IberiaExamPanel = ({ profileConfig, locationsCatalog, flightsCatalo
     if (!isLast) {
       setCurrent((c) => c + 1);
       setPicked(null);
+      window.scrollTo(0, 0);
       return;
     }
     setMode('done');
+    window.scrollTo(0, 0);
   };
 
   const q = questions[current];

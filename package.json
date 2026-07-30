@@ -1,7 +1,7 @@
 {
   "name": "cryptic-trainer-pwa",
   "private": true,
-  "version": "1.4.1",
+  "version": "1.4.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
