@@ -6,7 +6,7 @@
  * Determinista por semilla: mismo seed => mismo quiz (testeable).
  */
 
-import { IBERIA_BANK } from './quizBanks/iberia';
+import { IBERIA_BANK } from './quizBanks/iberia.js';
 
 // PRNG mulberry32 — pequeño, determinista, suficiente para barajar preguntas.
 function mulberry32(seed) {
@@ -278,7 +278,7 @@ export class QuizEngine {
         const correctOpt = item.options[item.correctIndex];
         const { options, correctIndex } = this.buildOptions(correctOpt, item.options, rnd);
         return {
-          type: item.type,
+          type,
           prompt: item.text,
           options,
           correctIndex,
