@@ -176,7 +176,7 @@ probarTolerancia('TQT sin TST -> error honesto', ['TQT'],
   (r) => !r.success && /NO TST/.test(r.error) ? null : 'TQT no aviso que falta el TST');
 probarTolerancia('TQT/T1 especifico funciona', ['AN25NOVBOGMIA', 'SS1Y1', 'FXP', 'TQT/T1'],
   (r) => r.success && r.type === 'TST_VIEW' && r.data.line === '1' ? null : 'TQT/T1 fallo');
-probarTolerancia('ERK guarda y muestra el PNR (como ER)', ['AN25NOVBOGMIA', 'SS1Y1', 'NM1GARCIA/CARLOS MR', 'APBOG 573001234567-M', 'TK OK', 'RF CARLOS', 'ERK'],
+probarTolerancia('ERK guarda y muestra el PNR (como ER)', ['AN25NOVBOGMIA', 'SS1Y1', 'NM1GARCIA/CARLOS MR', 'APBOG 573001234567-M', 'TK OK', 'ERK'],
   (r, s) => r.success && s.isTransacted && s.code ? null : 'ERK no cerro el PNR');
 
 // ── Regresiones negativas: no debe bastar con completar la estructura del PNR. ──
@@ -210,13 +210,13 @@ const scenario19 = scenarios.find((scen) => scen.id === 'scenario-19');
 const scenario20 = scenarios.find((scen) => scen.id === 'scenario-20');
 
 probarRegresionNegativa('Nivel 20 no completa sin INF',
-  ['AN13MARLIMBOG', 'SS1Y1', 'NM1GARCIA/CARLOS MR', 'APBOG 573004445566-M', 'TK OK', 'FXX/FF-OPTIMA/RAD*IN,BOG', 'RF CARLOS', 'ER'],
+  ['AN13MARLIMBOG', 'SS1Y1', 'NM1GARCIA/CARLOS MR', 'APBOG 573004445566-M', 'TK OK', 'FXX/FF-OPTIMA/RAD*IN,BOG', 'ER'],
   (r, s) => !evalEngine.evaluate(scenario20, s).completed ? null : 'completó sin registrar el INF', scenario20);
 probarRegresionNegativa('Nivel 20 no completa sin RAD*IN',
-  ['AN13MARLIMBOG', 'SS1Y1', 'NM1GARCIA/CARLOS MR(INFGARCIA/SOFIA/01JAN25)', 'APBOG 573004445566-M', 'TK OK', 'FXX/FF-OPTIMA/RAD,BOG', 'RF CARLOS', 'ER'],
+  ['AN13MARLIMBOG', 'SS1Y1', 'NM1GARCIA/CARLOS MR(INFGARCIA/SOFIA/01JAN25)', 'APBOG 573004445566-M', 'TK OK', 'FXX/FF-OPTIMA/RAD,BOG', 'ER'],
   (r, s) => !evalEngine.evaluate(scenario20, s).completed ? null : 'completó sin la tarifa RAD*IN', scenario20);
 probarRegresionNegativa('Nivel 19 no completa con una nota distinta al TTL',
-  ['RT', 'XE4-6', 'RM CUALQUIER COSA', 'RF CARLOS', 'ER'],
+  ['RT', 'XE4-6', 'RM CUALQUIER COSA', 'ER'],
   (r, s) => !evalEngine.evaluate(scenario19, s).completed ? null : 'aceptó una nota distinta al TTL requerido', scenario19);
 probarRegresionNegativa('XE3 borra el RM tras SRXBAG en la línea 2',
   ['NM1GARCIA/CARLOS MR', 'SRXBAG/P1/S1', 'RM NOTA DE EQUIPAJE', 'XE3'],
