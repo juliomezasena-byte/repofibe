@@ -28,15 +28,15 @@ export const IBERIA_BANK = [
   {
     id: 'ib-q3',
     type: 'policy-cabin',
-    text: '¿Cuáles clases de Turista permiten usar Avios para upgrade?',
+    text: '¿Cuáles clases de Turista flexible permiten solicitar un upgrade a Business usando Avios?',
     options: [
+      'Y, B, H',
       'U, S',
-      'G, E',
       'K, M',
-      'Y, B'
+      'G, E'
     ],
     correctIndex: 0,
-    explanation: 'En las opciones evaluadas, U y S son las respuestas esperadas para Turista con Avios.'
+    explanation: 'En Iberia, normalmente solo las tarifas más altas/flexibles de Turista (Y, B o H) son elegibles para solicitar un Upgrade utilizando Avios.'
   },
   {
     id: 'ib-q4',
@@ -108,13 +108,13 @@ export const IBERIA_BANK = [
     type: 'policy-airport',
     text: 'Tiempo límite de cierre de mostrador para un vuelo intercontinental (MAD-BOG):',
     options: [
-      '120 minutos',
+      '55 minutos',
       '45 minutos',
       '60 minutos',
-      '90 minutos'
+      '120 minutos'
     ],
     correctIndex: 0,
-    explanation: 'Para vuelos intercontinentales, el requerimiento en el examen es de 120 minutos (2 horas) como recomendación estándar.'
+    explanation: 'Debido a la peculiaridad de los vuelos operados por Iberia desde la T4 en Madrid, el tiempo límite de cierre de facturación es de 55 minutos antes de la salida.'
   },
   {
     id: 'ib-q10',
