@@ -487,17 +487,56 @@
       "name": "Issue Ticket",
       "description": "Simula la emisión del tiquete electrónico para reservas con TST.",
       "syntax": [
-        "TTP"
+        "TTP",
+        "TTP1(?:/{modifier})?"
       ],
-      "tokens": {},
+      "tokens": {
+        "modifier": "^(.*)"
+      },
       "handler": "ISSUE_TICKET",
       "examples": [
-        "TTP"
+        "TTP",
+        "TTP1/ET/RT"
       ],
       "errors": {
         "NO_TST": "NO TST PRESENT FOR ISSUANCE",
         "NEED_OK": "CHECK TICKETING ELEMENT"
       }
+    },
+    {
+      "code": "FP",
+      "category": "Ticketing",
+      "name": "Form of Payment",
+      "description": "Ingresa la forma de pago (ej. FP CASH,).",
+      "syntax": [
+        "FP {fop}"
+      ],
+      "tokens": {
+        "fop": "^([A-Za-z,\\s]+)"
+      },
+      "handler": "ADD_FOP",
+      "examples": [
+        "FP CASH",
+        "FP CASH,"
+      ],
+      "errors": {}
+    },
+    {
+      "code": "TTO",
+      "category": "Ticketing",
+      "name": "Ticketing Override / Fee",
+      "description": "Ingresa gastos de gestión y override de ticketing (ej. TTO/ST01/CSF/F35/T1).",
+      "syntax": [
+        "TTO/{params}"
+      ],
+      "tokens": {
+        "params": "^(.*)"
+      },
+      "handler": "ADD_TTO",
+      "examples": [
+        "TTO/ST01/CSF/F35/T1"
+      ],
+      "errors": {}
     },
     {
       "code": "SO",

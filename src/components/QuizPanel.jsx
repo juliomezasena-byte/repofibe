@@ -24,7 +24,7 @@ function hoy() {
   return new Date().toISOString().slice(0, 10);
 }
 
-export const QuizPanel = ({ profileConfig, locationsCatalog, flightsCatalog }) => {
+export const QuizPanel = ({ profileConfig, locationsCatalog, flightsCatalog, quizType, count = 10 }) => {
   const engine = useMemo(
     () =>
       new QuizEngine({
@@ -47,21 +47,26 @@ export const QuizPanel = ({ profileConfig, locationsCatalog, flightsCatalog }) =
   const [stats, setStats] = useState(loadStats);
 
   const startQuiz = useCallback(() => {
-    // Repaso inteligente: las falladas de sesiones anteriores entran primero
-    const failedStored = (stats.failed || []).slice(0, 3);
-    const fresh = engine.generateQuiz(10, Date.now() % 2147483647);
-    const merged = [...failedStored, ...fresh]
-      .filter((q, i, arr) => arr.findIndex((x) => x.prompt === q.prompt) === i)
-      .slice(0, 10)
-      .map((q, i) => ({ ...q, id: i + 1 }));
-    setQuestions(merged);
+    if (quizType === 'iberia') {
+      const fresh = engine.generateIberiaExam(Date.now() % 2147483647);
+      setQuestions(fresh);
+    } else {
+      // Repaso inteligente: las falladas de sesiones anteriores entran primero
+      const failedStored = (stats.failed || []).slice(0, 3);
+      const fresh = engine.generateQuiz(count, Date.now() % 2147483647);
+      const merged = [...failedStored, ...fresh]
+        .filter((q, i, arr) => arr.findIndex((x) => x.prompt === q.prompt) === i)
+        .slice(0, count)
+        .map((q, i) => ({ ...q, id: i + 1 }));
+      setQuestions(merged);
+    }
     setCurrent(0);
     setPicked(null);
     setScore(0);
     setFailedThisRun([]);
     setReviewPhase(false);
     setMode('quiz');
-  }, [engine, stats]);
+  }, [engine, stats, quizType, count]);
 
   const nextCard = useCallback(() => {
     const tipos = ['cmd-func', 'iata-city', 'city-iata', 'func-cmd'];
@@ -140,12 +145,12 @@ export const QuizPanel = ({ profileConfig, locationsCatalog, flightsCatalog }) =
         <div className="quiz-menu">
           <div className="quiz-title">
             <Brain size={22} />
-            <span>MODO TEORÍA — ¿QUÉ CÓDIGO ES PARA QUÉ?</span>
+            <span>{quizType === 'iberia' ? 'EXAMEN OFICIAL IBERIA' : 'MODO TEORÍA — ¿QUÉ CÓDIGO ES PARA QUÉ?'}</span>
           </div>
           <p className="quiz-sub">
-            Preguntas generadas del manual: comandos, códigos IATA, escalera de
-            clases, sintaxis y flujo. Lo que falles vuelve a salir hasta que lo
-            respondas bien.
+            {quizType === 'iberia' 
+              ? 'Simulación exacta de las 11 preguntas del examen oficial de enrutamiento y gestión.'
+              : 'Preguntas generadas del manual: comandos, códigos IATA, escalera de clases, sintaxis y flujo. Lo que falles vuelve a salir hasta que lo respondas bien.'}
           </p>
 
           <div className="quiz-stats-row">
@@ -153,17 +158,20 @@ export const QuizPanel = ({ profileConfig, locationsCatalog, flightsCatalog }) =
               <Flame size={16} /> Racha: {stats.streak || 0} días
             </div>
             <div className="quiz-stat">
-              <Trophy size={16} /> Mejor: {stats.best || 0}/10
+              <Trophy size={16} /> Mejor: {stats.best || 0}/{quizType === 'iberia' ? 11 : count}
             </div>
             <div className="quiz-stat">Jugados: {stats.played || 0}</div>
           </div>
 
           <button className="quiz-big-btn" onClick={startQuiz}>
-            <Zap size={18} /> QUIZ RÁPIDO (10 PREGUNTAS)
+            <Zap size={18} /> {quizType === 'iberia' ? 'INICIAR EXAMEN (11 PREGUNTAS)' : `QUIZ RÁPIDO (${count} PREGUNTAS)`}
           </button>
-          <button className="quiz-big-btn secondary" onClick={() => { nextCard(); setMode('cards'); }}>
-            <RotateCcw size={18} /> FLASHCARDS (MEMORIA)
-          </button>
+          
+          {quizType !== 'iberia' && (
+            <button className="quiz-big-btn secondary" onClick={() => { nextCard(); setMode('cards'); }}>
+              <RotateCcw size={18} /> FLASHCARDS (MEMORIA)
+            </button>
+          )}
         </div>
       )}
 
@@ -215,18 +223,18 @@ export const QuizPanel = ({ profileConfig, locationsCatalog, flightsCatalog }) =
         <div className="quiz-menu">
           <div className="quiz-title">
             <Trophy size={22} />
-            <span>RESULTADO: {score}/10</span>
+            <span>RESULTADO: {score}/{questions.length}</span>
           </div>
           <p className="quiz-sub">
-            {score >= 8
-              ? '¡Excelente! Dominas la teoría del manual.'
-              : score >= 5
+            {score >= questions.length * 0.8
+              ? '¡Excelente! Dominas la teoría.'
+              : score >= questions.length * 0.5
                 ? 'Bien — repite el quiz: lo fallado volverá a salir.'
                 : 'Sigue practicando: las falladas se repetirán hasta que las memorices.'}
           </p>
           <div className="quiz-stats-row">
             <div className="quiz-stat"><Flame size={16} /> Racha: {stats.streak || 0} días</div>
-            <div className="quiz-stat"><Trophy size={16} /> Mejor: {stats.best || 0}/10</div>
+            <div className="quiz-stat"><Trophy size={16} /> Mejor: {stats.best || 0}/{quizType === 'iberia' ? 11 : count}</div>
           </div>
           <button className="quiz-big-btn" onClick={startQuiz}>
             <Zap size={18} /> OTRA VEZ

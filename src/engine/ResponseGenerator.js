@@ -20,9 +20,10 @@ export class ResponseGenerator {
     const hasBusiness = equip.cabins.includes('J');
     const hasPremium = equip.cabins.includes('W');
 
+    // Mismo orden que en PnrStateMachine (pedido por David)
     const businessKeys = ['J', 'C', 'D', 'R', 'I', 'U'];
     const premiumKeys = ['W', 'E', 'T', 'P'];
-    const economyKeys = ['Y', 'B', 'H', 'K', 'M', 'L', 'V', 'S', 'N', 'Q', 'O', 'A', 'Z', 'G', 'X'];
+    const economyKeys = ['Y', 'B', 'H', 'K', 'M', 'N', 'L', 'V', 'G', 'S', 'Q', 'O', 'X', 'A', 'Z', 'F'];
 
     let out = [];
     if (hasBusiness) {
@@ -90,9 +91,7 @@ export class ResponseGenerator {
       (flights || []).forEach((f, idx) => {
         const classStr = this.formatFlightClasses(f.classes || { Y: 9 }, f.equipment || 'A320');
         const viaStr = f.via ? ` VIA ${f.via}` : '';
-        const equip = this.equipmentCatalog[f.equipment || 'A320'] || { cabins: ['Y'] };
-        const cabins = equip.cabins || ['Y'];
-        const cabStr = cabins.length === 3 ? ' [LR 3CAB]' : cabins.length === 2 ? ' [CR 2CAB]' : '';
+        const cabStr = f.tipoRadio === 'LARGO' ? ' [LR 3CAB]' : f.tipoRadio === 'MEDIO' ? ' [MR 2CAB]' : ' [CR 2CAB]';
         lines.push(
           `${f.line || idx + 1}  ${f.airline} ${f.flightNumber}  ${classStr}`
         );
@@ -130,15 +129,20 @@ export class ResponseGenerator {
     // Ver TST (TQT / TQT/T1)
     if (result.type === 'TST_VIEW') {
       const t = result.data.tst;
+      const fees = result.data.fees || [];
       const cur = t.currency || 'USD';
       const val = t.total !== undefined ? t.total : t.priceUSD;
-      return [
+      const lines = [
         `** TST 00${result.data.line} - REGISTRO DE TARIFA **`,
         `FARE BASIS: ${t.fareBasis || 'YFLEX'}`,
         `BASE FARE : ${cur} ${t.priceUSD}.00`,
         `TOTAL     : ${cur} ${val}.00`,
         `STATUS    : STORED - LISTO PARA EMISION`
-      ].join('\n');
+      ];
+      if (fees.length > 0) {
+        lines.push(`FEES: ${fees.join(', ')}`);
+      }
+      return lines.join('\n');
     }
 
     // Servicio de equipaje (SRXBAG / FXG / TQM / TTM)
@@ -207,9 +211,7 @@ export class ResponseGenerator {
       const lineNo = f.line || idx + 1;
       const classStr = this.formatFlightClasses(f.classes || { Y: 9 }, f.equipment || 'A320');
       const viaStr = f.via ? ` VIA ${f.via}` : '';
-      const equip = this.equipmentCatalog[f.equipment || 'A320'] || { cabins: ['Y'] };
-      const cabins = equip.cabins || ['Y'];
-      const cabStr = cabins.length === 3 ? ' [LR 3CAB]' : cabins.length === 2 ? ' [CR 2CAB]' : '';
+      const cabStr = f.tipoRadio === 'LARGO' ? ' [LR 3CAB]' : f.tipoRadio === 'MEDIO' ? ' [MR 2CAB]' : ' [CR 2CAB]';
 
       lines.push(`${lineNo}  ${f.airline} ${f.flightNumber} ${classStr}`);
       lines.push(
@@ -262,6 +264,10 @@ export class ResponseGenerator {
       lines.push(`TSM 001 - XBAG ${pnr.tsm.status}${pnr.fop ? ' FP:' + pnr.fop : ''}`);
     }
 
+    if (pnr.fop && !pnr.tsm) {
+      lines.push(`${PnrStateMachine.getNumberedPnrElements(pnr).length + 1}. FP ${pnr.fop}`);
+    }
+
     // TST
     if (pnr.tst) {
       const c = pnr.tst.currency || 'USD';
@@ -269,10 +275,7 @@ export class ResponseGenerator {
       lines.push(`TST 001 - ${c} ${v}.00 EQUIV FARE ${pnr.tst.fareBasis || ''}`.trimEnd());
     }
 
-    // Received From
-    if (pnr.receivedFrom) {
-      lines.push(`RF-${pnr.receivedFrom}`);
-    }
+
 
     if (pnr.isTicketed) {
       lines.push(`* TICKETED ELECTRONICALLY *`);
@@ -318,7 +321,7 @@ export class ResponseGenerator {
         `  NM : Registrar nombres (ej: NM1GARCIA/CARLOS MR)`,
         `  AP : Agregar contacto (ej: APBOG 573001234567-M)`,
         `  TK : Opción de emisión (ej: TK OK)`,
-        `  RF : Recibido de (ej: RF CARLOS)`,
+
         `  ER : Guardar y mostrar PNR`,
         `  ET : Guardar y limpiar pantalla`,
         `  IG : Ignorar cambios`,

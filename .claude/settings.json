@@ -17,7 +17,23 @@
       "Bash(node __TRACKED_VAR__/nucleo/estado.mjs registrar construir 'Fix layout PC \\(keypad 1 fila\\), bug FXX moneda de oficina \\(David MAD->EUR\\), modulo equipaje/EMD completo \\(SRXBAG/FXG/TQM/TMI/TTM\\) + escenario 21. 21/21 + 7/7 e2e verde, desplegado')",
       "Bash(node __TRACKED_VAR__/nucleo/estado.mjs registrar construir 'Blindado feedback David: input multilinea, TQT/ERK, RF explicado, Nivel 1 coherente \\(MEX/MXN, opcion A confirmada\\). 21/21 + 7/7 e2e verde, desplegado')",
       "Bash(node)",
-      "Bash(node __TRACKED_VAR__/nucleo/estado.mjs registrar construir 'David: vuelos dinamicos + cabinas por radio \\(LR 3cab / CR 2cab\\). Resuelta colision con sesion paralela \\(payloadPattern para SRXBAG/TMI/TTM/TQT\\). 21/21 estable, desplegado')"
+      "Bash(node __TRACKED_VAR__/nucleo/estado.mjs registrar construir 'David: vuelos dinamicos + cabinas por radio \\(LR 3cab / CR 2cab\\). Resuelta colision con sesion paralela \\(payloadPattern para SRXBAG/TMI/TTM/TQT\\). 21/21 estable, desplegado')",
+      "Bash(curl -s -o ib_hora.html -w \"HTTP:%{http_code} SIZE:%{size_download}\\\\n\" -A \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/126.0.0.0 Safari/537.36\" -H \"Accept-Language: es-ES,es;q=0.9\" \"https://agencias.iberia.com/content/iberia-agencias/language-masters/es/informacion-viaje/aeropuerto/hora-limite.html\")",
+      "Bash(C:/Users/mesw/.claude/skills/gstack/browse/dist/browse.exe goto *)",
+      "WebFetch(domain:www.flightsfrom.com)",
+      "Bash(C:/Users/mesw/.claude/skills/gstack/browse/dist/browse.exe --help)",
+      "WebFetch(domain:www.flightconnections.com)",
+      "Bash(C:/Users/mesw/.claude/skills/gstack/browse/dist/browse.exe --headed goto https://www.iberia.com/es/es/)",
+      "Bash(C:/Users/mesw/.claude/skills/gstack/browse/dist/browse.exe status *)",
+      "Bash(C:/Users/mesw/.claude/skills/gstack/browse/dist/browse.exe disconnect *)",
+      "Bash(C:/Users/mesw/.claude/skills/gstack/browse/dist/browse.exe --headed goto https://ayuda.iberia.com/pregunta_frecuente/con-cuanta-antelacion-debo-presentarme-en-el-aeropuerto-cuando-voy-a-viajar-y-en-conexion/)",
+      "Read(//tmp/**)",
+      "Bash(cygpath -w /tmp/af.dat)",
+      "Bash(sed -i \"s#'/tmp/af.dat'#'C:/Users/mesw/AppData/Local/Temp/af.dat'#\" /tmp/calc.js)",
+      "Bash(node \"C:/Users/mesw/AppData/Local/Temp/calc.js\")",
+      "Bash(gzip -c dist/assets/index-DSdzBnYx.js)",
+      "WebFetch(domain:openflights.org)",
+      "WebFetch(domain:developers.amadeus.com)"
     ]
   }
 }

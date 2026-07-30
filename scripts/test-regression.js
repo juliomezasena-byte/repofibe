@@ -102,9 +102,9 @@ probarTolerancia('SN unido (SN12APRMEXSDQ)', ['SN12APRMEXSDQ'],
 probarTolerancia('SN espaciado (SN 12 APR MEX SDQ)', ['SN 12 APR MEX SDQ'],
   (r) => r.success && r.data.origin === 'MEX' && r.data.destination === 'SDQ' ? null : 'origen/destino incorrectos');
 probarTolerancia('SS espaciado del manual (SS 3 J 3)', ['AN25NOVBOGMIA', 'SS 3 J 3'],
-  (r, s) => r.success && s.segments.length === 1 && s.segments[0].class === 'J' && s.segments[0].status === 'HK3' ? null : 'venta no registrada como HK3 clase J');
+  (r, s) => r.success && s.segments.length >= 1 && s.segments[0].class === 'J' && s.segments[0].status === 'HK3' ? null : 'venta no registrada como HK3 clase J');
 probarTolerancia('SS unido (SS3J3)', ['AN25NOVBOGMIA', 'SS3J3'],
-  (r, s) => r.success && s.segments.length === 1 && s.segments[0].class === 'J' ? null : 'venta no registrada');
+  (r, s) => r.success && s.segments.length >= 1 && s.segments[0].class === 'J' ? null : 'venta no registrada');
 probarTolerancia('FQC espaciado (FQC 35 USD/DOP)', ['FQC 35 USD/DOP'],
   (r) => r.success && r.data.toCurrency === 'DOP' && r.data.convertedAmount === '2065.00' ? null : `conversión incorrecta: ${JSON.stringify(r.data || r)}`);
 probarTolerancia('TK espaciado (TK OK)', ['TK OK'],

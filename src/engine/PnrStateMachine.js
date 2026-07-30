@@ -16,7 +16,6 @@ export class PnrStateMachine {
       segments: [],
       contacts: [],
       ticketing: null,
-      receivedFrom: null,
       ssrs: [],
       osis: [],
       remarks: [],
@@ -39,6 +38,7 @@ export class PnrStateMachine {
       tsm: null,
       fop: null,
       tsmIssued: false,
+      fees: [],
       // Structured evidence for scenarios that require specific operations
       // rather than a generic final PNR state.
       infants: [],
@@ -96,7 +96,7 @@ export class PnrStateMachine {
   /**
    * Procesa la intención derivada del DslParser.
    */
-  process(parsedCommand, flightsCatalog = [], locationsCatalog = []) {
+  process(parsedCommand, flightsCatalog = [], locationsCatalog = [], activeScenario = null) {
     if (!parsedCommand || !parsedCommand.success) {
       return { success: false, error: parsedCommand?.error || 'FORMAT ERROR' };
     }
@@ -130,9 +130,6 @@ export class PnrStateMachine {
 
       case 'SET_TICKETING':
         return this.handleSetTicketing(params, rawInput);
-
-      case 'SET_RECEIVED_FROM':
-        return this.handleSetReceivedFrom(params, rawInput);
 
       case 'END_AND_REDISPLAY':
       case 'END_TRANSACT':
@@ -200,6 +197,18 @@ export class PnrStateMachine {
       case 'SHOW_TST':
         return this.handleShowTst(rawInput);
 
+      case 'PAGING_UP':
+        return this.handlePaging(-1);
+
+      case 'ISSUE_TICKET':
+        return this.handleIssueTicket(params, activeScenario);
+
+      case 'ADD_FOP':
+        return this.handleFP(params, rawInput);
+
+      case 'ADD_TTO':
+        return this.handleTTO(params, rawInput);
+
       case 'PAGE_DOWN':
         return this.handlePaging(1);
 
@@ -223,16 +232,15 @@ export class PnrStateMachine {
     }
   }
 
-  // Clases RBD por cabina (David: largo radio = 3 cabinas, corto = 2).
-  static get RBD_BUSINESS() { return ['J', 'C', 'D', 'I', 'Z']; }
-  static get RBD_PREMIUM() { return ['W', 'P', 'E', 'T', 'R']; }
-  static get RBD_ECONOMY() { return ['Y', 'B', 'M', 'H', 'K', 'L', 'Q', 'N', 'V', 'X', 'G', 'U']; }
+  // Clases RBD por cabina según especificación de David
+  static get RBD_BUSINESS() { return ['J', 'C', 'D', 'R', 'I', 'U']; } // U = Avios Business
+  static get RBD_PREMIUM() { return ['W', 'E', 'T', 'P']; } // P = Avios Turista Premium
+  static get RBD_ECONOMY() { return ['Y', 'B', 'H', 'K', 'M', 'N', 'L', 'V', 'G', 'S', 'Q', 'O', 'X', 'A', 'Z', 'F']; } // Orden ajustado por feedback
 
   /**
-   * Escalera RBD estilo Amadeus. Según el tipo de vuelo (David):
+   * Escalera RBD estilo Amadeus.
    *  - Largo radio (3 cabinas): Business + Turista Premium + Economy.
-   *  - Corto radio (2 cabinas): Business + Economy (sin premium).
-   * número = puestos abiertos, 'C' = clase cerrada, 0 = agotada.
+   *  - Medio/Corto radio (2 cabinas): Business + Economy (sin premium).
    */
   buildClassLadder(seed = 1, cabins = 3) {
     const orden = cabins === 3
@@ -243,8 +251,7 @@ export class PnrStateMachine {
       const v = (seed * 7 + i * 3) % 11;
       ladder[letra] = v === 0 ? 'C' : v === 1 ? 0 : Math.min(9, v);
     });
-    // Cabinas vendibles siempre abiertas (economía Y, business C/J) para no
-    // bloquear los ejercicios; el resto de letras varía (algunas cerradas 'C').
+    // Cabinas vendibles siempre abiertas
     ladder.Y = 4 + Math.floor(Math.random() * 6); // 4-9
     ladder.C = 2 + Math.floor(Math.random() * 6);
     ladder.J = 2 + Math.floor(Math.random() * 6);
@@ -283,15 +290,25 @@ export class PnrStateMachine {
       do { air = pick(airlines); } while (usadas.has(air) && usadas.size < airlines.length);
       usadas.add(air);
 
-      // Tipo de vuelo: ~45% largo radio (widebody, 3 cabinas, más horas),
-      // el resto corto radio (narrowbody, 2 cabinas, menos horas).
-      const largoRadio = rnd() < 0.45;
-      const equipment = largoRadio ? pick(PnrStateMachine.EQUIP_WIDE) : pick(PnrStateMachine.EQUIP_NARROW);
-      const cabins = largoRadio ? 3 : 2;
+      // Tipo de vuelo: Largo, Medio o Corto Radio
+      const radioRnd = rnd();
+      let tipoRadio = 'CORTO'; // 1 cabina (Economy) o 2 cabinas (Business/Econ)
+      let equipment = pick(PnrStateMachine.EQUIP_NARROW);
+      let cabins = 2; // Asumimos 2 cabinas para corto/medio (Business + Economy)
+      let durH = 1 + Math.floor(rnd() * 2);
+
+      if (radioRnd < 0.33) {
+        tipoRadio = 'LARGO';
+        equipment = pick(PnrStateMachine.EQUIP_WIDE);
+        cabins = 3;
+        durH = 6 + Math.floor(rnd() * 6);
+      } else if (radioRnd < 0.66) {
+        tipoRadio = 'MEDIO';
+        durH = 3 + Math.floor(rnd() * 3);
+      }
 
       const depH = Math.floor(rnd() * 24);
       const depM = pick([0, 15, 30, 45]);
-      const durH = largoRadio ? 5 + Math.floor(rnd() * 8) : 1 + Math.floor(rnd() * 4);
       const arrH = (depH + durH) % 24;
 
       const hasStop = origin !== destination && rnd() < 0.35;
@@ -302,6 +319,7 @@ export class PnrStateMachine {
         flightNumber: String(1000 + Math.floor(rnd() * 8999)),
         classes: this.buildClassLadder(1 + Math.floor(rnd() * 10), cabins),
         cabins,
+        tipoRadio,
         origin,
         destination,
         departure: `${pad2(depH)}:${pad2(depM)}`,
@@ -309,7 +327,7 @@ export class PnrStateMachine {
         equipment,
         stops: hasStop ? 1 : 0,
         via,
-        priceUSD: (largoRadio ? 400 : 120) + Math.floor(rnd() * 40) * 10
+        priceUSD: (tipoRadio === 'LARGO' ? 400 : tipoRadio === 'MEDIO' ? 250 : 120) + Math.floor(rnd() * 40) * 10
       });
     }
 
@@ -350,20 +368,50 @@ export class PnrStateMachine {
       return { success: false, error: `CLASS ${bookingClass} CLOSED / NO SEATS AVAILABLE` };
     }
 
-    const segment = {
-      id: this.state.segments.length + 1,
-      flight: `${flight.airline}${flight.flightNumber}`,
-      class: bookingClass,
-      date: this.state.lastAvailability.date,
-      route: `${flight.origin}-${flight.destination}`,
-      status: `HK${count}`,
-      departure: flight.departure,
-      arrival: flight.arrival,
-      priceUSD: flight.priceUSD || 350
-    };
+    // Si el vuelo tiene escala, vendemos 2 segmentos
+    if (flight.via) {
+      const seg1 = {
+        id: this.state.segments.length + 1,
+        flight: `${flight.airline}${flight.flightNumber}`,
+        class: bookingClass,
+        date: this.state.lastAvailability.date,
+        route: `${flight.origin}-${flight.via}`,
+        status: `HK${count}`,
+        departure: flight.departure,
+        arrival: '12:00', // Mock time
+        priceUSD: (flight.priceUSD || 350) / 2
+      };
+      this.state.segments.push(seg1);
 
-    this.state.segments.push(segment);
-    return { success: true, segment };
+      const seg2 = {
+        id: this.state.segments.length + 1,
+        flight: `${flight.airline}${flight.flightNumber}`,
+        class: bookingClass,
+        date: this.state.lastAvailability.date,
+        route: `${flight.via}-${flight.destination}`,
+        status: `HK${count}`,
+        departure: '14:00', // Mock time
+        arrival: flight.arrival,
+        priceUSD: (flight.priceUSD || 350) / 2
+      };
+      this.state.segments.push(seg2);
+
+      return { success: true, segment: seg1 }; // Devuelve el primer segmento para el mensaje de éxito genérico
+    } else {
+      const segment = {
+        id: this.state.segments.length + 1,
+        flight: `${flight.airline}${flight.flightNumber}`,
+        class: bookingClass,
+        date: this.state.lastAvailability.date,
+        route: `${flight.origin}-${flight.destination}`,
+        status: `HK${count}`,
+        departure: flight.departure,
+        arrival: flight.arrival,
+        priceUSD: flight.priceUSD || 350
+      };
+      this.state.segments.push(segment);
+      return { success: true, segment };
+    }
   }
 
   handleAddName(params, rawInput) {
@@ -430,15 +478,6 @@ export class PnrStateMachine {
     return { success: true, ticketing: this.state.ticketing };
   }
 
-  handleSetReceivedFrom(params, rawInput) {
-    const person = rawInput.replace(/^RF/, '').trim();
-    if (!person) {
-      return { success: false, error: 'FORMAT ERROR - RECEIVED FROM' };
-    }
-    this.state.receivedFrom = person;
-    return { success: true, receivedFrom: person };
-  }
-
   handleEndTransact() {
     // Validación de elementos obligatorios PNR (PRINT)
     if (this.state.passengers.length === 0) {
@@ -452,9 +491,6 @@ export class PnrStateMachine {
     }
     if (!this.state.ticketing) {
       return { success: false, error: 'NEED TICKETING ELEMENT' };
-    }
-    if (!this.state.receivedFrom) {
-      return { success: false, error: 'NEED RECEIVED FROM' };
     }
 
     // Generar código PNR aleatorio si no existe
@@ -659,20 +695,52 @@ export class PnrStateMachine {
     return { success: true, osi: text };
   }
 
-  handleIssueTicket() {
+  handleIssueTicket(params, activeScenario = null) {
+    const strictRules = activeScenario?.config?.strictTicketingRules || {};
+
     if (!this.state.tst) {
       return { success: false, error: 'NO TST PRESENT FOR ISSUANCE' };
     }
+
+    if (strictRules.requireFOP && !this.state.fop) {
+      return { success: false, error: 'NEED FORM OF PAYMENT' };
+    }
+
+    if (strictRules.requireTTO && (!this.state.fees || this.state.fees.length === 0)) {
+      return { success: false, error: 'NEED TICKETING OVERRIDE' };
+    }
+
     if (!this.state.isTransacted) {
       return { success: false, error: 'END TRANSACT REQUIRED (ER/ET) BEFORE TTP' };
     }
 
     this.state.isTicketed = true;
+    
+    // Simulate auto RT if /RT modifier is passed
+    const modifier = params?.modifier || '';
+    const autoRT = modifier.includes('RT');
+
     return {
       success: true,
-      ticketNumber: `791-${Math.floor(1000000000 + Math.random() * 9000000000)}`,
-      message: 'ELECTRONIC TICKET ISSUED OK'
+      ticketNumber: `075-${Math.floor(1000000 + Math.random() * 9000000)}`,
+      autoRT,
+      message: 'OK ETICKET'
     };
+  }
+
+  handleFP(params, rawInput) {
+    let fop = params.fop || rawInput.replace(/^FP\s*/i, '');
+    this.state.fop = fop.trim();
+    return { success: true, message: '*' };
+  }
+
+  handleTTO(params, rawInput) {
+    if (!this.state.tst) {
+      return { success: false, error: 'NO TST EXISTS' };
+    }
+    const feeStr = params.params || rawInput.replace(/^TTO\//i, '');
+    this.state.fees.push(feeStr);
+    return { success: true, message: '*' };
   }
 
   handleEncodeCity(params, rawInput, locationsCatalog = []) {
@@ -975,7 +1043,7 @@ export class PnrStateMachine {
       return { success: false, error: 'CHECK TST NUMBER' };
     }
 
-    return { success: true, type: 'TST_VIEW', data: { line: String(line), tst: this.state.tst } };
+    return { success: true, type: 'TST_VIEW', data: { line: String(line), tst: this.state.tst, fees: this.state.fees || [] } };
   }
 
   handleAddRemark(params, rawInput) {

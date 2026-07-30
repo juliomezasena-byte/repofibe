@@ -4,7 +4,7 @@
       "id": "scenario-1",
       "title": "Nivel 1: Consulta de Vuelos SN 12 APR MEX SDQ (Guía de Clase)",
       "difficulty": "Principiante",
-      "description": "PASAJEROS (PAXS): 1 ADT (Adulto: Carlos García MR). El cliente llama desde México (oficina MEX).\nRUTA: Ciudad de México (MEX) ➔ Santo Domingo (SDQ).\nFECHA SALIDA: 12 APR.\nTAREA: Revisa los horarios (SN 12 APR MEX SDQ), vende 1 puesto en clase Y (SS1Y1), ingresa nombre (NM1GARCIA/CARLOS MR), teléfono (APMEX 525512345678-M), opción TK OK, factura la tarifa del adulto en la oficina de México (FXX/FF-OPTIMA/RAD,MEX), recibido RF CARLOS y guarda con ER.",
+      "description": "PASAJEROS (PAXS): 1 ADT (Adulto: Carlos García MR). El cliente llama desde México (oficina MEX).\nRUTA: Ciudad de México (MEX) ➔ Santo Domingo (SDQ).\nFECHA SALIDA: 12 APR.\nTAREA: Revisa los horarios (SN 12 APR MEX SDQ), vende 1 puesto en clase Y (SS1Y1), ingresa nombre (NM1GARCIA/CARLOS MR), teléfono (APMEX 525512345678-M), opción TK OK, factura la tarifa del adulto en la oficina de México (FXX/FF-OPTIMA/RAD,MEX) y guarda con ER.",
       "initialState": {
         "searchDate": "12APR",
         "searchOrigin": "MEX",
@@ -15,7 +15,6 @@
         "segmentsCount": 1,
         "hasPhone": true,
         "hasTicketing": true,
-        "hasReceivedFrom": true,
         "isTransacted": true,
         "usedFxx": true
       },
@@ -26,7 +25,6 @@
         "APMEX 525512345678-M",
         "TK OK",
         "FXX/FF-OPTIMA/RAD,MEX",
-        "RF CARLOS",
         "ER"
       ]
     },
@@ -34,7 +32,7 @@
       "id": "scenario-2",
       "title": "Nivel 2: Reserva Doble Pasajeros Adultos (MAD-BCN)",
       "difficulty": "Principiante",
-      "description": "PASAJEROS (PAXS): 2 ADT (Adultos: Juan Pérez MR y María Pérez MRS).\nRUTA: Madrid (MAD) ➔ Barcelona (BCN).\nFECHA SALIDA: 15DEC.\nCABINA: Turista (Clase Y).\nTAREA: Revisa disponibilidad (AN15DECMADBCN), vende 2 puestos (SS2Y1), registra nombres (NM2PEREZ/JUAN MR/MARIA MRS), contacto (APMAD 34912345678-A), cotización (FXX), recibido RF JUAN y guarda con ER.",
+      "description": "PASAJEROS (PAXS): 2 ADT (Adultos: Juan Pérez MR y María Pérez MRS).\nRUTA: Madrid (MAD) ➔ Barcelona (BCN).\nFECHA SALIDA: 15DEC.\nCABINA: Turista (Clase Y).\nTAREA: Revisa disponibilidad (AN15DECMADBCN), vende 2 puestos (SS2Y1), registra nombres (NM2PEREZ/JUAN MR/MARIA MRS), contacto (APMAD 34912345678-A), cotización (FXX) y guarda con ER.",
       "initialState": {
         "searchDate": "15DEC",
         "searchOrigin": "MAD",
@@ -45,7 +43,6 @@
         "segmentsCount": 1,
         "hasPhone": true,
         "hasTicketing": true,
-        "hasReceivedFrom": true,
         "isTransacted": true,
         "usedFxx": true
       },
@@ -56,7 +53,6 @@
         "APMAD 34912345678-A",
         "TK OK",
         "FXX",
-        "RF JUAN",
         "ER"
       ]
     },
@@ -98,14 +94,12 @@
         "segmentsCount": 1,
         "hasPhone": true,
         "forbiddenContactText": "5711111111",
-        "hasReceivedFrom": true,
         "isTransacted": true
       },
       "suggestedFlow": [
         "RT",
         "XE3",
         "APBOG 573009998877-M",
-        "RF LUCIA",
         "ER"
       ]
     },
@@ -182,7 +176,6 @@
       },
       "suggestedFlow": [
         "FXP",
-        "RF PEDRO",
         "ER"
       ]
     },
@@ -225,7 +218,6 @@
       },
       "suggestedFlow": [
         "SR VGML",
-        "RF ANA",
         "ER"
       ]
     },
@@ -268,7 +260,6 @@
       },
       "suggestedFlow": [
         "OS AV PASAJERO VIP",
-        "RF MARIO",
         "ER"
       ]
     },
@@ -356,7 +347,6 @@
         "APMEX 525512345678-M",
         "TK OK",
         "FXP",
-        "RF DIEGO",
         "ER",
         "TTP"
       ]
@@ -382,7 +372,7 @@
       "id": "scenario-12",
       "title": "Nivel 12: Reserva Familiar 1 ADT + 1 CHD con Tarifa de Niño (LIM-BOG)",
       "difficulty": "Avanzado",
-      "description": "PASAJEROS (PAXS): 1 ADT (Carlos Pérez MR) + 1 CHD (Niño: Juan, nacido 10MAY18). El cliente llama desde Colombia (oficina BOG).\nRUTA: Lima (LIM) ➔ Bogotá (BOG).\nFECHA SALIDA: 13MAR.\nCABINA: Turista (Clase Y).\nTAREA: Consulta horarios (SN 13 MAR LIM BOG), vende 2 puestos (SS2Y1), ingresa adulto y niño (NM2PEREZ/CARLOS MR/JUAN(CHD/10MAY18)), contacto (APBOG 573001112233-M), TK OK, factura con tarifa de niño (FXX/FF-OPTIMA/RAD*CH,BOG), recibido RF CARLOS y guarda con ER.",
+      "description": "PASAJEROS (PAXS): 1 ADT (Carlos Pérez MR) + 1 CHD (Niño: Juan, nacido 10MAY18). El cliente llama desde Colombia (oficina BOG).\nRUTA: Lima (LIM) ➔ Bogotá (BOG).\nFECHA SALIDA: 13MAR.\nCABINA: Turista (Clase Y).\nTAREA: Consulta horarios (SN 13 MAR LIM BOG), vende 2 puestos (SS2Y1), ingresa adulto y niño (NM2PEREZ/CARLOS MR/JUAN(CHD/10MAY18)), contacto (APBOG 573001112233-M), TK OK, factura con tarifa de niño (FXX/FF-OPTIMA/RAD*CH,BOG) y guarda con ER.",
       "initialState": {
         "searchDate": "13MAR",
         "searchOrigin": "LIM",
@@ -394,7 +384,6 @@
         "hasPhone": true,
         "hasTicketing": true,
         "usedFxx": true,
-        "hasReceivedFrom": true,
         "isTransacted": true
       },
       "suggestedFlow": [
@@ -404,7 +393,6 @@
         "APBOG 573001112233-M",
         "TK OK",
         "FXX/FF-OPTIMA/RAD*CH,BOG",
-        "RF CARLOS",
         "ER"
       ]
     },
@@ -457,14 +445,12 @@
       },
       "targetState": {
         "hasRemarks": 2,
-        "hasReceivedFrom": true,
         "isTransacted": true
       },
       "suggestedFlow": [
         "RM *22JUL26* PAX AVDO AD:2200000 CH:1000000 IN:860000; GG 240000 COP",
         "RM *22JUL26* TTL 12900000 COP",
         "RM *22JUL26* FC1,2 TKT REEMB, CHG NO PENTY + DF + GG",
-        "RF CARLOS",
         "ER"
       ]
     },
@@ -472,7 +458,7 @@
       "id": "scenario-15",
       "title": "Nivel 15: Caso Integrador República Dominicana (Business Flex SDQ)",
       "difficulty": "Avanzado",
-      "description": "PASAJEROS (PAXS): 1 ADT + 1 CHD en Cabina Business con Tarifa Flex en República Dominicana (SDQ).\nTAREA: Calcula la conversión de gastos (FQC 35USD/DOP), consulta horarios (SN 12 APR MEX SDQ), vende 2 puestos en Business (SS2C1), registra nombres (NM2PEREZ/JUAN MR/MARIA(CHD)), contacto (APSDQ 18095551234-M), TK OK, facturar tarifa Business Flex (FXX/FF-BUSFLEX/RAD*CH, SDQ), recibido RF CLIENTE y guarda con ER.",
+      "description": "PASAJEROS (PAXS): 1 ADT + 1 CHD en Cabina Business con Tarifa Flex en República Dominicana (SDQ).\nTAREA: Calcula la conversión de gastos (FQC 35USD/DOP), consulta horarios (SN 12 APR MEX SDQ), vende 2 puestos en Business (SS2C1), registra nombres (NM2PEREZ/JUAN MR/MARIA(CHD)), contacto (APSDQ 18095551234-M), TK OK, facturar tarifa Business Flex (FXX/FF-BUSFLEX/RAD*CH, SDQ) y guarda con ER.",
       "initialState": {
         "searchDate": "12APR",
         "searchOrigin": "MEX",
@@ -483,7 +469,6 @@
         "segmentsCount": 1,
         "hasPhone": true,
         "hasTicketing": true,
-        "hasReceivedFrom": true,
         "isTransacted": true,
         "hasConverted": true,
         "usedFxx": true
@@ -496,7 +481,6 @@
         "APSDQ 18095551234-M",
         "TK OK",
         "FXX/FF-BUSFLEX/RAD*CH, SDQ",
-        "RF CLIENTE",
         "ER"
       ]
     },
@@ -561,7 +545,6 @@
       "targetState": {
         "viewedPenalties": true,
         "hasRemarks": 1,
-        "hasReceivedFrom": true,
         "isTransacted": true,
         "usedPaging": true
       },
@@ -570,7 +553,6 @@
         "MD",
         "MU",
         "RM *23JUL26* FC1,2 TKT REEMB, CHG NO PENTY + DF + GG",
-        "RF LUIS",
         "ER"
       ]
     },
@@ -578,7 +560,7 @@
       "id": "scenario-18",
       "title": "Nivel 18: Confirmación y Seguridad de Contacto + Plazo (APE / CTCE / CTCM / TKXL)",
       "difficulty": "Avanzado",
-      "description": "PASAJEROS (PAXS): 1 ADT (Ana Silva MS) con vuelo vendido.\nTAREA: Registra el correo de confirmación (APE-ANA@GMAIL.COM), la seguridad del correo (SR CTCE-ANA//GMAIL.COM), el teléfono con código de país (AP+573001112233), la seguridad del teléfono (SR CTCM-573001112233), fija el plazo de confirmación de 24 hrs (TKXL 24JUL), indica que el cliente paga por la página (OS YY HFBB), recibido RF ANA y guarda con ER.",
+      "description": "PASAJEROS (PAXS): 1 ADT (Ana Silva MS) con vuelo vendido.\nTAREA: Registra el correo de confirmación (APE-ANA@GMAIL.COM), la seguridad del correo (SR CTCE-ANA//GMAIL.COM), el teléfono con código de país (AP+573001112233), la seguridad del teléfono (SR CTCM-573001112233), fija el plazo de confirmación de 24 hrs (TKXL 24JUL), indica que el cliente paga por la página (OS YY HFBB) y guarda con ER.",
       "initialState": {
         "pnr": {
           "code": "CTC001",
@@ -605,7 +587,6 @@
         "hasSsr": true,
         "hasOsi": true,
         "hasTicketing": true,
-        "hasReceivedFrom": true,
         "isTransacted": true,
         "contactsCount": 2,
         "ssrCount": 2
@@ -617,7 +598,6 @@
         "SR CTCM-573001112233",
         "TKXL 24JUL",
         "OS YY HFBB",
-        "RF ANA",
         "ER"
       ]
     },
@@ -625,7 +605,7 @@
       "id": "scenario-19",
       "title": "Nivel 19: Borrado de Celdas por Rango y Lista (XE1-3 / XE4,8)",
       "difficulty": "Intermedio",
-      "description": "PASAJEROS (PAXS): 1 ADT (Carlos García MR).\nPROBLEMA: El PNR tiene TRES notas erróneas en las líneas 4, 5 y 6.\nTAREA: Abre la reserva (RT), borra las tres notas de una sola vez con el rango XE4-6 (el guion dice \"desde esta celda hasta esta\"), registra la nota correcta (RM *23JUL26* TTL 4780000 COP), recibido RF CARLOS y guarda con ER. Recuerda: XE4,8 con coma borraría solo las celdas 4 y 8.",
+      "description": "PASAJEROS (PAXS): 1 ADT (Carlos García MR).\nPROBLEMA: El PNR tiene TRES notas erróneas en las líneas 4, 5 y 6.\nTAREA: Abre la reserva (RT), borra las tres notas de una sola vez con el rango XE4-6 (el guion dice \"desde esta celda hasta esta\"), registra la nota correcta (RM *23JUL26* TTL 4780000 COP) y guarda con ER. Recuerda: XE4,8 con coma borraría solo las celdas 4 y 8.",
       "initialState": {
         "pnr": {
           "code": "XER123",
@@ -669,18 +649,16 @@
         }
       },
       "targetState": {
-      "forbiddenRemarkText": "ERRONEA",
-      "hasRemarks": 1,
-      "requiredRemarkText": "*23JUL26* TTL 4780000 COP",
-      "requiredCancelSpec": "4-6",
-      "hasReceivedFrom": true,
+        "forbiddenRemarkText": "ERRONEA",
+        "hasRemarks": 1,
+        "requiredRemarkText": "*23JUL26* TTL 4780000 COP",
+        "requiredCancelSpec": "4-6",
         "isTransacted": true
       },
       "suggestedFlow": [
         "RT",
         "XE4-6",
         "RM *23JUL26* TTL 4780000 COP",
-        "RF CARLOS",
         "ER"
       ]
     },
@@ -688,7 +666,7 @@
       "id": "scenario-20",
       "title": "Nivel 20: Adulto con Infante en Brazos (NM con INF + Tarifa de Infante)",
       "difficulty": "Avanzado",
-      "description": "PASAJEROS (PAXS): 1 ADT (Carlos García MR) + 1 INF (Infante: Sofía, nacida 01JAN25, viaja en brazos del adulto — no ocupa puesto). El cliente llama desde Colombia (oficina BOG).\nRUTA: Lima (LIM) ➔ Bogotá (BOG).\nFECHA SALIDA: 13MAR.\nTAREA: Disponibilidad (AN13MARLIMBOG), vende 1 puesto (SS1Y1), ingresa adulto con su infante (NM1GARCIA/CARLOS MR(INFGARCIA/SOFIA/01JAN25)), contacto (APBOG 573004445566-M), TK OK, factura con tarifa de infante (FXX/FF-OPTIMA/RAD*IN,BOG), recibido RF CARLOS y guarda con ER.",
+      "description": "PASAJEROS (PAXS): 1 ADT (Carlos García MR) + 1 INF (Infante: Sofía, nacida 01JAN25, viaja en brazos del adulto — no ocupa puesto). El cliente llama desde Colombia (oficina BOG).\nRUTA: Lima (LIM) ➔ Bogotá (BOG).\nFECHA SALIDA: 13MAR.\nTAREA: Disponibilidad (AN13MARLIMBOG), vende 1 puesto (SS1Y1), ingresa adulto con su infante (NM1GARCIA/CARLOS MR(INFGARCIA/SOFIA/01JAN25)), contacto (APBOG 573004445566-M), TK OK, factura con tarifa de infante (FXX/FF-OPTIMA/RAD*IN,BOG) y guarda con ER.",
       "initialState": {
         "searchDate": "13MAR",
         "searchOrigin": "LIM",
@@ -697,22 +675,21 @@
       "targetState": {
         "passengersCount": 1,
         "segmentsCount": 1,
-      "hasPhone": true,
-      "hasTicketing": true,
-      "usedFxx": true,
-      "requiredInfant": {
-        "surname": "GARCIA",
-        "firstName": "SOFIA",
-        "dateOfBirth": "01JAN25",
-        "linkedAdult": "GARCIA/CARLOS MR"
-      },
-      "requiredFareQuote": {
-        "command": "FXX",
-        "fareFamily": "OPTIMA",
-        "modifier": "RAD*IN",
-        "office": "BOG"
-      },
-      "hasReceivedFrom": true,
+        "hasPhone": true,
+        "hasTicketing": true,
+        "usedFxx": true,
+        "requiredInfant": {
+          "surname": "GARCIA",
+          "firstName": "SOFIA",
+          "dateOfBirth": "01JAN25",
+          "linkedAdult": "GARCIA/CARLOS MR"
+        },
+        "requiredFareQuote": {
+          "command": "FXX",
+          "fareFamily": "OPTIMA",
+          "modifier": "RAD*IN",
+          "office": "BOG"
+        },
         "isTransacted": true
       },
       "suggestedFlow": [
@@ -722,7 +699,6 @@
         "APBOG 573004445566-M",
         "TK OK",
         "FXX/FF-OPTIMA/RAD*IN,BOG",
-        "RF CARLOS",
         "ER"
       ]
     },
@@ -775,6 +751,36 @@
         "TMI/FP-CASH,",
         "TTM/M1/RT",
         "ER"
+      ]
+    },
+    {
+      "id": "scenario-22",
+      "title": "Nivel 22 (Examen): Flujo Completo de Ticketing y TTO",
+      "difficulty": "Experto",
+      "description": "PASAJEROS (PAXS): 1 ADT (Gomez/Juan MR).\nTAREA: El objetivo es vender 1 asiento de BOG a MIA el 20NOV (SN20NOVBOGMIA, SS1Y1), crear el pasajero (NM1GOMEZ/JUAN MR), agregar contacto y firmar (APBOG 123456-M, TKOK). Luego debes iniciar el proceso de cobro y emisión: Cotizar tarifa de cabina (FXP/FF-BUSFLEX), ingresar la forma de pago (FP CASH,), agregar el remark con el titular (RM*CSY/ JUAN:GOMEZ), aplicar los gastos de gestión requeridos al TST 1 (TTO/ST01/CSF/F35/T1), guardar transacción y regresar (ER) y finalmente emitir el tiquete (TTP1/ET/RT).",
+      "config": {
+        "strictTicketingRules": {
+          "requireFOP": true,
+          "requireTTO": true
+        }
+      },
+      "initialState": {},
+      "targetState": {
+        "isTicketed": true,
+        "isTransacted": true
+      },
+      "suggestedFlow": [
+        "SN20NOVBOGMIA",
+        "SS1Y1",
+        "NM1GOMEZ/JUAN MR",
+        "APBOG 123456-M",
+        "TKOK",
+        "FXP/FF-BUSFLEX",
+        "FP CASH,",
+        "RM*CSY/ JUAN:GOMEZ",
+        "TTO/ST01/CSF/F35/T1",
+        "ER",
+        "TTP1/ET/RT"
       ]
     }
   ]

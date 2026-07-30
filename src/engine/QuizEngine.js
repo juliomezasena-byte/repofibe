@@ -312,4 +312,29 @@ export class QuizEngine {
     }
     return questions;
   }
+
+  /**
+   * Genera exclusivamente el examen oficial de Iberia con sus 11 preguntas exactas,
+   * barajando el orden de las preguntas y las opciones.
+   */
+  generateIberiaExam(seed = Date.now()) {
+    const rnd = mulberry32(seed);
+    const questions = [];
+    // Recorremos el banco exacto de Iberia
+    for (const item of IBERIA_BANK) {
+      const correctOpt = item.options[item.correctIndex];
+      const { options, correctIndex } = this.buildOptions(correctOpt, item.options, rnd);
+      questions.push({
+        type: 'iberia',
+        prompt: item.text,
+        options,
+        correctIndex,
+        explain: item.explanation
+      });
+    }
+    // Barajamos el orden de las preguntas
+    const shuffledQuestions = this.shuffle(questions, rnd);
+    // Asignarles ID
+    return shuffledQuestions.map((q, i) => ({ ...q, id: i + 1 }));
+  }
 }

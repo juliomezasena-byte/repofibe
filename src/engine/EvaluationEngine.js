@@ -72,16 +72,7 @@ export class EvaluationEngine {
       }
     }
 
-    // 5. Received From
-    if (target.hasReceivedFrom) {
-      totalChecks++;
-      if (state.receivedFrom) {
-        checksPassed++;
-        feedback.push(`[OK] Recibido de registrado (RF).`);
-      } else {
-        feedback.push(`[PENDIENTE] Falta ingresar recibido de RF (Ej: RF CLIENTE).`);
-      }
-    }
+
 
     // 6. Transaccionado (ER/ET)
     if (target.isTransacted) {

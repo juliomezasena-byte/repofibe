@@ -167,8 +167,12 @@ export const Terminal = forwardRef(({ onExecuteCommand, history, hideVerbs = fal
       </form>
 
       {showTip && lastErrorCmd && (
-        <div className="terminal-tip">
-          TIP: escribe <b>HE {(lastErrorCmd.match(/^[A-Za-z]+/) || [''])[0].toUpperCase()}</b> para ver la sintaxis del comando.
+        <div className={`terminal-tip ${last?.hint ? 'hint-reactivo' : ''}`} data-testid="reactive-hint">
+          {last?.hint ? (
+            <>✧ <b>Pista:</b> {last.hint}</>
+          ) : (
+            <>TIP: escribe <b>HE {(lastErrorCmd.match(/^[A-Za-z]+/) || [''])[0].toUpperCase()}</b> para ver la sintaxis del comando.</>
+          )}
         </div>
       )}
 

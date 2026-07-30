@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { TerminalSquare, Brain } from 'lucide-react';
+import { TerminalSquare, Brain, FileCheck } from 'lucide-react';
 
 export function Menu() {
   return (
@@ -48,6 +48,28 @@ export function Menu() {
             <Brain size={72} color="#a855f7" style={{ marginBottom: '1.5rem' }} />
             <h3 style={{ color: '#fff', fontSize: '1.4rem', marginBottom: '0.5rem' }}>Banco de Teoría</h3>
             <p style={{ color: '#94a3b8', textAlign: 'center', fontSize: '0.95rem' }}>Exámenes y quizzes sobre normativas y conocimiento de Iberia.</p>
+          </div>
+        </Link>
+
+        <Link to="/examen-iberia" style={{ textDecoration: 'none' }}>
+          <div style={{ 
+            background: 'rgba(30, 41, 59, 0.7)', 
+            border: '1px solid rgba(239, 68, 68, 0.3)', 
+            borderRadius: '12px', 
+            padding: '2.5rem', 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            width: '260px',
+            transition: 'transform 0.2s, background 0.2s',
+            backdropFilter: 'blur(10px)'
+          }}
+          onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)'; e.currentTarget.style.transform = 'translateY(-5px)'; }}
+          onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(30, 41, 59, 0.7)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+          >
+            <FileCheck size={72} color="#ef4444" style={{ marginBottom: '1.5rem' }} />
+            <h3 style={{ color: '#fff', fontSize: '1.4rem', marginBottom: '0.5rem', textAlign: 'center' }}>Examen Oficial Iberia</h3>
+            <p style={{ color: '#94a3b8', textAlign: 'center', fontSize: '0.95rem' }}>Simulación exacta de las 11 preguntas del examen oficial recuperado.</p>
           </div>
         </Link>
       </div>

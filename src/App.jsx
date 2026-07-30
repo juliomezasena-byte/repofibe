@@ -9,6 +9,7 @@ import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-d
 import { Menu } from './pages/Menu';
 import { Simulator } from './pages/Simulator';
 import { Theory } from './pages/Theory';
+import { IberiaExam } from './pages/IberiaExam';
 import { LoginScreen } from './components/LoginScreen';
 import { auth } from './lib/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -382,6 +383,7 @@ export function App() {
           <Route path="/" element={<Menu />} />
           <Route path="/simulador" element={<Simulator />} />
           <Route path="/teoria" element={<Theory />} />
+          <Route path="/examen-iberia" element={<IberiaExam />} />
           <Route path="*" element={<Menu />} />
         </Routes>
       </AppProvider>

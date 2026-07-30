@@ -1,0 +1,5 @@
+[
+  {"accion":"navegar","url":"http://localhost:3000"},
+  {"accion":"snapshot"},
+  {"accion":"screenshot","nombre":"menu"}
+]

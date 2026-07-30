@@ -2,6 +2,12 @@
 
 Todas las novedades de repofibe, versión por versión.
 
+## [1.4.0] - 2026-07-29
+### Añadido - Examen Oficial Iberia
+- **Modo Exclusivo:** Añadida una nueva ruta `/examen-iberia` que presenta únicamente las 11 preguntas exactas del examen oficial de Iberia.
+- **Acceso Directo:** Integración de un nuevo botón destacado en el menú principal para acceder directamente al simulacro oficial sin mezclarlo con el banco general.
+- **Fix (Pruebas de Tolerancia):** Se corrigió la suite de pruebas E2E que asumía erróneamente que la 3ra opción de un vuelo era siempre directa, produciendo flakiness cuando el dinamismo (Añadido en 1.2.0) arrojaba una opción con escala (añadiendo 2 segmentos en vez de 1 para el comando SS).
+
 ## [1.3.0] - 2026-07-29
 ### Añadido - Enrutamiento y Modo Teoría Mejorado
 - **Router (react-router-dom):** La PWA ahora utiliza navegación por rutas `/`, `/simulador`, y `/teoria` en lugar de estado de componente aislado, y soporta fallback en rutas no reconocidas (404).
