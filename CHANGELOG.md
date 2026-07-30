@@ -2,6 +2,16 @@
 
 Todas las novedades de repofibe, versión por versión.
 
+## [1.3.0] - 2026-07-29
+### Añadido - Enrutamiento y Modo Teoría Mejorado
+- **Router (react-router-dom):** La PWA ahora utiliza navegación por rutas `/`, `/simulador`, y `/teoria` en lugar de estado de componente aislado, y soporta fallback en rutas no reconocidas (404).
+- **Banco de Preguntas Oficial:** Integración del cuestionario real de la academia de Iberia (`quizBanks/iberia.js`) con las 11 preguntas exactas requeridas para la validación.
+- **Duraciones Estáticas:** Nueva base de datos incrustada `routeDurations.js` que define tiempos de vuelo hardcodeados garantizando que el ordenamiento de rutas (NRT > BOG, etc.) sea 100% determinista e infalible, en vez de usar cálculo Haversine.
+- **Contexto Global (AppContext):** El estado de progreso del simulador, sesión y comandos ya no se pierde al transicionar entre páginas.
+- **Bugfixes:** 
+  - Corrección visual del contenedor `.quiz-explain` para respetar los saltos de línea (`white-space: pre-wrap`).
+  - Resolución de función impura de estado en `QuizPanel.jsx` que fallaba al procesar múltiples errores seguidos para repetirlos, asegurando un estudio por repetición efectivo.
+
 ## [1.2.0] — 2026-07-27
 ### Añadido — Catálogo de Equipos y Escaleras Dinámicas
 - **Catálogo de Equipos (`equipment.json`):** Nuevo catálogo de perfiles Amadeus que define las cabinas físicas (Ej: J, W, Y) para cada modelo de avión (Ej: A350, A320, B738).
