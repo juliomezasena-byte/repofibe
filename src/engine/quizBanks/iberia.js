@@ -15,15 +15,15 @@ export const IBERIA_BANK = [
   {
     id: 'ib-q2',
     type: 'policy-cabin',
-    text: 'Selecciona las clases (RBD) que corresponden a Turista:',
+    text: '¿Cuáles de las siguientes letras (RBD) corresponden tradicionalmente a tarifas de la cabina Turista (Economy)?',
     options: [
-      'U, G, E, S',
-      'C, J, D, I',
-      'F, A, P, R',
-      'Y, B, H, K'
+      'Y, B, H, K, M, L',
+      'J, C, D, I, R',
+      'W, E, T, P',
+      'F, A'
     ],
     correctIndex: 0,
-    explanation: 'Las clases U, G, E y S corresponden a diferentes niveles tarifarios de la cabina Turista en Iberia.'
+    explanation: 'Las letras Y, B, H, K, M, L (entre otras) denotan tarifas comerciales de Turista. J/C/D son Business y W/E/T son Turista Premium.'
   },
   {
     id: 'ib-q3',
@@ -80,15 +80,15 @@ export const IBERIA_BANK = [
   {
     id: 'ib-q7',
     type: 'policy-amadeus',
-    text: '¿Cuál es la diferencia entre SN y AN en Amadeus?',
+    text: '¿Cuál es la principal diferencia entre los comandos SN y AN en Amadeus?',
     options: [
-      'SN muestra clases disponibles, AN muestra disponibilidad general',
-      'SN es para trenes, AN para vuelos',
-      'SN es solo ida, AN ida y vuelta',
-      'No hay diferencia'
+      'SN muestra todas las clases del vuelo (abiertas o cerradas); AN muestra solo las clases con disponibilidad.',
+      'SN es para vuelos internacionales; AN es para vuelos domésticos.',
+      'SN muestra solo ida; AN muestra ida y vuelta.',
+      'No hay diferencia, ambos hacen lo mismo.'
     ],
     correctIndex: 0,
-    explanation: 'SN (Schedule/Network) busca disponibilidad de clases específicas, AN (Availability Neutral) muestra disponibilidad general de vuelos.'
+    explanation: 'SN (Schedule) muestra el itinerario general con todas las clases de reserva, estén llenas o no. AN (Availability) filtra y muestra ÚNICAMENTE las clases que aún tienen plazas disponibles.'
   },
   {
     id: 'ib-q8',
