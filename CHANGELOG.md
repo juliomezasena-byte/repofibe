@@ -2,6 +2,12 @@
 
 Todas las novedades de repofibe, versión por versión.
 
+## [1.4.1] - 2026-07-29
+### Refactor - Módulo Independiente para Certificación
+- **Desacoplamiento:** El examen oficial de Iberia ahora corre en su propio componente `IberiaExamPanel.jsx`, completamente aislado del componente de teoría general.
+- **Sin Gamificación:** Se eliminaron las distracciones (rachas, repetición inteligente y flashcards) en el modo examen para convertirlo en un simulacro formal con una nota global al final.
+- **Diseño Serio:** Se implementó una interfaz más formal (rojo Iberia, certificaciones) para distinguirlo visualmente del quiz estándar.
+
 ## [1.4.0] - 2026-07-29
 ### Añadido - Examen Oficial Iberia
 - **Modo Exclusivo:** Añadida una nueva ruta `/examen-iberia` que presenta únicamente las 11 preguntas exactas del examen oficial de Iberia.

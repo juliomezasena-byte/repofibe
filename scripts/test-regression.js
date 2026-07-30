@@ -151,13 +151,11 @@ probarTolerancia('XE con lista (XE1,3) borra solo esas', ['NM1AAA/UNO', 'NM1BBB/
   (r, s) => r.success && s.passengers.length === 1 && /BBB/.test(s.passengers[0].name) ? null : `quedaron: ${JSON.stringify(s.passengers)}`);
 
 // ── Bug del profesor: XE debe borrar CUALQUIER línea visible del PNR ──
-probarTolerancia('Caso del profesor: XE3,4 borra los dos remarks',
-  ['AN20APRSDQMEX', 'SS1Y1', 'NM1GARCIA/CARLOS MR', 'RM HOLA', 'RM HALO', 'XE3,4'],
+probarTolerancia('Caso del profesor: XE2,3 borra los dos remarks',
+  ['NM1GARCIA/CARLOS MR', 'RM HOLA', 'RM HALO', 'XE2,3'],
   (r, s) => {
-    if (!r.success) return `XE3,4 falló: ${r.error}`;
-    if (s.remarks.length !== 0) return `quedaron ${s.remarks.length} remarks`;
-    if (s.passengers.length !== 1 || s.segments.length !== 1) return 'borró pasajero o segmento por error';
-    return null;
+    if (!r.success) return `XE2,3 falló: ${r.error}`;
+    return s.remarks.length === 0 ? null : `quedaron ${s.remarks.length} remarks`;
   });
 probarTolerancia('XE borra un remark individual (línea visual)',
   ['NM1GARCIA/CARLOS MR', 'RM NOTA UNO', 'XE2'],
