@@ -6,6 +6,8 @@
  * Determinista por semilla: mismo seed => mismo quiz (testeable).
  */
 
+import { IBERIA_BANK } from './quizBanks/iberia';
+
 // PRNG mulberry32 — pequeño, determinista, suficiente para barajar preguntas.
 function mulberry32(seed) {
   let a = seed >>> 0;
@@ -93,7 +95,7 @@ export class QuizEngine {
     this.flights = flights;
   }
 
-  static TYPES = ['cmd-func', 'func-cmd', 'iata-city', 'city-iata', 'syntax', 'rbd', 'flow'];
+  static TYPES = ['cmd-func', 'func-cmd', 'iata-city', 'city-iata', 'syntax', 'rbd', 'flow', 'iberia'];
 
   // Tips de "cómo se usa" para los comandos que más confunden (idea de Juan
   // Pablo: que la explicación diga cómo se usa, no solo qué es).
@@ -268,6 +270,19 @@ export class QuizEngine {
           options,
           correctIndex,
           explain: `Respuesta: ${item.correct}`
+        };
+      }
+
+      case 'iberia': {
+        const item = this.pick(IBERIA_BANK, rnd);
+        const correctOpt = item.options[item.correctIndex];
+        const { options, correctIndex } = this.buildOptions(correctOpt, item.options, rnd);
+        return {
+          type: item.type,
+          prompt: item.text,
+          options,
+          correctIndex,
+          explain: item.explanation
         };
       }
 
