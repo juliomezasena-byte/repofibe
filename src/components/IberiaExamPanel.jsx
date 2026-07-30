@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useRef } from 'react';
 import { ShieldCheck, CheckCircle2, XCircle, ArrowRight, Award } from 'lucide-react';
 import { QuizEngine } from '../engine/QuizEngine';
 
@@ -18,16 +18,21 @@ export const IberiaExamPanel = ({ profileConfig, locationsCatalog, flightsCatalo
   const [current, setCurrent] = useState(0);
   const [picked, setPicked] = useState(null);
   const [score, setScore] = useState(0);
+  
+  const panelRef = useRef(null);
+  const resetScroll = () => {
+    window.scrollTo(0, 0);
+    if (panelRef.current) panelRef.current.scrollTo(0, 0);
+  };
 
   const startExam = useCallback(() => {
-    // Para el examen generamos el pool exacto de 11 preguntas barajadas
     const fresh = engine.generateIberiaExam(Date.now() % 2147483647);
     setQuestions(fresh);
     setCurrent(0);
     setPicked(null);
     setScore(0);
     setMode('exam');
-    window.scrollTo(0, 0);
+    resetScroll();
   }, [engine]);
 
   const answer = (idx) => {
@@ -45,32 +50,32 @@ export const IberiaExamPanel = ({ profileConfig, locationsCatalog, flightsCatalo
     if (!isLast) {
       setCurrent((c) => c + 1);
       setPicked(null);
-      window.scrollTo(0, 0);
+      resetScroll();
       return;
     }
     setMode('done');
-    window.scrollTo(0, 0);
+    resetScroll();
   };
 
   const q = questions[current];
 
   return (
-    <div className="quiz-panel iberia-exam-panel" style={{ border: '2px solid #d7192d', borderRadius: '8px', overflow: 'hidden' }}>
+    <div ref={panelRef} className="quiz-panel iberia-exam-panel" style={{ border: '2px solid #d7192d', borderRadius: '8px' }}>
       {/* Cabecera formal */}
-      <div style={{ backgroundColor: '#d7192d', color: 'white', padding: '15px 20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div style={{ backgroundColor: '#d7192d', color: 'white', padding: '15px 20px', display: 'flex', alignItems: 'center', gap: '10px', margin: '-20px -20px 20px -20px', borderTopLeftRadius: '6px', borderTopRightRadius: '6px' }}>
         <ShieldCheck size={24} />
         <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold' }}>CERTIFICACIÓN: EXAMEN OFICIAL IBERIA</h2>
       </div>
 
-      <div style={{ padding: '20px' }}>
+      <div>
         {mode === 'menu' && (
           <div className="quiz-menu" style={{ textAlign: 'center', paddingTop: '20px' }}>
-            <p style={{ fontSize: '16px', lineHeight: '1.6', marginBottom: '30px', color: '#555' }}>
+            <p className="quiz-sub" style={{ fontSize: '16px', marginBottom: '30px' }}>
               Este es el simulacro oficial de certificación. Consta de <strong>11 preguntas exactas</strong> sobre enrutamiento, asignación de asientos, políticas de equipaje e infantes y gestión de reservas según los manuales oficiales.
             </p>
-            <div style={{ backgroundColor: '#f9f9f9', padding: '15px', borderRadius: '6px', marginBottom: '30px', textAlign: 'left', borderLeft: '4px solid #d7192d' }}>
+            <div style={{ backgroundColor: '#222', padding: '15px', borderRadius: '6px', marginBottom: '30px', textAlign: 'left', borderLeft: '4px solid #d7192d' }}>
               <strong>Reglas del examen:</strong>
-              <ul style={{ margin: '10px 0 0 0', paddingLeft: '20px', color: '#444' }}>
+              <ul style={{ margin: '10px 0 0 0', paddingLeft: '20px' }}>
                 <li>Selecciona la opción más adecuada para cada caso.</li>
                 <li>No hay límite de tiempo.</li>
                 <li>Recibirás tu nota final al terminar el ciclo (se requiere 80% para aprobar).</li>
@@ -84,11 +89,11 @@ export const IberiaExamPanel = ({ profileConfig, locationsCatalog, flightsCatalo
 
         {mode === 'exam' && q && (
           <div className="quiz-question">
-            <div className="quiz-progress" style={{ color: '#d7192d', fontWeight: 'bold', borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '15px' }}>
+            <div className="quiz-progress" style={{ color: '#d7192d', fontWeight: 'bold', borderBottom: '1px solid #333', paddingBottom: '10px', marginBottom: '15px' }}>
               PREGUNTA {current + 1} DE {questions.length}
             </div>
 
-            <div className="quiz-prompt" style={{ fontSize: '18px', marginBottom: '20px', color: '#222' }}>
+            <div className="quiz-prompt">
               {q.prompt}
             </div>
 
@@ -102,7 +107,7 @@ export const IberiaExamPanel = ({ profileConfig, locationsCatalog, flightsCatalo
                 }
                 return (
                   <button key={idx} className={cls} onClick={() => answer(idx)} style={{ borderRadius: '6px', textAlign: 'left' }}>
-                    <span className="quiz-letter" style={{ backgroundColor: picked === null ? '#f0f0f0' : '' }}>{'ABCD'[idx]}</span>
+                    <span className="quiz-letter" style={{ backgroundColor: picked === null ? 'rgba(255,255,255,0.1)' : '' }}>{'ABCD'[idx]}</span>
                     <span>{opt}</span>
                   </button>
                 );
@@ -114,8 +119,8 @@ export const IberiaExamPanel = ({ profileConfig, locationsCatalog, flightsCatalo
                 <div style={{ fontWeight: 'bold', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   {picked === q.correctIndex ? <><CheckCircle2 size={18} /> RESPUESTA CORRECTA</> : <><XCircle size={18} /> RESPUESTA INCORRECTA</>}
                 </div>
-                <div className="quiz-explain" style={{ color: '#444' }}>{q.explain}</div>
-                <button className="quiz-big-btn" onClick={next} style={{ marginTop: '15px', backgroundColor: '#333', borderColor: '#222', color: '#fff', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
+                <div className="quiz-explain">{q.explain}</div>
+                <button className="quiz-big-btn" onClick={next} style={{ marginTop: '15px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
                   {current >= questions.length - 1 ? 'FINALIZAR EXAMEN' : 'SIGUIENTE PREGUNTA'} <ArrowRight size={16} />
                 </button>
               </div>
@@ -131,7 +136,7 @@ export const IberiaExamPanel = ({ profileConfig, locationsCatalog, flightsCatalo
               {score} / {questions.length}
             </div>
             
-            <p style={{ fontSize: '18px', color: '#555', marginBottom: '30px' }}>
+            <p className="quiz-sub" style={{ fontSize: '18px', marginBottom: '30px' }}>
               {score >= questions.length * 0.8
                 ? '¡Aprobado! Tienes el nivel necesario de certificación Iberia.'
                 : 'No aprobado. Revisa el manual y vuelve a intentarlo.'}

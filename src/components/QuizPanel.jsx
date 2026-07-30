@@ -46,6 +46,12 @@ export const QuizPanel = ({ profileConfig, locationsCatalog, flightsCatalog, cou
   const [cardFlipped, setCardFlipped] = useState(false);
   const [stats, setStats] = useState(loadStats);
 
+  const panelRef = React.useRef(null);
+  const resetScroll = () => {
+    window.scrollTo(0, 0);
+    if (panelRef.current) panelRef.current.scrollTo(0, 0);
+  };
+
   const startQuiz = useCallback(() => {
     // Repaso inteligente: las falladas de sesiones anteriores entran primero
     const failedStored = (stats.failed || []).slice(0, 3);
@@ -61,7 +67,7 @@ export const QuizPanel = ({ profileConfig, locationsCatalog, flightsCatalog, cou
     setFailedThisRun([]);
     setReviewPhase(false);
     setMode('quiz');
-    window.scrollTo(0, 0);
+    resetScroll();
   }, [engine, stats, count]);
 
   const nextCard = useCallback(() => {
@@ -71,7 +77,7 @@ export const QuizPanel = ({ profileConfig, locationsCatalog, flightsCatalog, cou
     const q = engine.generateQuestion(tipo, rnd);
     setCard(q);
     setCardFlipped(false);
-    window.scrollTo(0, 0);
+    resetScroll();
   }, [engine]);
 
   const answer = (idx) => {
@@ -94,7 +100,7 @@ export const QuizPanel = ({ profileConfig, locationsCatalog, flightsCatalog, cou
     if (!isLast) {
       setCurrent((c) => c + 1);
       setPicked(null);
-      window.scrollTo(0, 0);
+      resetScroll();
       return;
     }
 
@@ -111,7 +117,7 @@ export const QuizPanel = ({ profileConfig, locationsCatalog, flightsCatalog, cou
       setCurrent(0);
       setPicked(null);
       setReviewPhase(true);
-      window.scrollTo(0, 0);
+      resetScroll();
       return;
     }
 
@@ -134,13 +140,13 @@ export const QuizPanel = ({ profileConfig, locationsCatalog, flightsCatalog, cou
     saveStats(updated);
     setStats(updated);
     setMode('done');
-    window.scrollTo(0, 0);
+    resetScroll();
   };
 
   const q = questions[current];
 
   return (
-    <div className="quiz-panel">
+    <div ref={panelRef} className="quiz-panel">
       {mode === 'menu' && (
         <div className="quiz-menu">
           <div className="quiz-title">
