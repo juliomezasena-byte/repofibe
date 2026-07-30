@@ -4,9 +4,11 @@ import { DslParser } from './engine/DslParser';
 import { PnrStateMachine } from './engine/PnrStateMachine';
 import { ResponseGenerator } from './engine/ResponseGenerator';
 import { EvaluationEngine } from './engine/EvaluationEngine';
-import { Terminal } from './components/Terminal';
-import { ScenarioSelector } from './components/ScenarioSelector';
-import { QuizPanel } from './components/QuizPanel';
+import { AppProvider } from './context/AppContext';
+import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Menu } from './pages/Menu';
+import { Simulator } from './pages/Simulator';
+import { Theory } from './pages/Theory';
 import { LoginScreen } from './components/LoginScreen';
 import { auth } from './lib/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -22,8 +24,9 @@ export function App() {
   const [scenarios, setScenarios] = useState([]);
   const [activeScenarioId, setActiveScenarioId] = useState('scenario-1');
   const [history, setHistory] = useState([]);
-  const [activeTab, setActiveTab] = useState('sim'); // 'sim' | 'quiz'
   const [examMode, setExamMode] = useState('practice'); // 'practice' | 'exam' | 'delivered'
+  const location = useLocation();
+  const navigate = useNavigate();
   const [examStartTs, setExamStartTs] = useState(null);
   const [examResult, setExamResult] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -119,6 +122,35 @@ export function App() {
     }
   }, []);
 
+  // Auto-logout por inactividad (15 minutos)
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    let timeoutId;
+    const logout = () => {
+      console.log("Inactividad detectada: cerrando sesión");
+      signOut(auth);
+    };
+
+    const resetTimer = () => {
+      clearTimeout(timeoutId);
+      // 15 minutos en milisegundos
+      timeoutId = setTimeout(logout, 15 * 60 * 1000);
+    };
+
+    // Inicializar timer
+    resetTimer();
+
+    // Eventos que reinician el contador
+    const events = ['mousedown', 'keydown', 'touchstart'];
+    events.forEach(e => window.addEventListener(e, resetTimer));
+
+    return () => {
+      clearTimeout(timeoutId);
+      events.forEach(e => window.removeEventListener(e, resetTimer));
+    };
+  }, [isAuthenticated]);
+
   const activeScenario = useMemo(() => {
     return scenarios.find((s) => s.id === activeScenarioId) || scenarios[0];
   }, [scenarios, activeScenarioId]);
@@ -173,14 +205,21 @@ export function App() {
     
     const parseResult = dslParser.parse(rawCommand);
 
+    const getHintFromEval = () => {
+      if (!activeScenario) return null;
+      const evalNow = evalEngine.evaluate(activeScenario, pnrFsm.getState());
+      const pending = evalNow.feedback.find(f => f.startsWith('[PENDIENTE]'));
+      return pending ? pending.replace('[PENDIENTE] ', '') : null;
+    };
+
     if (!parseResult.success) {
       const output = responseGen.formatResponse(parseResult, pnrFsm.getState());
-      setHistory((prev) => [...prev, { command: rawCommand, output, isError: true }]);
+      setHistory((prev) => [...prev, { command: rawCommand, output, isError: true, hint: getHintFromEval() }]);
       playSound('error');
       return;
     }
 
-    const processResult = pnrFsm.process(parseResult, flightsCatalog, locationsCatalog);
+    const processResult = pnrFsm.process(parseResult, flightsCatalog, locationsCatalog, activeScenario);
     const pnrState = pnrFsm.getState();
     const output = responseGen.formatResponse(processResult, pnrState);
     
@@ -193,7 +232,8 @@ export function App() {
       {
         command: rawCommand,
         output,
-        isError: !processResult.success
+        isError: !processResult.success,
+        hint: !processResult.success ? getHintFromEval() : null
       }
     ]);
   };
@@ -309,25 +349,21 @@ export function App() {
 
         <div className="header-controls">
           <div className="seg-control" role="tablist" aria-label="Modo de la aplicación">
-            <button
-              role="tab"
-              aria-selected={activeTab === 'sim'}
-              onClick={() => setActiveTab('sim')}
-              className={`seg-btn ${activeTab === 'sim' ? 'seg-active' : ''}`}
+            <NavLink
+              to="/simulador"
+              className={({ isActive }) => `seg-btn ${isActive ? 'seg-active' : ''}`}
             >
               <Layout size={14} /> Simulador
-            </button>
-            <button
-              role="tab"
-              aria-selected={activeTab === 'quiz'}
-              onClick={() => setActiveTab('quiz')}
-              className={`seg-btn ${activeTab === 'quiz' ? 'seg-active' : ''}`}
+            </NavLink>
+            <NavLink
+              to="/teoria"
+              className={({ isActive }) => `seg-btn ${isActive ? 'seg-active' : ''}`}
             >
               <Brain size={14} /> Teoría
-            </button>
+            </NavLink>
           </div>
           <button
-            onClick={() => { setActiveTab('sim'); handleExecuteCommand('HE'); }}
+            onClick={() => { navigate('/simulador'); handleExecuteCommand('HE'); }}
             className="ghost-btn"
           >
             <BookOpen size={14} /> Manual (HE)
@@ -335,57 +371,19 @@ export function App() {
         </div>
       </header>
 
-      {activeTab === 'quiz' ? (
-        <main className="main-layout quiz-layout">
-          <QuizPanel
-            profileConfig={profileConfig}
-            locationsCatalog={locationsCatalog}
-            flightsCatalog={flightsCatalog}
-          />
-        </main>
-      ) : (
-        <>
-          {/* Barra de misión (solo móvil): progreso siempre visible sin
-              scrollear. Tocarla lleva al panel de la misión. */}
-          <button
-            className="mission-bar-mobile"
-            onClick={() => document.querySelector('.sidebar-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-          >
-            <span className="mission-bar-level">
-              {activeScenario ? activeScenario.title.split(':')[0] : 'MISIÓN'}
-              {examMode === 'exam' && ' · EXAMEN'}
-            </span>
-            <span className={`mission-bar-pct ${evaluationResult?.completed && examMode === 'practice' ? 'done' : ''}`}>
-              {examMode === 'exam' ? '⏱' : `${evaluationResult?.score ?? 0}%`} ▸ VER MISIÓN
-            </span>
-          </button>
-
-        <main className="main-layout">
-          <Terminal
-            ref={terminalRef}
-            onExecuteCommand={handleExecuteCommand}
-            history={history}
-            hideVerbs={examMode === 'exam'}
-            missionComplete={examMode === 'practice' && !!evaluationResult?.completed}
-          />
-
-          <ScenarioSelector
-            scenarios={scenarios}
-            activeScenarioId={activeScenarioId}
-            onSelectScenario={handleSelectScenario}
-            evaluationResult={evaluationResult}
-            onResetScenario={handleResetScenario}
-            examMode={examMode}
-            examStartTs={examStartTs}
-            examResult={examResult}
-            onToggleExam={handleToggleExam}
-            onDeliver={handleDeliver}
-            chipStatus={chipStatus}
-            onChipTap={handleChipTap}
-          />
-        </main>
-        </>
-      )}
+      <AppProvider value={{
+        profileConfig, flightsCatalog, locationsCatalog, equipmentCatalog,
+        scenarios, activeScenarioId, history, examMode, examStartTs, examResult,
+        terminalRef, activeScenario, evaluationResult, chipStatus,
+        handleSelectScenario, handleResetScenario, handleToggleExam,
+        handleDeliver, handleExecuteCommand
+      }}>
+        <Routes>
+          <Route path="/" element={<Menu />} />
+          <Route path="/simulador" element={<Simulator />} />
+          <Route path="/teoria" element={<Theory />} />
+        </Routes>
+      </AppProvider>
     </div>
   );
 }
