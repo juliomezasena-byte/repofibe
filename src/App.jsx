@@ -382,6 +382,7 @@ export function App() {
           <Route path="/" element={<Menu />} />
           <Route path="/simulador" element={<Simulator />} />
           <Route path="/teoria" element={<Theory />} />
+          <Route path="*" element={<Menu />} />
         </Routes>
       </AppProvider>
     </div>
