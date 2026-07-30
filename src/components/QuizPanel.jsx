@@ -77,7 +77,15 @@ export const QuizPanel = ({ profileConfig, locationsCatalog, flightsCatalog }) =
     setPicked(idx);
     const q = questions[current];
     const ok = idx === q.correctIndex;
-    if (ok && !reviewPhase) setScore((s) => s + 1);
+    if (ok && !reviewPhase) {
+      setScore((s) => s + 1);
+      setStats(prev => {
+        const newFailed = (prev.failed || []).filter(x => x.prompt !== q.prompt);
+        const updated = { ...prev, failed: newFailed };
+        saveStats(updated);
+        return updated;
+      });
+    }
     if (!ok) setFailedThisRun((f) => [...f, q]);
   };
 
@@ -91,6 +99,13 @@ export const QuizPanel = ({ profileConfig, locationsCatalog, flightsCatalog }) =
 
     // Repaso inmediato: lo fallado vuelve hasta responderse bien
     if (failedThisRun.length > 0) {
+      setStats(prev => {
+        const newFailed = [...(prev.failed || []), ...failedThisRun]
+          .filter((q, idx, arr) => arr.findIndex(x => x.prompt === q.prompt) === idx);
+        const updated = { ...prev, failed: newFailed };
+        saveStats(updated);
+        return updated;
+      });
       setQuestions(failedThisRun.map((q, i) => ({ ...q, id: i + 1 })));
       setFailedThisRun([]);
       setCurrent(0);
@@ -113,8 +128,7 @@ export const QuizPanel = ({ profileConfig, locationsCatalog, flightsCatalog }) =
       lastDay: dia,
       streak,
       best: Math.max(prev.best || 0, score),
-      played: (prev.played || 0) + 1,
-      failed: failedThisRun
+      played: (prev.played || 0) + 1
     };
     saveStats(updated);
     setStats(updated);

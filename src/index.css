@@ -1106,11 +1106,7 @@ body {
   background: rgba(255, 51, 102, 0.06);
 }
 
-.quiz-explain {
-  color: var(--text-light);
-  font-size: 0.85rem;
-  line-height: 1.5;
-}
+.quiz-explain { color: var(--text-light); font-size: 0.85rem; line-height: 1.5; white-space: pre-wrap; }
 
 .quiz-flashcard {
   min-height: 180px;
@@ -1158,4 +1154,20 @@ body {
     transition: border-color 0.3s, box-shadow 0.3s;
   }
 }
+
+
+.hint-reactivo {
+  background: #161B22;
+  border-top: none;
+  border-left: 2px solid #8957E5;
+  color: #8B949E;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hint-reactivo {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
 
