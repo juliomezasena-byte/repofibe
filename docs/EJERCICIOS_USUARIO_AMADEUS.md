@@ -172,7 +172,8 @@ Cambio Voluntario Manual — Solo la Ida") en
 `PLAN_CAMBIO_MANUAL_IBERIA.md` para el detalle de la secuencia final y los
 comandos nuevos que hizo falta construir.
 
-Este mismo PNR (con su niño CHD, su ida/vuelta, su ticket ya emitido —
-Ejercicio 1) sigue siendo el candidato natural para el **Nivel 24**
-(pendiente): el flujo completo de cambio voluntario manual sobre ambos
-segmentos, no solo la ida.
+✅ **Ejercicio 1 → implementado (01AGO26)** como `scenario-24` ("Nivel 24:
+Cambio Voluntario Manual — Flujo Completo") usando el billete
+075-1000213262 (Intento 1) como `initialState` — el flujo completo de
+cambio voluntario manual sobre ambos segmentos (ida y vuelta), no solo la
+ida.

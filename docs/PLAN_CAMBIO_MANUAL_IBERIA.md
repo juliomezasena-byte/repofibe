@@ -272,16 +272,28 @@ sección `DF`/moneda arriba), `PENTY` y `DF` variables según el caso.
 del manual que se había pasado por alto en el diseño inicial y se detectó
 recién al construir el escenario real).
 
-### Nivel 24 (pendiente) — Cambio Voluntario Manual completo, sin segmento volado (Avanzado)
+### ✅ Nivel 24 — Cambio Voluntario Manual completo, ambos segmentos (Avanzado) — IMPLEMENTADO
 
-Mismo PNR de partida, pero flujo completo sobre ambos segmentos: `TWD` →
-cotizar histórico → verificar penalidad → cotizar nuevo vuelo → calcular
-diferencia → documentar con `RM` → `TTE` → `FXP` → `TTI`/`TTK` → `FO` →
-`IU ... PENF` → `TMC`/`TQM`/`TMI` → gasto de gestión → forma de pago →
-emitir con `TTP1/TTM/.../ET/RT`. Guión completo en
-`MANUAL_CAMBIO_VOLUNTARIO_SIN_SEGMENTO.md`. Toda la infraestructura de
-comandos ya existe (implementada para el Nivel 23) — falta solo construir
-el escenario con el `Ejercicio 1` real como punto de partida.
+`scenario-24` en `scenarios.json` (01AGO26), construido sobre el mismo
+pasajero real (`DA SILVA/RONALDO(CHD/13FEB20)`, billete 075-1000213262 del
+`Ejercicio 1`, Intento 1). A diferencia del Nivel 23 (solo la ida), este
+mueve **ambos segmentos** — ida 11MAR→18MAR y vuelta 11ABR→18ABR — con dos
+llamadas `AN`/`SS` independientes, dos `DF` (penalidad y diferencia), y un
+`XE2,3` final para limpiar los dos segmentos viejos de una vez. No usó
+comandos nuevos — toda la infraestructura construida para el Nivel 23 se
+reutilizó sin cambios (confirma que el diseño del Nivel 23 sí generaliza).
+Sin cambios en `EvaluationEngine.js` (se reutilizaron los mismos target
+checks, más `segmentsCount: 2` que ya existía como check genérico). 24/24
+escenarios en verde, verificado 5 veces seguidas sin fallos intermitentes.
+
+**Simplificaciones deliberadas frente al manual real** (documentadas para
+que no se confundan con errores): la penalidad "a histórico" (`FXX/.../R,
+{DOI},UP/FF-...`) no filtra realmente por segmento ni usa el DOI para
+recalcular — el motor de precios (`handlePrice`) no tiene ese filtro (ver
+auditoría del parser arriba); mecánicamente el comando se ejecuta y
+devuelve éxito, pero el monto no es "históricamente exacto". Aceptable
+porque la evaluación se basa en invariantes de flujo (se usó `DF`, se marcó
+la reemisión, etc.), no en verificar el monto exacto.
 
 ### Nivel 25 (futuro, requiere más trabajo previo) — Cambio con segmento volado
 
@@ -314,19 +326,20 @@ introduce comandos de alta complejidad sin equivalente actual
    sigue pendiente para el Nivel 25).
 10. ✅ Nivel 23 creado (`scenario-23`) con el `Ejercicio 2` real como punto
     de partida.
-11. ⏳ Nivel 24 pendiente — usar el `Ejercicio 1` real como punto de
-    partida (la infraestructura de comandos ya existe, es "solo" construir
-    el escenario).
+11. ✅ Nivel 24 creado (`scenario-24`) con el `Ejercicio 1` real como punto
+    de partida — confirmó que la infraestructura del Nivel 23 generaliza
+    sin comandos nuevos.
 12. ✅ `test-regression.js` extendido: 6 pruebas de tolerancia nuevas (DF
     resta/penalidad, renumeración T2, separación FP TST/TSM, TWD tras
     reemisión, valor de penalidad en TSM) + 1 regresión negativa específica
-    del Nivel 23 (no completa sin `TTI/EXCH`). 23/23 escenarios en verde,
+    del Nivel 23 (no completa sin `TTI/EXCH`). 24/24 escenarios en verde,
     verificado 5 veces seguidas sin fallos intermitentes (la disponibilidad
     dinámica de vuelos usa clase `Y`, siempre abierta). El rechazo de
     comandos fuera de secuencia sigue sin infraestructura de test (no hace
     falta mientras el Escenario actual sea agnóstico al orden).
-13. Sigue pendiente evaluar el Nivel 25 (con segmento volado) hasta validar
-    el Nivel 24.
+13. Sigue pendiente evaluar el Nivel 25 (con segmento volado) — ahí sí
+    hacen falta comandos nuevos (`TTC`, `TQTC`, `TTI` multi-modo, `FQP`
+    roundtrip) que no se necesitaron para 23/24.
 
 ## Pendiente de decisión del usuario/instructor
 
