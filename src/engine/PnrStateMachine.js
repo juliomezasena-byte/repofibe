@@ -56,7 +56,8 @@ export class PnrStateMachine {
       usedTte: false,
       markedExchange: false,
       fareDiffAdded: false,
-      penaltyValueAdded: false
+      penaltyValueAdded: false,
+      combinedIssueDone: false
     };
   }
 
@@ -78,6 +79,11 @@ export class PnrStateMachine {
       cancelOperations: newState.cancelOperations ? [...newState.cancelOperations] : [],
       issuedTicket: newState.issuedTicket ? { ...newState.issuedTicket } : null,
       penaltyServices: newState.penaltyServices ? [...newState.penaltyServices] : [],
+      // Copia propia, NO por referencia — si no, handlers como handleFP
+      // mutan el mismo objeto que scenario.initialState.pnr.tst y el
+      // escenario queda "sucio" para la próxima vez que se reinicia.
+      tst: newState.tst ? { ...newState.tst } : null,
+      tsm: newState.tsm ? { ...newState.tsm } : null,
       // Si el escenario siembra un TST/TSM ya numerado, el contador arranca
       // desde ahí para que el próximo creado numere correctamente.
       tstCounter: newState.tstCounter || newState.tst?.number || 0,
@@ -762,17 +768,35 @@ export class PnrStateMachine {
     }
 
     this.state.isTicketed = true;
-    
+
     // Simulate auto RT if /RT modifier is passed
     const modifier = params?.modifier || '';
     const autoRT = modifier.includes('RT');
 
+    const ticketNumber = `075-${Math.floor(1000000 + Math.random() * 9000000)}`;
+    // Archivar el billete recién emitido para que TWD pueda consultarlo
+    // después — antes solo funcionaba si el escenario lo sembraba a mano.
+    this.state.issuedTicket = {
+      number: ticketNumber.replace(/-/g, ''),
+      doi: PnrStateMachine.formatDoiToday(),
+      fareBasisOut: this.state.tst.fareBasis,
+      total: this.state.tst.total !== undefined ? this.state.tst.total : this.state.tst.priceUSD,
+      currency: this.state.tst.currency || 'USD'
+    };
+
     return {
       success: true,
-      ticketNumber: `075-${Math.floor(1000000 + Math.random() * 9000000)}`,
+      ticketNumber,
       autoRT,
       message: 'OK ETICKET'
     };
+  }
+
+  // Fecha de hoy en formato DDMMMYY (convención Amadeus, ej. "01AUG26").
+  static formatDoiToday() {
+    const meses = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    const d = new Date();
+    return `${String(d.getDate()).padStart(2, '0')}${meses[d.getMonth()]}${String(d.getFullYear()).slice(-2)}`;
   }
 
   // FP: forma de pago del TST (diferencia de tarifa + gasto de gestión).
@@ -1297,10 +1321,26 @@ export class PnrStateMachine {
     this.state.isTicketed = true;
     this.state.tsm.status = 'ISSUED';
     this.state.tsmIssued = true;
+    // Evidencia específica de que la emisión combinada realmente ocurrió
+    // (isTicketed solo no basta: el escenario siembra isTicketed:true en
+    // el billete original, así que por sí solo no prueba que se reemitió).
+    this.state.combinedIssueDone = true;
+
+    const ticketNumber = `075-${Math.floor(1000000 + Math.random() * 9000000)}`;
+    // Archivar el billete NUEVO — reemplaza el issuedTicket original para
+    // que TWD muestre los datos de la reemisión, no los del billete viejo.
+    this.state.issuedTicket = {
+      number: ticketNumber.replace(/-/g, ''),
+      doi: PnrStateMachine.formatDoiToday(),
+      fareBasisOut: this.state.tst.fareBasis,
+      total: this.state.tst.total !== undefined ? this.state.tst.total : this.state.tst.priceUSD,
+      currency: this.state.tst.currency || 'USD'
+    };
+
     return {
       success: true,
       type: 'COMBINED_ISSUE',
-      ticketNumber: `075-${Math.floor(1000000 + Math.random() * 9000000)}`,
+      ticketNumber,
       emd: `3-${Math.floor(1000000000 + Math.random() * 9000000000)}`,
       autoRT: tail.toUpperCase().includes('RT'),
       message: 'OK ETICKET / OK EMD ISSUED'

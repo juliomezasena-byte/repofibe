@@ -826,7 +826,10 @@
         "tsmIssued": true,
         "isTicketed": true,
         "isTransacted": true,
-        "usedDf": true
+        "usedDf": true,
+        "combinedIssueDone": true,
+        "segmentsCount": 2,
+        "requiredCancelSpec": "2"
       },
       "suggestedFlow": [
         "TWD/TKT0751000213325",
@@ -859,7 +862,7 @@
       "id": "scenario-24",
       "title": "Nivel 24: Cambio Voluntario Manual — Flujo Completo (Avanzado)",
       "difficulty": "Avanzado",
-      "description": "PASAJEROS (PAXS): DA SILVA/RONALDO (CHD/13FEB20). Billete 075-1000213262, DOI 30JUL26, ida IB781 MAD-BER 11MAR, vuelta IB788 BER-MAD 11APR. TAREA: el cliente quiere mover TODO el viaje una semana: ida al 18MAR y vuelta al 18ABR. Flujo completo: consulta el billete (TWD/TKT), cotiza la penalidad a histórico (FXX/S1,2/R,{DOI},UP/FF-...), revisa las condiciones (FQN01*CD), calcula la penalidad (DF), documenta y guarda. Vende la nueva ida y la nueva vuelta (AN/SS x2), cotiza informativo, calcula la diferencia de tarifa (DF), documenta y guarda (ER). Borra el TST viejo (TTE/ALL), crea el nuevo (FXP) marcándolo en reemisión (TTI/EXCH) con la diferencia (TTK). Aplica el fare override, solicita el servicio de penalidad (IU...PENF), guárdalo (TMC), revisa la máscara (TQM), carga el valor de la penalidad (TMI/M.../F.../CV-...), agrega el gasto de gestión (TTO) y verifícalo (TQO). Documenta el titular de la tarjeta y guarda, agrega forma de pago al TST y al TSM, elimina las DOS plazas viejas que ya no se usan (XE) y emite billete+EMD juntos (TTP1/TTM/.../ET/RT).",
+      "description": "PASAJEROS (PAXS): DA SILVA/RONALDO (CHD/13FEB20). Billete 075-1000213262, DOI 30JUL26, ida IB781 MAD-BER 11MAR, vuelta IB788 BER-MAD 11APR. TAREA: el cliente quiere mover TODO el viaje una semana: ida al 18MAR y vuelta al 18APR. Flujo completo: consulta el billete (TWD/TKT), cotiza la penalidad a histórico (FXX/S1,2/R,{DOI},UP/FF-...), revisa las condiciones (FQN01*CD), calcula la penalidad (DF), documenta y guarda. Vende la nueva ida y la nueva vuelta (AN/SS x2), cotiza informativo, calcula la diferencia de tarifa (DF), documenta y guarda (ER). Borra el TST viejo (TTE/ALL), crea el nuevo (FXP) marcándolo en reemisión (TTI/EXCH) con la diferencia (TTK). Aplica el fare override, solicita el servicio de penalidad (IU...PENF), guárdalo (TMC), revisa la máscara (TQM), carga el valor de la penalidad (TMI/M.../F.../CV-...), agrega el gasto de gestión (TTO) y verifícalo (TQO). Documenta el titular de la tarjeta y guarda, agrega forma de pago al TST y al TSM, elimina las DOS plazas viejas que ya no se usan (XE) y emite billete+EMD juntos (TTP1/TTM/.../ET/RT).",
       "initialState": {
         "pnr": {
           "code": "7IS2AJ",
@@ -899,7 +902,9 @@
         "isTicketed": true,
         "isTransacted": true,
         "usedDf": true,
-        "segmentsCount": 2
+        "combinedIssueDone": true,
+        "segmentsCount": 2,
+        "requiredCancelSpec": "2,3"
       },
       "suggestedFlow": [
         "TWD/TKT0751000213262",
@@ -909,7 +914,7 @@
         "RM*30JUL26* PAX AVDO COSTE PENTY 65EUR SF 35EUR/ WP",
         "AN18MARMADBER",
         "SS1Y1",
-        "AN18ABRBERMAD",
+        "AN18APRBERMAD",
         "SS1Y1",
         "FXX/S3,4/FF-NDHNENM2",
         "DF 282.19 - 267.19",

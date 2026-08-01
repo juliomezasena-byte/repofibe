@@ -357,6 +357,52 @@ introduce comandos de alta complejidad sin equivalente actual
 - $$CONFIG/$$PAY (tarjeta) sigue sin implementarse — unificar con
   `MATERIAL_EMISION_DAVID.md` cuando se aborde.
 
+## 🔴 Fixes de auditoría externa (01AGO26) — Nivel 23/24
+
+Una auditoría externa encontró 5 fallos reales sobre lo ya publicado, todos
+corregidos y verificados con test nuevos:
+
+1. **Crítico**: `segmentsCount: 2` como único indicador de cambio de vuelo
+   era trivial de burlar — el PNR ya arranca con 2 segmentos, así que se
+   podía completar el nivel sin ejecutar `AN`/`SS`/`XE` en absoluto,
+   conservando los vuelos originales. Corregido agregando
+   `requiredCancelSpec` (ya existía como tipo de check, solo faltaba
+   usarlo) — ahora exige evidencia real de que los segmentos viejos se
+   eliminaron, combinado con `segmentsCount` para probar que los nuevos se
+   agregaron. Afectaba a los Niveles 23 Y 24 por igual.
+2. **Alto**: `setState()` copiaba `tst`/`tsm` **por referencia**, no por
+   valor — ejecutar `FP`/`TTI`/`TTK` mutaba el objeto `initialState.pnr.tst`
+   del propio array de escenarios, contaminando el siguiente reinicio del
+   nivel. Corregido con copia propia (`{ ...newState.tst }`).
+3. **Alto**: `isTicketed` se sembraba en `true` desde el billete original,
+   así que el evaluador no probaba que el estudiante ejecutara realmente
+   `TTP1/TTM` — sustituirlo por `TTM/M1/RT` igual daba 100%. Corregido con
+   una bandera nueva y específica (`combinedIssueDone`), sembrada en
+   `false` y solo puesta en `true` dentro de `handleCombinedIssue`.
+4. **Alto**: `TWD` nunca funcionaba después de una emisión real del motor
+   (`handleIssueTicket`/`handleCombinedIssue` generaban el número de
+   billete pero no lo archivaban en `state.issuedTicket`) — solo
+   funcionaba porque los escenarios lo sembraban a mano. Corregido
+   archivando el billete en el momento exacto de la emisión.
+5. **Alto**: el parser rechazaba sintaxis literal del manual —
+   `TMC/L5`, `TQM/M1`, `TMI/M1/FP-{token}` — por `payloadPattern`
+   demasiado estrictos. Corregido relajándolos para aceptar el sufijo de
+   línea/TSM sin cambiar el comportamiento (el handler ya era agnóstico a
+   esos sufijos).
+
+No corregido (deliberado, complejidad/valor bajo): `TWD/L{n}` no valida
+que el número de línea corresponda al billete real — no hay arquitectura
+hoy para verificarlo sin inventar más estado; queda como limitación
+conocida, igual que la penalidad "a histórico" que no filtra por segmento.
+
+La misma auditoría reportó por separado 5 hallazgos de seguridad **no
+relacionados con este módulo** (bypass de autenticación vía
+`localStorage.PLAYWRIGHT_TEST`, contraseñas hardcodeadas en
+`scripts/create-users.js` y `scripts/audit-dashboard.js`, condición de
+carrera en `QuizPanel.jsx`, caché offline incompleto, banco de examen sin
+verificar) — quedan fuera de este documento porque son de otra área del
+código; requieren su propia decisión y no se tocaron.
+
 ## Guía visual — implementado (01AGO26)
 
 - `Terminal.jsx`: se quitó el límite de 3 apariciones por dispositivo del

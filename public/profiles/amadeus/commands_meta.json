@@ -784,26 +784,30 @@
       "code": "TQM",
       "category": "Ticketing",
       "name": "Ver TSM y Entrar a Forma de Pago",
-      "description": "Muestra el TSM del servicio y abre el registro para agregar la forma de pago.",
+      "description": "Muestra el TSM del servicio y abre el registro para agregar la forma de pago. TQM/M{n} referencia un TSM específico si hay varios tipos de pasajero.",
       "syntax": [
-        "TQM"
+        "TQM",
+        "TQM/M{n}"
       ],
       "tokens": {},
       "handler": "SHOW_TSM",
       "examples": [
-        "TQM"
+        "TQM",
+        "TQM/M1"
       ],
       "errors": {
         "NO_TSM": "NO TSM PRESENT - USE FXG FIRST"
-      }
+      },
+      "payloadPattern": "^/M[0-9]+$"
     },
     {
       "code": "TMI",
       "category": "Ticketing",
       "name": "Forma de Pago o Valor de Penalidad del TSM",
-      "description": "TMI/FP-{forma} agrega la forma de pago al TSM. TMI/M{n}/F{valor}/CV-{valor} carga el valor de la penalidad y el cupón (antes de la forma de pago). Ej: TMI/FP-CASH,  TMI/M1/F3279/CV-3279",
+      "description": "TMI/FP-{forma} o TMI/M{n}/FP-{forma} agregan la forma de pago al TSM. TMI/M{n}/F{valor}/CV-{valor} carga el valor de la penalidad y el cupón (antes de la forma de pago). Ej: TMI/FP-CASH,  TMI/M1/FP-CASH,  TMI/M1/F3279/CV-3279",
       "syntax": [
         "TMI/FP-{forma}",
+        "TMI/M{n}/FP-{forma}",
         "TMI/M{n}/F{valor}/CV-{valor}"
       ],
       "tokens": {},
@@ -811,12 +815,13 @@
       "examples": [
         "TMI/FP-CASH,",
         "TMI/FP-CASH",
+        "TMI/M1/FP-CASH,",
         "TMI/M1/F3279/CV-3279"
       ],
       "errors": {
-        "FORMAT_ERROR": "FORMAT ERROR - TMI/FP- OR TMI/M{n}/F{valor}/CV-{valor}"
+        "FORMAT_ERROR": "FORMAT ERROR - TMI/FP- OR TMI/M{n}/FP- OR TMI/M{n}/F{valor}/CV-{valor}"
       },
-      "payloadPattern": "^/(FP-?|M[0-9]+/F[0-9]+(\\.[0-9]+)?/CV-[0-9]+(\\.[0-9]+)?)"
+      "payloadPattern": "^/(FP|M[0-9]+)"
     },
     {
       "code": "TTM",
@@ -994,18 +999,23 @@
       "code": "TMC",
       "category": "Ticketing",
       "name": "Guardar Servicio de Penalidad (crear TSM)",
-      "description": "Guarda el servicio de penalidad y crea el registro TSM (equivalente a FXG pero para PENF).",
+      "description": "Guarda el servicio de penalidad y crea el registro TSM (equivalente a FXG pero para PENF). TMC/L{n} referencia la línea del elemento SVC; /INF para el infante.",
       "syntax": [
-        "TMC"
+        "TMC",
+        "TMC/L{n}",
+        "TMC/L{n}/INF"
       ],
       "tokens": {},
       "handler": "SAVE_TSM_PENF",
       "examples": [
-        "TMC"
+        "TMC",
+        "TMC/L5",
+        "TMC/L6/INF"
       ],
       "errors": {
         "NO_SERVICE": "NO PENALTY SERVICE TO STORE"
-      }
+      },
+      "payloadPattern": "^/L[0-9]+(/INF)?$"
     },
     {
       "code": "TQO",

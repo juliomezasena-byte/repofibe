@@ -295,6 +295,62 @@ probarRegresionNegativa('Nivel 23 no completa si se omite TTI/EXCH (falta eviden
   scenario23.suggestedFlow.filter((cmd) => cmd !== 'TTI/EXCH/T2'),
   (r, s) => !evalEngine.evaluate(scenario23, s).completed ? null : 'completó sin marcar la reemisión con TTI/EXCH', scenario23);
 
+// ── Fixes de la auditoría externa (01AGO26) — exploits cerrados ──
+probarRegresionNegativa('Nivel 23: exploit cerrado — no completa si se omiten AN/SS/XE (no tocó los vuelos reales)',
+  scenario23.suggestedFlow.filter((cmd) => !['AN13MARMADBER', 'SS1Y1', 'XE2'].includes(cmd)),
+  (r, s) => !evalEngine.evaluate(scenario23, s).completed ? null : 'completó sin cambiar los vuelos reales (exploit crítico reportado por auditoría)', scenario23);
+
+probarRegresionNegativa('Nivel 23: no completa si se sustituye TTP1/TTM por otra emisión (isTicketed solo no basta)',
+  scenario23.suggestedFlow.map((cmd) => cmd === 'TTP1/TTM/T2/M1/ET/RT' ? 'TTM/M1/RT' : cmd),
+  (r, s) => !evalEngine.evaluate(scenario23, s).completed ? null : 'completó sin ejecutar la emisión combinada real (isTicketed venía sembrado en true)', scenario23);
+
+const scenario24 = scenarios.find((scen) => scen.id === 'scenario-24');
+probarRegresionNegativa('Nivel 24: exploit cerrado — no completa si se omiten AN/SS/XE (no tocó los vuelos reales)',
+  scenario24.suggestedFlow.filter((cmd) => !['AN18MARMADBER', 'SS1Y1', 'AN18APRBERMAD', 'XE2,3'].includes(cmd)),
+  (r, s) => !evalEngine.evaluate(scenario24, s).completed ? null : 'completó sin cambiar los vuelos reales (exploit crítico reportado por auditoría)', scenario24);
+
+(function probarNoContaminacionDeSetState() {
+  const semilla = {
+    passengers: [{ id: 1, name: 'TEST/PAX' }],
+    segments: [{ id: 1, flight: 'IB1', class: 'Y', date: '01ENE', route: 'MAD-BCN', status: 'HK1' }],
+    tst: { number: 1, priceUSD: 100, currency: 'EUR', total: 100, fareBasis: 'YFLEX' }
+  };
+  fsm.reset();
+  fsm.setState(semilla);
+  fsm.process(parser.parse('FP CASH,'), flights, locations);
+  if (semilla.tst.fop) {
+    console.error(`  [FAIL] setState no aisló el TST: el objeto sembrado quedó con fop="${semilla.tst.fop}"`);
+    toleranceFailures++;
+  } else {
+    console.log('  [PASS] setState aísla tst/tsm (copia propia) — el objeto sembrado no se contamina');
+  }
+})();
+
+(function probarTwdTrasEmisionRealDelMotor() {
+  fsm.reset();
+  fsm.setState({
+    passengers: [{ id: 1, name: 'TEST/PAX' }],
+    segments: [{ id: 1, flight: 'IB1', class: 'Y', date: '01ENE', route: 'MAD-BCN', status: 'HK1' }],
+    contacts: [{ id: 1, text: 'AP123' }],
+    ticketing: 'TK OK'
+  });
+  const secuencia = ['FXP', 'ER', 'TTP1/ET/RT', 'TWD/L9'];
+  let last = null;
+  for (const cmd of secuencia) {
+    last = fsm.process(parser.parse(cmd), flights, locations);
+  }
+  if (last.success && last.type === 'TICKET_DETAIL') {
+    console.log('  [PASS] TWD funciona tras una emisión real del motor (antes: NO TICKET ON FILE)');
+  } else {
+    console.error(`  [FAIL] TWD tras emisión real del motor: ${JSON.stringify(last)}`);
+    toleranceFailures++;
+  }
+})();
+
+probarTolerancia('Sintaxis del manual ya parsea: TMC/L5, TQM/M1, TMI/M1/FP-',
+  ['IU IB NN1 PENF MAD/P1', 'TMC/L5', 'TQM/M1', 'TMI/M1/FP-CASH,'],
+  (r, s) => r.success && s.tsm?.fop === 'CASH' ? null : `resultado: ${JSON.stringify(r)} tsm=${JSON.stringify(s.tsm)}`);
+
 // ── FXX desglosa por tipo de pasajero (petición de David) ──
 probarTolerancia('FXX con ADT+CHD desglosa dos tarifas (CHD 75%)',
   ['AN13MARLIMBOG', 'SS2Y1', 'NM2PEREZ/CARLOS MR/JUAN(CHD/10MAY18)', 'FXX/FF-OPTIMA/RAD*CH,BOG'],

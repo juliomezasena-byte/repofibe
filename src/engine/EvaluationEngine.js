@@ -140,6 +140,19 @@ export class EvaluationEngine {
       }
     }
 
+    // 7f. Cambio Voluntario Manual — emisión combinada realmente ejecutada
+    // (isTicketed solo no basta: el billete original ya siembra
+    // isTicketed:true, así que por sí solo no prueba la reemisión).
+    if (target.combinedIssueDone) {
+      totalChecks++;
+      if (state.combinedIssueDone) {
+        checksPassed++;
+        feedback.push(`[OK] Emisión combinada de billete + EMD ejecutada (TTP1/TTM).`);
+      } else {
+        feedback.push(`[PENDIENTE] Emite el cambio con TTP1/TTM/T{n}/M{n}/ET/RT.`);
+      }
+    }
+
     // 8. Tiquete emitido (TTP)
     if (target.isTicketed) {
       totalChecks++;
