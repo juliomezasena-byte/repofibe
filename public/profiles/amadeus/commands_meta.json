@@ -556,10 +556,12 @@
     {
       "code": "DF",
       "category": "Pricing",
-      "name": "Detailed Fare Summation",
-      "description": "Calcula la suma total de las tarifas de los pasajeros más los gastos de gestión (DF VALOR1;VALOR2;GASTOS*CANTIDAD_PAX).",
+      "name": "Detailed Fare Summation / Diferencia de Tarifa",
+      "description": "Tres modos según el contexto: (1) suma DF VALOR1;VALOR2;GASTOS*CANTIDAD_PAX. (2) diferencia de tarifa DF nueva-original (cotización nueva menos ticket original). (3) penalidad menos descuento DF penalidad P descuento.",
       "syntax": [
-        "DF {expression}"
+        "DF {expression}",
+        "DF {nueva}-{original}",
+        "DF {penalidad}P{descuento}"
       ],
       "tokens": {
         "expression": "^(.+)"
@@ -567,7 +569,9 @@
       "handler": "SUM_FARES",
       "examples": [
         "DF 2*200000;1000000;860000;240000*3",
-        "DF 500000;250000;100000*2"
+        "DF 500000;250000;100000*2",
+        "DF 1890 - 1750",
+        "DF 150 P 75"
       ],
       "errors": {
         "FORMAT_ERROR": "FORMAT ERROR - DF EXPRESSION"
@@ -796,21 +800,23 @@
     {
       "code": "TMI",
       "category": "Ticketing",
-      "name": "Forma de Pago del Servicio (TMI/FP-)",
-      "description": "Agrega la forma de pago al TSM del servicio. Ej: TMI/FP-CASH,",
+      "name": "Forma de Pago o Valor de Penalidad del TSM",
+      "description": "TMI/FP-{forma} agrega la forma de pago al TSM. TMI/M{n}/F{valor}/CV-{valor} carga el valor de la penalidad y el cupón (antes de la forma de pago). Ej: TMI/FP-CASH,  TMI/M1/F3279/CV-3279",
       "syntax": [
-        "TMI/FP-{forma}"
+        "TMI/FP-{forma}",
+        "TMI/M{n}/F{valor}/CV-{valor}"
       ],
       "tokens": {},
       "handler": "SET_FOP",
       "examples": [
         "TMI/FP-CASH,",
-        "TMI/FP-CASH"
+        "TMI/FP-CASH",
+        "TMI/M1/F3279/CV-3279"
       ],
       "errors": {
-        "FORMAT_ERROR": "FORMAT ERROR - TMI/FP-"
+        "FORMAT_ERROR": "FORMAT ERROR - TMI/FP- OR TMI/M{n}/F{valor}/CV-{valor}"
       },
-      "payloadPattern": "^/FP-?"
+      "payloadPattern": "^/(FP-?|M[0-9]+/F[0-9]+(\\.[0-9]+)?/CV-[0-9]+(\\.[0-9]+)?)"
     },
     {
       "code": "TTM",
@@ -850,6 +856,192 @@
         "NO_TST": "NO TST PRESENT - USE FXP FIRST"
       },
       "payloadPattern": "^/T[0-9]+"
+    },
+    {
+      "code": "TWD",
+      "category": "Ticketing",
+      "name": "Ver Detalle del Billete Emitido",
+      "description": "Muestra el billete ya emitido (fare basis, DOI, total). TWD/TKT{billete} por número, TWD/L{n} por línea, TWD/TAX por desglose de tasas.",
+      "syntax": [
+        "TWD/TKT{billete}",
+        "TWD/L{n}",
+        "TWD/TAX"
+      ],
+      "tokens": {},
+      "handler": "SHOW_TICKET_DETAIL",
+      "examples": [
+        "TWD/TKT0751000213325",
+        "TWD/L9",
+        "TWD/TAX"
+      ],
+      "errors": {
+        "NO_TICKET": "NO TICKET ON FILE - CHECK TWD/TKT OR TWD/L"
+      },
+      "payloadPattern": "^/(TKT\\d{3}-?\\d{10}|L\\d+|TAX)$"
+    },
+    {
+      "code": "TTE",
+      "category": "Ticketing",
+      "name": "Eliminar TST",
+      "description": "Elimina el TST activo. TTE/ALL elimina todos, TTE/T{n} elimina uno específico.",
+      "syntax": [
+        "TTE/ALL",
+        "TTE/T{n}"
+      ],
+      "tokens": {},
+      "handler": "DELETE_TST",
+      "examples": [
+        "TTE/ALL",
+        "TTE/T1"
+      ],
+      "errors": {
+        "NO_TST": "NO TST PRESENT"
+      },
+      "payloadPattern": "^/(ALL|T[0-9]+)$"
+    },
+    {
+      "code": "TTI",
+      "category": "Ticketing",
+      "name": "Colocar el TST en Reemisión",
+      "description": "Marca el TST activo como reemisión (exchange). Ej: TTI/EXCH/T2.",
+      "syntax": [
+        "TTI/EXCH/T{n}"
+      ],
+      "tokens": {},
+      "handler": "MARK_EXCHANGE",
+      "examples": [
+        "TTI/EXCH/T2"
+      ],
+      "errors": {
+        "NO_TST": "NO TST PRESENT"
+      },
+      "payloadPattern": "^/EXCH/T[0-9]+$"
+    },
+    {
+      "code": "TTK",
+      "category": "Ticketing",
+      "name": "Agregar Diferencia de Tarifa al TST",
+      "description": "Agrega el valor de la diferencia de tarifa calculada con DF al TST. Ej: TTK/T2/T140.",
+      "syntax": [
+        "TTK/T{n}/T{valor}"
+      ],
+      "tokens": {},
+      "handler": "ADD_FARE_DIFF",
+      "examples": [
+        "TTK/T2/T140"
+      ],
+      "errors": {
+        "NO_TST": "NO TST PRESENT"
+      },
+      "payloadPattern": "^/T[0-9]+/T[0-9]+(\\.[0-9]+)?$"
+    },
+    {
+      "code": "FO*L",
+      "category": "Ticketing",
+      "name": "Fare Override (ADT/CHD)",
+      "description": "Vincula la tarifa a la línea del billete y al pasajero. Ej: FO*L14/P1.",
+      "syntax": [
+        "FO*L{línea}/P{pax}"
+      ],
+      "tokens": {},
+      "handler": "FARE_OVERRIDE",
+      "examples": [
+        "FO*L14/P1"
+      ],
+      "errors": {
+        "NO_TST": "NO TST PRESENT"
+      },
+      "payloadPattern": "^[0-9]+/P[0-9]+$"
+    },
+    {
+      "code": "FOINF*L",
+      "category": "Ticketing",
+      "name": "Fare Override (Infante)",
+      "description": "Vincula la tarifa a la línea del billete y al pasajero infante. Ej: FOINF*L15/P1.",
+      "syntax": [
+        "FOINF*L{línea}/P{pax}"
+      ],
+      "tokens": {},
+      "handler": "FARE_OVERRIDE",
+      "examples": [
+        "FOINF*L15/P1"
+      ],
+      "errors": {
+        "NO_TST": "NO TST PRESENT"
+      },
+      "payloadPattern": "^[0-9]+/P[0-9]+$"
+    },
+    {
+      "code": "IU",
+      "category": "Services",
+      "name": "Solicitar Servicio de Penalidad (TSM)",
+      "description": "Solicita el TSM de penalidad para el cambio manual. Ej: IU IB NN1 PENF BOG/P1.",
+      "syntax": [
+        "IU {aerolínea} NN1 PENF {origen}/P{pax}"
+      ],
+      "tokens": {},
+      "handler": "ADD_PENALTY_SERVICE",
+      "examples": [
+        "IU IB NN1 PENF BOG/P1",
+        "IU IB NN1 PENF MAD/P1"
+      ],
+      "errors": {
+        "FORMAT_ERROR": "FORMAT ERROR - IU {AL} NN1 PENF {ORG}/P{n}"
+      },
+      "payloadPattern": "^[A-Z0-9]{2}\\s+NN1\\s+PENF\\s+[A-Z]{3}/P[0-9]+$"
+    },
+    {
+      "code": "TMC",
+      "category": "Ticketing",
+      "name": "Guardar Servicio de Penalidad (crear TSM)",
+      "description": "Guarda el servicio de penalidad y crea el registro TSM (equivalente a FXG pero para PENF).",
+      "syntax": [
+        "TMC"
+      ],
+      "tokens": {},
+      "handler": "SAVE_TSM_PENF",
+      "examples": [
+        "TMC"
+      ],
+      "errors": {
+        "NO_SERVICE": "NO PENALTY SERVICE TO STORE"
+      }
+    },
+    {
+      "code": "TQO",
+      "category": "Ticketing",
+      "name": "Verificar Gasto de Gestión",
+      "description": "Verifica que el gasto de gestión (TTO) ya quedó agregado al TST.",
+      "syntax": [
+        "TQO"
+      ],
+      "tokens": {},
+      "handler": "CHECK_MGMT_FEE",
+      "examples": [
+        "TQO"
+      ],
+      "errors": {
+        "NO_FEE": "NO MANAGEMENT FEE REGISTERED - USE TTO FIRST"
+      }
+    },
+    {
+      "code": "TTP1/TTM",
+      "category": "Ticketing",
+      "name": "Emisión Combinada (Billete + EMD)",
+      "description": "Emite el billete y el EMD de penalidad juntos en un solo comando. Ej: TTP1/TTM/T2/M1/ET/RT.",
+      "syntax": [
+        "TTP1/TTM/T{n}/M{n}/ET/RT"
+      ],
+      "tokens": {
+        "params": "^(.*)"
+      },
+      "handler": "COMBINED_ISSUE",
+      "examples": [
+        "TTP1/TTM/T2/M1/ET/RT"
+      ],
+      "errors": {
+        "FORMAT_ERROR": "FORMAT ERROR - TTP1/TTM/T{n}/M{n}/ET/RT"
+      }
     }
   ]
 }

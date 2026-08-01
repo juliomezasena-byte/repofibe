@@ -96,6 +96,50 @@ export class EvaluationEngine {
       }
     }
 
+    // 7b. Cambio Voluntario Manual — TST viejo eliminado (TTE)
+    if (target.usedTte) {
+      totalChecks++;
+      if (state.usedTte) {
+        checksPassed++;
+        feedback.push(`[OK] TST anterior eliminado (TTE).`);
+      } else {
+        feedback.push(`[PENDIENTE] Elimina el TST anterior con TTE/ALL.`);
+      }
+    }
+
+    // 7c. Cambio Voluntario Manual — TST marcado en reemisión (TTI/EXCH)
+    if (target.markedExchange) {
+      totalChecks++;
+      if (state.markedExchange) {
+        checksPassed++;
+        feedback.push(`[OK] TST marcado en reemisión (TTI/EXCH).`);
+      } else {
+        feedback.push(`[PENDIENTE] Marca el TST en reemisión con TTI/EXCH/T{n}.`);
+      }
+    }
+
+    // 7d. Cambio Voluntario Manual — diferencia de tarifa agregada (TTK)
+    if (target.fareDiffAdded) {
+      totalChecks++;
+      if (state.fareDiffAdded) {
+        checksPassed++;
+        feedback.push(`[OK] Diferencia de tarifa agregada al TST (TTK).`);
+      } else {
+        feedback.push(`[PENDIENTE] Agrega la diferencia de tarifa con TTK/T{n}/T{valor}.`);
+      }
+    }
+
+    // 7e. Cambio Voluntario Manual — valor de penalidad cargado al TSM (TMI/M.../F.../CV-)
+    if (target.penaltyValueAdded) {
+      totalChecks++;
+      if (state.penaltyValueAdded) {
+        checksPassed++;
+        feedback.push(`[OK] Valor de penalidad y cupón cargados al TSM (TMI).`);
+      } else {
+        feedback.push(`[PENDIENTE] Carga el valor de la penalidad con TMI/M{n}/F{valor}/CV-{valor}.`);
+      }
+    }
+
     // 8. Tiquete emitido (TTP)
     if (target.isTicketed) {
       totalChecks++;

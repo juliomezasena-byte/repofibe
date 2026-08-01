@@ -6,6 +6,7 @@ import { PnrStateMachine } from '../src/engine/PnrStateMachine.js';
 import { ResponseGenerator } from '../src/engine/ResponseGenerator.js';
 import { EvaluationEngine } from '../src/engine/EvaluationEngine.js';
 import { QuizEngine } from '../src/engine/QuizEngine.js';
+import { IBERIA_BANK } from '../src/engine/quizBanks/iberia.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -245,6 +246,55 @@ probarTolerancia('TTM sin forma de pago -> error', ['SRXBAG/P1/S1', 'FXG', 'TTM/
 probarTolerancia('Flujo EMD completo emite el documento', ['SRXBAG/P1/S1', 'FXG', 'TMI/FP-CASH,', 'TTM/M1/RT'],
   (r, s) => r.success && r.emd && s.tsmIssued ? null : 'no emitio EMD');
 
+// ── Módulo de Cambio Voluntario Manual (reemisión con penalidad) ──
+probarTolerancia('DF modo resta (diferencia de tarifa)', ['DF 1890 - 1750'],
+  (r) => r.success && r.data.mode === 'DIFF' && r.data.totalSum === 140 ? null : `resultado: ${JSON.stringify(r.data || r.error)}`);
+probarTolerancia('DF modo penalidad menos descuento', ['DF 150 P 75'],
+  (r) => r.success && r.data.mode === 'PENALTY_MINUS_DISCOUNT' && r.data.totalSum === 75 ? null : `resultado: ${JSON.stringify(r.data || r.error)}`);
+probarTolerancia('DF modo suma sigue igual (legacy, no se rompió)', ['DF 500000;250000;100000*2'],
+  (r) => r.success && r.data.mode === 'SUM' && r.data.totalSum === 950000 ? null : `resultado: ${JSON.stringify(r.data || r.error)}`);
+
+probarTolerancia('TTE + FXP renumera el TST a T2 (no reinicia en T1)',
+  ['AN25NOVBOGMIA', 'SS1Y1', 'FXP', 'TTE/ALL', 'AN25NOVBOGMIA', 'SS1Y1', 'FXP'],
+  (r, s) => r.success && s.tst && s.tst.number === 2 ? null : `TST quedó en: ${s.tst?.number}`);
+
+probarTolerancia('FP (TST) y TMI/FP- (TSM) son campos independientes (bug de colisión corregido)',
+  ['AN25NOVBOGMIA', 'SS1Y1', 'FXP', 'FP CASH,', 'SRXBAG/P1/S1', 'FXG', 'TMI/FP-VISA'],
+  (r, s) => s.tst?.fop === 'CASH,' && s.tsm?.fop === 'VISA' ? null : `tst.fop=${s.tst?.fop} tsm.fop=${s.tsm?.fop}`);
+
+probarTolerancia('TMI/M1/F.../CV-... carga el valor de la penalidad en el TSM',
+  ['SRXBAG/P1/S1', 'FXG', 'TMI/M1/F3279/CV-3279'],
+  (r, s) => r.success && s.tsm?.penaltyValue === 3279 && s.tsm?.couponValue === 3279 && s.penaltyValueAdded ? null : `tsm=${JSON.stringify(s.tsm)}`);
+
+// TWD/TKT necesita un issuedTicket sembrado (setState), no cabe en probarTolerancia (que solo hace reset()).
+(function probarTwdTrasReemision() {
+  fsm.reset();
+  fsm.setState({
+    passengers: [{ id: 1, name: 'TEST/PAX' }],
+    segments: [{ id: 1, flight: 'IB1', class: 'Y', date: '01ENE', route: 'MAD-BCN', status: 'HK1' }],
+    issuedTicket: { number: '0759999999999', doi: '01ENE26', fareBasisOut: 'YFLEX', total: 100, currency: 'EUR' },
+    tst: { number: 1, priceUSD: 100, currency: 'EUR', total: 100, fareBasis: 'YFLEX' }
+  });
+  const secuencia = ['TTE/ALL', 'AN25NOVBOGMIA', 'SS1Y1', 'FXP', 'TWD/TKT0759999999999'];
+  let last = null;
+  for (const cmd of secuencia) {
+    const pr = parser.parse(cmd);
+    last = fsm.process(pr, flights, locations);
+  }
+  const s = fsm.getState();
+  if (last.success && last.type === 'TICKET_DETAIL' && last.data.ticket.doi === '01ENE26') {
+    console.log('  [PASS] TWD/TKT sigue leyendo el billete original tras TTE+FXP');
+  } else {
+    console.error(`  [FAIL] TWD/TKT tras reemisión: ${JSON.stringify(last)}`);
+    toleranceFailures++;
+  }
+})();
+
+const scenario23 = scenarios.find((scen) => scen.id === 'scenario-23');
+probarRegresionNegativa('Nivel 23 no completa si se omite TTI/EXCH (falta evidencia de reemisión)',
+  scenario23.suggestedFlow.filter((cmd) => cmd !== 'TTI/EXCH/T2'),
+  (r, s) => !evalEngine.evaluate(scenario23, s).completed ? null : 'completó sin marcar la reemisión con TTI/EXCH', scenario23);
+
 // ── FXX desglosa por tipo de pasajero (petición de David) ──
 probarTolerancia('FXX con ADT+CHD desglosa dos tarifas (CHD 75%)',
   ['AN13MARLIMBOG', 'SS2Y1', 'NM2PEREZ/CARLOS MR/JUAN(CHD/10MAY18)', 'FXX/FF-OPTIMA/RAD*CH,BOG'],
@@ -366,12 +416,77 @@ probarQuiz('city-iata: los distractores nunca son códigos de la misma ciudad', 
   return null;
 });
 
+// ── Integridad del banco Iberia (examen real que el usuario reprobó) ──
+// Estas pruebas validan el CONTENIDO estático del banco: no generan quiz,
+// recorren IBERIA_BANK directamente. Detectan en el sitio exacto el error
+// más costoso: un distractor que coincide con la respuesta correcta hace
+// que buildOptions() lo filtre y la pregunta quede con 3 opciones y sea
+// descartada en silencio por el motor (nadie nota que falta una pregunta).
+console.log('\n--- SUITE DEL BANCO IBERIA (EXAMEN REAL) ---');
+let iberiaFailures = 0;
+function probarIberia(nombre, fn) {
+  try {
+    const err = fn();
+    if (err) { console.error(`  [FAIL] ${nombre}: ${err}`); iberiaFailures++; }
+    else console.log(`  [PASS] ${nombre}`);
+  } catch (e) {
+    console.error(`  [FAIL] ${nombre}: excepción ${e.message}`); iberiaFailures++;
+  }
+}
+
+probarIberia('Cada pregunta tiene 4 opciones no vacías', () => {
+  for (const q of IBERIA_BANK) {
+    if (!Array.isArray(q.options) || q.options.length !== 4) return `${q.id}: ${q.options?.length ?? 0} opciones`;
+    if (q.options.some((o) => !o || !o.trim())) return `${q.id}: opción vacía`;
+  }
+  return null;
+});
+
+probarIberia('correctIndex apunta a una opción real (0-3)', () => {
+  for (const q of IBERIA_BANK) {
+    if (typeof q.correctIndex !== 'number' || q.correctIndex < 0 || q.correctIndex > 3) {
+      return `${q.id}: correctIndex=${q.correctIndex}`;
+    }
+  }
+  return null;
+});
+
+probarIberia('Las 4 opciones de cada pregunta son únicas entre sí', () => {
+  for (const q of IBERIA_BANK) {
+    if (new Set(q.options).size !== q.options.length) return `${q.id}: opciones duplicadas`;
+  }
+  return null;
+});
+
+probarIberia('Ninguna pregunta sin explicación', () => {
+  for (const q of IBERIA_BANK) {
+    if (!q.explanation || !q.explanation.trim()) return `${q.id}: sin explanation`;
+  }
+  return null;
+});
+
+probarIberia('Ninguna pregunta sin fuente (source) declarada', () => {
+  for (const q of IBERIA_BANK) {
+    if (!q.source || !q.source.trim()) return `${q.id}: sin source`;
+  }
+  return null;
+});
+
+probarIberia('Sin ids ni prompts duplicados en el banco', () => {
+  const ids = IBERIA_BANK.map((q) => q.id);
+  const texts = IBERIA_BANK.map((q) => q.text);
+  if (new Set(ids).size !== ids.length) return 'ids duplicados';
+  if (new Set(texts).size !== texts.length) return 'preguntas (text) duplicadas';
+  return null;
+});
+
 console.log(`\n==========================================`);
 console.log(`Resumen QA: ${passedScenarios}/${scenarios.length} escenarios superados.`);
 console.log(`Tolerancia: ${toleranceFailures === 0 ? 'OK' : toleranceFailures + ' fallos'}`);
 console.log(`Quiz: ${quizFailures === 0 ? 'OK' : quizFailures + ' fallos'}`);
+console.log(`Banco Iberia: ${iberiaFailures === 0 ? 'OK' : iberiaFailures + ' fallos'}`);
 console.log(`==========================================`);
 
-if (passedScenarios < scenarios.length || toleranceFailures > 0 || quizFailures > 0) {
+if (passedScenarios < scenarios.length || toleranceFailures > 0 || quizFailures > 0 || iberiaFailures > 0) {
   process.exit(1);
 }

@@ -782,6 +782,78 @@
         "ER",
         "TTP1/ET/RT"
       ]
+    },
+    {
+      "id": "scenario-23",
+      "title": "Nivel 23: Cambio Voluntario Manual — Solo la Ida (Intermedio)",
+      "difficulty": "Intermedio",
+      "description": "PASAJEROS (PAXS): DA SILVA/RONALDO (CHD/13FEB20). LOC 7KDAFV, billete 075-1000213325, DOI 30JUL26, ida IB781 MAD-BER 11MAR, vuelta IB788 BER-MAD 11APR. TAREA: el cliente quiere mover SOLO la ida +2 días, sin tocar la vuelta. Consulta el billete (TWD/TKT0751000213325), busca la nueva disponibilidad (AN13MARMADBER) y véndela (SS1Y1), cotiza informativo (FXX/S1/FF-NDHNENM2), calcula la diferencia (DF 267.19 - 267.19), documenta con RM y guarda (ER). Borra el TST viejo (TTE/ALL) y crea el nuevo (FXP/S1/FF-NDHNENM2), márcalo en reemisión (TTI/EXCH/T2) y agrégale la diferencia (TTK/T2/T0). Aplica el fare override (FO*L1/P1), solicita el servicio de penalidad (IU IB NN1 PENF MAD/P1) y guárdalo (TMC). Revisa la máscara (TQM), carga el valor de la penalidad (TMI/M1/F65/CV-65), agrega el gasto de gestión (TTO/ST01/CSF/F35) y verifícalo (TQO). Documenta el titular de la tarjeta (RM*CSY/...), agrega forma de pago al TST (FP CASH,) y al TSM (TMI/FP-CASH,), elimina la plaza vieja que ya no se usa (XE2) y emite billete+EMD juntos (TTP1/TTM/T2/M1/ET/RT).",
+      "initialState": {
+        "pnr": {
+          "code": "7KDAFV",
+          "passengers": [
+            { "id": 1, "name": "DA SILVA/RONALDO(CHD/13FEB20)" }
+          ],
+          "segments": [
+            { "id": 1, "flight": "IB781", "class": "N", "date": "11MAR", "route": "MAD-BER", "status": "HK1" },
+            { "id": 2, "flight": "IB788", "class": "Q", "date": "11APR", "route": "BER-MAD", "status": "HK1" }
+          ],
+          "contacts": [
+            { "id": 1, "text": "AP+5554545454" }
+          ],
+          "ticketing": "TK OK",
+          "issuedTicket": {
+            "number": "0751000213325",
+            "loc": "7KDAFV",
+            "doi": "30JUL26",
+            "fareBasisOut": "NDHNENM2/CH",
+            "fareBasisIn": "QDHNENM2/CH",
+            "baseFare": 216.00,
+            "taxAmount": 51.19,
+            "total": 267.19,
+            "currency": "EUR"
+          },
+          "tst": { "number": 1, "priceUSD": 267, "currency": "EUR", "total": 267.19, "fareBasis": "NDHNENM2/CH" },
+          "isTicketed": true,
+          "isTransacted": true
+        }
+      },
+      "targetState": {
+        "usedTte": true,
+        "markedExchange": true,
+        "fareDiffAdded": true,
+        "penaltyValueAdded": true,
+        "tsmIssued": true,
+        "isTicketed": true,
+        "isTransacted": true,
+        "usedDf": true
+      },
+      "suggestedFlow": [
+        "TWD/TKT0751000213325",
+        "AN13MARMADBER",
+        "SS1Y1",
+        "FXX/S1/FF-NDHNENM2",
+        "DF 267.19 - 267.19",
+        "RM*30JUL26* PAX AVDO COSTE PENTY 65EUR + 35EUR SF + 0EUR DF/ WP",
+        "ER",
+        "TTE/ALL",
+        "FXP/S1/FF-NDHNENM2",
+        "TTI/EXCH/T2",
+        "TTK/T2/T0",
+        "FO*L1/P1",
+        "IU IB NN1 PENF MAD/P1",
+        "TMC",
+        "TQM",
+        "TMI/M1/F65/CV-65",
+        "TTO/ST01/CSF/F35",
+        "TQO",
+        "RM*CSY/RONALDO:DASILVA",
+        "ER",
+        "FP CASH,",
+        "TMI/FP-CASH,",
+        "XE2",
+        "TTP1/TTM/T2/M1/ET/RT"
+      ]
     }
   ]
 }

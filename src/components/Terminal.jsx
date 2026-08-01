@@ -16,7 +16,9 @@ export const Terminal = forwardRef(({ onExecuteCommand, history, hideVerbs = fal
   }));
 
   // Hint de error en la capa UI (bajo la prompt, NUNCA en el scroll GDS).
-  // Se muestra solo las primeras 3 veces para no volverse ruido.
+  // Se muestra siempre que el último comando falló — antes se apagaba
+  // después de 3 veces por dispositivo y dejaba de ayudar justo cuando
+  // más se necesitaba (queja real: "nadie lee las ayudas").
   const [showTip, setShowTip] = useState(false);
   const seenRef = useRef(0);
   const last = history[history.length - 1];
@@ -53,12 +55,7 @@ export const Terminal = forwardRef(({ onExecuteCommand, history, hideVerbs = fal
     seenRef.current = history.length;
     const item = history[history.length - 1];
     if (item && item.isError) {
-      let n = 0;
-      try { n = parseInt(localStorage.getItem('tipErrorCount') || '0', 10); } catch {}
-      if (n < 3) {
-        setShowTip(true);
-        try { localStorage.setItem('tipErrorCount', String(n + 1)); } catch {}
-      }
+      setShowTip(true);
     } else {
       setShowTip(false);
     }

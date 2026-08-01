@@ -36,14 +36,27 @@ export class PnrStateMachine {
       pagedDisplay: null,
       baggage: [],
       tsm: null,
-      fop: null,
       tsmIssued: false,
       fees: [],
       // Structured evidence for scenarios that require specific operations
       // rather than a generic final PNR state.
       infants: [],
       pricingHistory: [],
-      cancelOperations: []
+      cancelOperations: [],
+      // Contadores de TST/TSM: la forma de pago vive en tst.fop/tsm.fop
+      // (independientes, ver handleFP/handleSetFop) — antes compartían un
+      // único state.fop y una FP pisaba a la otra sin avisar.
+      tstCounter: 0,
+      tsmCounter: 0,
+      // Billete ya emitido (fare basis, DOI, total) — separado de state.tst
+      // porque el TST activo se borra/recrea durante una reemisión, y el
+      // billete original debe seguir consultable con TWD.
+      issuedTicket: null,
+      penaltyServices: [],
+      usedTte: false,
+      markedExchange: false,
+      fareDiffAdded: false,
+      penaltyValueAdded: false
     };
   }
 
@@ -62,7 +75,13 @@ export class PnrStateMachine {
       baggage: newState.baggage ? [...newState.baggage] : [],
       infants: newState.infants ? [...newState.infants] : [],
       pricingHistory: newState.pricingHistory ? [...newState.pricingHistory] : [],
-      cancelOperations: newState.cancelOperations ? [...newState.cancelOperations] : []
+      cancelOperations: newState.cancelOperations ? [...newState.cancelOperations] : [],
+      issuedTicket: newState.issuedTicket ? { ...newState.issuedTicket } : null,
+      penaltyServices: newState.penaltyServices ? [...newState.penaltyServices] : [],
+      // Si el escenario siembra un TST/TSM ya numerado, el contador arranca
+      // desde ahí para que el próximo creado numere correctamente.
+      tstCounter: newState.tstCounter || newState.tst?.number || 0,
+      tsmCounter: newState.tsmCounter || newState.tsm?.number || 0
     };
   }
 
@@ -208,6 +227,34 @@ export class PnrStateMachine {
 
       case 'ADD_TTO':
         return this.handleTTO(params, rawInput);
+
+      // ── Cambio Voluntario Manual (reemisión con penalidad) ──
+      case 'SHOW_TICKET_DETAIL':
+        return this.handleShowTicketDetail(rawInput);
+
+      case 'DELETE_TST':
+        return this.handleDeleteTst(rawInput);
+
+      case 'MARK_EXCHANGE':
+        return this.handleMarkExchange(rawInput);
+
+      case 'ADD_FARE_DIFF':
+        return this.handleAddFareDiff(rawInput);
+
+      case 'FARE_OVERRIDE':
+        return this.handleFareOverride(rawInput);
+
+      case 'ADD_PENALTY_SERVICE':
+        return this.handleAddPenaltyService(rawInput);
+
+      case 'SAVE_TSM_PENF':
+        return this.handleSaveTsm();
+
+      case 'CHECK_MGMT_FEE':
+        return this.handleCheckManagementFee(rawInput);
+
+      case 'COMBINED_ISSUE':
+        return this.handleCombinedIssue(rawInput);
 
       case 'PAGE_DOWN':
         return this.handlePaging(1);
@@ -552,7 +599,6 @@ export class PnrStateMachine {
     // equipaje, también se invalida su documento y su forma de pago asociada.
     if (baggageCancelled && this.state.baggage.length === 0) {
       this.state.tsm = null;
-      this.state.fop = null;
       this.state.tsmIssued = false;
     }
 
@@ -663,7 +709,8 @@ export class PnrStateMachine {
     });
 
     if (storeTst) {
-      this.state.tst = { number: 1, priceUSD: baseUSD, currency, total, fareBasis };
+      this.state.tstCounter = (this.state.tstCounter || 0) + 1;
+      this.state.tst = { number: this.state.tstCounter, priceUSD: baseUSD, currency, total, fareBasis };
     }
 
     // Bandera pedagógica: el estudiante facturó (FXX o FXP)
@@ -702,7 +749,7 @@ export class PnrStateMachine {
       return { success: false, error: 'NO TST PRESENT FOR ISSUANCE' };
     }
 
-    if (strictRules.requireFOP && !this.state.fop) {
+    if (strictRules.requireFOP && !this.state.tst?.fop) {
       return { success: false, error: 'NEED FORM OF PAYMENT' };
     }
 
@@ -728,9 +775,15 @@ export class PnrStateMachine {
     };
   }
 
+  // FP: forma de pago del TST (diferencia de tarifa + gasto de gestión).
+  // Independiente de TMI/FP- (forma de pago del TSM/penalidad) — antes
+  // compartían el mismo campo y una pisaba a la otra sin avisar.
   handleFP(params, rawInput) {
+    if (!this.state.tst) {
+      return { success: false, error: 'NO TST PRESENT FOR FP' };
+    }
     let fop = params.fop || rawInput.replace(/^FP\s*/i, '');
-    this.state.fop = fop.trim();
+    this.state.tst.fop = fop.trim();
     return { success: true, message: '*' };
   }
 
@@ -845,6 +898,33 @@ export class PnrStateMachine {
 
   handleFareSummation(params, rawInput) {
     const rawExpr = (rawInput.slice(2).trim() || '').replace(/\s+/g, '');
+    this.state.usedDf = true;
+
+    // Modo diferencia: DF nueva - original (cotización nueva − ticket original).
+    const diffMatch = rawExpr.match(/^(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$/);
+    if (diffMatch) {
+      const nueva = parseFloat(diffMatch[1]);
+      const original = parseFloat(diffMatch[2]);
+      return {
+        success: true,
+        type: 'FARE_SUMMATION',
+        data: { rawInput, mode: 'DIFF', nueva, original, totalSum: +(nueva - original).toFixed(2) }
+      };
+    }
+
+    // Modo penalidad menos descuento: DF penalidad P descuento.
+    const penaltyMatch = rawExpr.match(/^(\d+(?:\.\d+)?)P(\d+(?:\.\d+)?)$/i);
+    if (penaltyMatch) {
+      const penalidad = parseFloat(penaltyMatch[1]);
+      const descuento = parseFloat(penaltyMatch[2]);
+      return {
+        success: true,
+        type: 'FARE_SUMMATION',
+        data: { rawInput, mode: 'PENALTY_MINUS_DISCOUNT', penalidad, descuento, totalSum: +(penalidad - descuento).toFixed(2) }
+      };
+    }
+
+    // Modo suma (legacy: DF valor1;valor2;gastos*cantidadPax).
     const tokens = rawExpr.split(';').filter(Boolean);
 
     let items = [];
@@ -865,13 +945,12 @@ export class PnrStateMachine {
       }
     }
 
-    this.state.usedDf = true;
-
     return {
       success: true,
       type: 'FARE_SUMMATION',
       data: {
         rawInput,
+        mode: 'SUM',
         items,
         totalSum
       }
@@ -980,13 +1059,39 @@ export class PnrStateMachine {
     return { success: true, type: 'BAGGAGE', message: `SR XBAG - PAX ${pax} SEGMENT ${seg} - HK` };
   }
 
-  // FXG: guarda el servicio y crea el TSM (documento del servicio).
-  handleSaveBaggage() {
-    if (this.state.baggage.length === 0) {
-      return { success: false, error: 'NO BAGGAGE SERVICE TO STORE' };
+  // Helper compartido: crea el TSM a partir del servicio pendiente
+  // (equipaje o penalidad), con numeración continua (no reinicia en 1).
+  _createTsm(service, sourceArray, notFoundMsg) {
+    if (!sourceArray || sourceArray.length === 0) {
+      return { success: false, error: notFoundMsg };
     }
-    this.state.tsm = { number: 1, service: 'XBAG', status: 'STORED' };
-    return { success: true, message: 'TSM 001 STORED - XBAG SERVICE' };
+    this.state.tsmCounter = (this.state.tsmCounter || 0) + 1;
+    this.state.tsm = { number: this.state.tsmCounter, service, status: 'STORED' };
+    return {
+      success: true,
+      message: `TSM ${String(this.state.tsmCounter).padStart(3, '0')} STORED - ${service} SERVICE`
+    };
+  }
+
+  // FXG: guarda el servicio de equipaje y crea el TSM (documento del servicio).
+  handleSaveBaggage() {
+    return this._createTsm('XBAG', this.state.baggage, 'NO BAGGAGE SERVICE TO STORE');
+  }
+
+  // IU {AL} NN1 PENF {org}/P{n}: solicita el servicio de penalidad (TSM).
+  handleAddPenaltyService(rawInput) {
+    const m = rawInput.match(/^IU\s+([A-Z0-9]{2})\s+NN1\s+PENF\s+([A-Z]{3})\/P(\d+)$/i);
+    if (!m) {
+      return { success: false, error: 'FORMAT ERROR - IU {AL} NN1 PENF {ORG}/P{n}' };
+    }
+    const [, airline, org, pax] = m;
+    this.state.penaltyServices.push({ code: 'PENF', airline: airline.toUpperCase(), org: org.toUpperCase(), pax: parseInt(pax, 10) });
+    return { success: true, type: 'BAGGAGE', message: `NN1 PENF ${org.toUpperCase()} - PAX ${pax} - HK` };
+  }
+
+  // TMC: guarda el servicio de penalidad y crea el TSM (equivalente a FXG para PENF).
+  handleSaveTsm() {
+    return this._createTsm('PENF', this.state.penaltyServices, 'NO PENALTY SERVICE TO STORE');
   }
 
   // TQM: muestra el TSM y abre el registro para la forma de pago.
@@ -994,20 +1099,35 @@ export class PnrStateMachine {
     if (!this.state.tsm) {
       return { success: false, error: 'NO TSM PRESENT - USE FXG FIRST' };
     }
-    return { success: true, type: 'TSM', data: { tsm: this.state.tsm, fop: this.state.fop } };
+    return { success: true, type: 'TSM', data: { tsm: this.state.tsm, fop: this.state.tsm.fop } };
   }
 
-  // TMI/FP-{forma}: agrega la forma de pago al TSM.
+  // TMI/FP-{forma}: agrega la forma de pago al TSM (independiente de FP, que es la del TST).
+  // TMI/M{n}/F{valor}/CV-{valor}: carga el valor de la penalidad y el coupon value (antes de la FP).
   handleSetFop(rawInput) {
     if (!this.state.tsm) {
       return { success: false, error: 'NO TSM PRESENT - USE FXG FIRST' };
     }
+    const valueMatch = rawInput.match(/^TMI\/M(\d+)\/F(\d+(?:\.\d+)?)\/CV-(\d+(?:\.\d+)?)$/i);
+    if (valueMatch) {
+      const [, mNum, penalty, cv] = valueMatch;
+      if (parseInt(mNum, 10) !== this.state.tsm.number) {
+        return { success: false, error: 'CHECK TSM NUMBER' };
+      }
+      this.state.tsm.penaltyValue = parseFloat(penalty);
+      this.state.tsm.couponValue = parseFloat(cv);
+      this.state.penaltyValueAdded = true;
+      return {
+        success: true,
+        message: `PENALTY ${penalty} / CV ${cv} ADDED TO TSM ${String(this.state.tsm.number).padStart(3, '0')}`
+      };
+    }
     const m = rawInput.match(/FP-?\s*([A-Z]+)/i);
     if (!m) {
-      return { success: false, error: 'FORMAT ERROR - TMI/FP-' };
+      return { success: false, error: 'FORMAT ERROR - TMI/FP- OR TMI/M{n}/F{valor}/CV-{valor}' };
     }
-    this.state.fop = m[1].toUpperCase();
-    return { success: true, message: `FP ${this.state.fop} ADDED TO TSM 001` };
+    this.state.tsm.fop = m[1].toUpperCase();
+    return { success: true, message: `FP ${this.state.tsm.fop} ADDED TO TSM ${String(this.state.tsm.number).padStart(3, '0')}` };
   }
 
   // TTM/M{n}/RT: emite el EMD del servicio.
@@ -1015,7 +1135,7 @@ export class PnrStateMachine {
     if (!this.state.tsm) {
       return { success: false, error: 'NO TSM TO ISSUE' };
     }
-    if (!this.state.fop) {
+    if (!this.state.tsm.fop) {
       return { success: false, error: 'NEED FORM OF PAYMENT (TMI/FP-)' };
     }
     this.state.tsm.status = 'ISSUED';
@@ -1044,6 +1164,147 @@ export class PnrStateMachine {
     }
 
     return { success: true, type: 'TST_VIEW', data: { line: String(line), tst: this.state.tst, fees: this.state.fees || [] } };
+  }
+
+  // ── Módulo de Cambio Voluntario Manual (reemisión con penalidad) ──
+
+  // TWD/TKT{billete}, TWD/L{n}, TWD/TAX: consulta el billete YA EMITIDO
+  // (fare basis, DOI, total) — no el TST activo, que se borra/recrea
+  // durante la reemisión.
+  handleShowTicketDetail(rawInput) {
+    if (!this.state.issuedTicket) {
+      return { success: false, error: 'NO TICKET ON FILE - CHECK TWD/TKT OR TWD/L' };
+    }
+    const t = this.state.issuedTicket;
+
+    if (/^TWD\/TAX$/i.test(rawInput)) {
+      return { success: true, type: 'TICKET_TAX', data: { baseFare: t.baseFare, taxAmount: t.taxAmount, total: t.total, currency: t.currency } };
+    }
+
+    const mTkt = rawInput.match(/^TWD\/TKT\s*(\d{3}-?\d{10})$/i);
+    const mLine = rawInput.match(/^TWD\/L(\d+)$/i);
+    if (!mTkt && !mLine) {
+      return { success: false, error: 'FORMAT ERROR - TWD/TKT{billete} OR TWD/L{n}' };
+    }
+    if (mTkt && mTkt[1].replace(/-/g, '') !== String(t.number).replace(/-/g, '')) {
+      return { success: false, error: 'TICKET NOT FOUND' };
+    }
+    return { success: true, type: 'TICKET_DETAIL', data: { ticket: t } };
+  }
+
+  // TTE/ALL o TTE/T{n}: elimina el TST activo (conserva tstCounter, así el
+  // próximo FXP numera correctamente, sin reiniciar en T1).
+  handleDeleteTst(rawInput) {
+    if (!this.state.tst) {
+      return { success: false, error: 'NO TST PRESENT' };
+    }
+    const m = rawInput.match(/^TTE\/(ALL|T(\d+))$/i);
+    if (!m) {
+      return { success: false, error: 'FORMAT ERROR - TTE/ALL OR TTE/T{n}' };
+    }
+    if (m[1].toUpperCase() !== 'ALL' && parseInt(m[2], 10) !== this.state.tst.number) {
+      return { success: false, error: 'CHECK TST NUMBER' };
+    }
+    const deleted = this.state.tst.number;
+    this.state.tst = null;
+    this.state.usedTte = true;
+    return { success: true, message: `TST ${deleted} DELETED` };
+  }
+
+  // TTI/EXCH/T{n}: marca el TST activo como reemisión. Solo este submodo —
+  // el TTI multi-modo del manual "con segmento volado" queda fuera de este
+  // nivel (ver docs/PLAN_CAMBIO_MANUAL_IBERIA.md, Nivel 25).
+  handleMarkExchange(rawInput) {
+    if (!this.state.tst) {
+      return { success: false, error: 'NO TST PRESENT' };
+    }
+    const m = rawInput.match(/^TTI\/EXCH\/T(\d+)$/i);
+    if (!m) {
+      return { success: false, error: 'FORMAT ERROR - TTI/EXCH/T{n}' };
+    }
+    if (parseInt(m[1], 10) !== this.state.tst.number) {
+      return { success: false, error: 'CHECK TST NUMBER' };
+    }
+    this.state.tst.exchange = true;
+    this.state.markedExchange = true;
+    return { success: true, message: `TST ${this.state.tst.number} MARKED AS EXCHANGE` };
+  }
+
+  // TTK/T{n}/T{valor}: agrega la diferencia de tarifa calculada (DF) al TST.
+  handleAddFareDiff(rawInput) {
+    if (!this.state.tst) {
+      return { success: false, error: 'NO TST PRESENT' };
+    }
+    const m = rawInput.match(/^TTK\/T(\d+)\/T(\d+(?:\.\d+)?)$/i);
+    if (!m) {
+      return { success: false, error: 'FORMAT ERROR - TTK/T{n}/T{valor}' };
+    }
+    if (parseInt(m[1], 10) !== this.state.tst.number) {
+      return { success: false, error: 'CHECK TST NUMBER' };
+    }
+    this.state.tst.fareDiff = parseFloat(m[2]);
+    this.state.fareDiffAdded = true;
+    return { success: true, message: `FARE DIFFERENCE ${m[2]} ADDED TO TST ${this.state.tst.number}` };
+  }
+
+  // FO*L{n}/P{n} y FOINF*L{n}/P{n}: fare override (vincula tarifa a pasajero/línea).
+  handleFareOverride(rawInput) {
+    const m = rawInput.match(/^FO(INF)?\*L(\d+)\/P(\d+)$/i);
+    if (!m) {
+      return { success: false, error: 'FORMAT ERROR - FO*L{n}/P{n}' };
+    }
+    if (!this.state.tst) {
+      return { success: false, error: 'NO TST PRESENT' };
+    }
+    this.state.tst.fareOverride = { mode: m[1] ? 'FOINF' : 'FO', line: parseInt(m[2], 10), pax: parseInt(m[3], 10) };
+    return { success: true, message: 'FARE OVERRIDE APPLIED' };
+  }
+
+  // TQO: verifica que el gasto de gestión ya quedó agregado (reutiliza
+  // state.fees, alimentado por TTO).
+  handleCheckManagementFee(rawInput) {
+    if (!/^TQO$/i.test(rawInput)) {
+      return { success: false, error: 'FORMAT ERROR - TQO' };
+    }
+    if (!this.state.fees || this.state.fees.length === 0) {
+      return { success: false, error: 'NO MANAGEMENT FEE REGISTERED - USE TTO FIRST' };
+    }
+    return { success: true, type: 'MGMT_FEE_CHECK', data: { fees: this.state.fees } };
+  }
+
+  // TTP1/TTM/T{n}/M{n}/ET/RT: emisión combinada de billete + EMD en un solo comando.
+  handleCombinedIssue(rawInput) {
+    const m = rawInput.match(/^TTP1\/TTM\/T(\d+)\/M(\d+)\/(.*)$/i);
+    if (!m) {
+      return { success: false, error: 'FORMAT ERROR - TTP1/TTM/T{n}/M{n}/ET/RT' };
+    }
+    const [, tNum, mNum, tail] = m;
+    if (!this.state.tst || this.state.tst.number !== parseInt(tNum, 10)) {
+      return { success: false, error: 'CHECK TST NUMBER' };
+    }
+    if (!this.state.tsm || this.state.tsm.number !== parseInt(mNum, 10)) {
+      return { success: false, error: 'CHECK TSM NUMBER' };
+    }
+    if (!this.state.tst.fop) {
+      return { success: false, error: 'NEED FORM OF PAYMENT ON TST (FP)' };
+    }
+    if (!this.state.tsm.fop) {
+      return { success: false, error: 'NEED FORM OF PAYMENT (TMI/FP-)' };
+    }
+    if (!this.state.isTransacted) {
+      return { success: false, error: 'END TRANSACT REQUIRED (ER/ET) BEFORE TTP1' };
+    }
+    this.state.isTicketed = true;
+    this.state.tsm.status = 'ISSUED';
+    this.state.tsmIssued = true;
+    return {
+      success: true,
+      type: 'COMBINED_ISSUE',
+      ticketNumber: `075-${Math.floor(1000000 + Math.random() * 9000000)}`,
+      emd: `3-${Math.floor(1000000000 + Math.random() * 9000000000)}`,
+      autoRT: tail.toUpperCase().includes('RT'),
+      message: 'OK ETICKET / OK EMD ISSUED'
+    };
   }
 
   handleAddRemark(params, rawInput) {

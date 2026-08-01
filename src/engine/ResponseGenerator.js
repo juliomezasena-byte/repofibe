@@ -107,9 +107,27 @@ export class ResponseGenerator {
       return this.formatAvailability(result.data);
     }
 
-    // 5. Facturación de Tarifas (DF)
+    // 5. Facturación de Tarifas (DF) — 3 modos: suma, diferencia, penalidad-descuento
     if (result.type === 'FARE_SUMMATION') {
       const d = result.data;
+      if (d.mode === 'DIFF') {
+        return [
+          `** AMADEUS DIFERENCIA DE TARIFA - DF **`,
+          `COTIZACION NUEVA : ${d.nueva.toLocaleString()}`,
+          `TICKET ORIGINAL  : ${d.original.toLocaleString()}`,
+          `----------------------------------------`,
+          `DIFERENCIA (DF)  : ${d.totalSum.toLocaleString()}`
+        ].join('\n');
+      }
+      if (d.mode === 'PENALTY_MINUS_DISCOUNT') {
+        return [
+          `** AMADEUS PENALIDAD - DF **`,
+          `PENALIDAD        : ${d.penalidad.toLocaleString()}`,
+          `DESCUENTO        : ${d.descuento.toLocaleString()}`,
+          `----------------------------------------`,
+          `PENALIDAD NETA   : ${d.totalSum.toLocaleString()}`
+        ].join('\n');
+      }
       let lines = [`** AMADEUS DETAILED FARE SUMMATION - DF **`];
       lines.push(`EXPRESSION: ${d.rawInput}`);
       lines.push(`DESGLOSE DE TARIFAS Y GASTOS:`);
@@ -159,6 +177,35 @@ export class ResponseGenerator {
         `PARA EMITIR: TTM/M1/RT`
       ].join('\n');
     }
+    // Módulo de Cambio Voluntario Manual (reemisión con penalidad)
+    if (result.type === 'TICKET_DETAIL') {
+      const t = result.data.ticket;
+      const lines = [
+        `** TWD - DETALLE DEL BILLETE **`,
+        `TKT: ${t.number}${t.loc ? ' LOC: ' + t.loc : ''}`,
+        `DOI: ${t.doi}`
+      ];
+      if (t.fareBasisOut) lines.push(`FARE BASIS IDA   : ${t.fareBasisOut}`);
+      if (t.fareBasisIn) lines.push(`FARE BASIS VUELTA: ${t.fareBasisIn}`);
+      lines.push(`TOTAL: ${t.currency} ${t.total}`);
+      return lines.join('\n');
+    }
+    if (result.type === 'TICKET_TAX') {
+      const d = result.data;
+      return [
+        `** TWD/TAX - DESGLOSE DE TASAS **`,
+        `FARE  : ${d.currency} ${d.baseFare}`,
+        `TAXES : ${d.currency} ${d.taxAmount}`,
+        `TOTAL : ${d.currency} ${d.total}`
+      ].join('\n');
+    }
+    if (result.type === 'MGMT_FEE_CHECK') {
+      return [`** TQO - GASTO DE GESTION **`, ...result.data.fees.map((f) => `  ${f}`)].join('\n');
+    }
+    if (result.type === 'COMBINED_ISSUE') {
+      return `OK ETKT ${result.ticketNumber} PASSENGER ISSUED\nOK EMD ${result.emd} ISSUED\nOK TTP1/TTM COMPLETED`;
+    }
+
     if (result.emd) {
       return `OK EMD ${result.emd} ISSUED\nOK TTM COMPLETED`;
     }
@@ -261,18 +308,21 @@ export class ResponseGenerator {
 
     // TSM / EMD del servicio
     if (pnr.tsm) {
-      lines.push(`TSM 001 - XBAG ${pnr.tsm.status}${pnr.fop ? ' FP:' + pnr.fop : ''}`);
+      const num = String(pnr.tsm.number || 1).padStart(3, '0');
+      lines.push(`TSM ${num} - ${pnr.tsm.service || 'XBAG'} ${pnr.tsm.status}${pnr.tsm.fop ? ' FP:' + pnr.tsm.fop : ''}`);
     }
 
-    if (pnr.fop && !pnr.tsm) {
-      lines.push(`${PnrStateMachine.getNumberedPnrElements(pnr).length + 1}. FP ${pnr.fop}`);
+    if (pnr.tst?.fop && !pnr.tsm) {
+      lines.push(`${PnrStateMachine.getNumberedPnrElements(pnr).length + 1}. FP ${pnr.tst.fop}`);
     }
 
     // TST
     if (pnr.tst) {
       const c = pnr.tst.currency || 'USD';
       const v = pnr.tst.total !== undefined ? pnr.tst.total : pnr.tst.priceUSD;
-      lines.push(`TST 001 - ${c} ${v}.00 EQUIV FARE ${pnr.tst.fareBasis || ''}`.trimEnd());
+      const num = String(pnr.tst.number || 1).padStart(3, '0');
+      lines.push(`TST ${num} - ${c} ${v}.00 EQUIV FARE ${pnr.tst.fareBasis || ''}`.trimEnd());
+      if (pnr.tst.exchange) lines.push(`  EXCHANGE MARKED - FARE DIFF: ${pnr.tst.fareDiff ?? 'PENDING'}`);
     }
 
 
