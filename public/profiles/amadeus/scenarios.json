@@ -829,7 +829,10 @@
         "usedDf": true,
         "combinedIssueDone": true,
         "segmentsCount": 2,
-        "requiredCancelSpec": "2"
+        "requiredCancelSpec": "2",
+        "requiredSegments": [
+          { "origin": "MAD", "destination": "BER", "date": "13MAR", "class": "Y" }
+        ]
       },
       "suggestedFlow": [
         "TWD/TKT0751000213325",
@@ -904,7 +907,11 @@
         "usedDf": true,
         "combinedIssueDone": true,
         "segmentsCount": 2,
-        "requiredCancelSpec": "2,3"
+        "requiredCancelSpec": "2,3",
+        "requiredSegments": [
+          { "origin": "MAD", "destination": "BER", "date": "18MAR", "class": "Y" },
+          { "origin": "BER", "destination": "MAD", "date": "18APR", "class": "Y" }
+        ]
       },
       "suggestedFlow": [
         "TWD/TKT0751000213262",

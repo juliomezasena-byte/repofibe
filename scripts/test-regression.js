@@ -309,6 +309,15 @@ probarRegresionNegativa('Nivel 24: exploit cerrado — no completa si se omiten 
   scenario24.suggestedFlow.filter((cmd) => !['AN18MARMADBER', 'SS1Y1', 'AN18APRBERMAD', 'XE2,3'].includes(cmd)),
   (r, s) => !evalEngine.evaluate(scenario24, s).completed ? null : 'completó sin cambiar los vuelos reales (exploit crítico reportado por auditoría)', scenario24);
 
+probarRegresionNegativa('Nivel 24: no completa con otra ruta aunque conserve XE2,3 y dos segmentos',
+  scenario24.suggestedFlow.map((cmd) =>
+    cmd === 'AN18MARMADBER' || cmd === 'AN18APRBERMAD' ? 'AN25NOVBOGMIA' : cmd),
+  (r, s) => !evalEngine.evaluate(scenario24, s).completed ? null : 'aceptó una ruta/fecha distinta a MAD-BER y BER-MAD', scenario24);
+
+probarRegresionNegativa('Nivel 24: no completa con clase distinta a Y',
+  scenario24.suggestedFlow.map((cmd) => cmd === 'SS1Y1' ? 'SS1C1' : cmd),
+  (r, s) => !evalEngine.evaluate(scenario24, s).completed ? null : 'aceptó clase C en lugar de la clase Y requerida', scenario24);
+
 (function probarNoContaminacionDeSetState() {
   const semilla = {
     passengers: [{ id: 1, name: 'TEST/PAX' }],

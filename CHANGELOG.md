@@ -2,6 +2,11 @@
 
 Todas las novedades de repofibe, versión por versión.
 
+## [1.4.6] - 2026-08-01
+### Correcciones
+- Validación de cambios voluntarios: los niveles 23 y 24 ahora exigen que el itinerario final coincida en origen, destino, fecha y clase, incluyendo conexiones.
+- Regresiones negativas para bloquear rutas y clases sustitutas que antes podían completar el ejercicio.
+
 ## [1.4.2] - 2026-07-29
 ### Correcciones
 - **Scroll del Quiz (PC):** Se corrigió un bug donde al avanzar a la siguiente pregunta en pantallas grandes, la ventana se quedaba "anclada" abajo en lugar de subir automáticamente al inicio de la nueva pregunta.

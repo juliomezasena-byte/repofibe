@@ -50,6 +50,62 @@ export class EvaluationEngine {
       }
     }
 
+    // 2b. Validate the requested itinerary, not only the number of segments.
+    // A connection is represented by multiple consecutive segments, so each
+    // requirement is matched as a path with the same date and booking class.
+    if (Array.isArray(target.requiredSegments)) {
+      const normalized = (value) => String(value || '').trim().toUpperCase();
+      const edges = segments.map((segment, index) => {
+        const [origin, destination] = normalized(segment.route).split('-');
+        return {
+          index,
+          origin,
+          destination,
+          date: normalized(segment.date),
+          class: normalized(segment.class)
+        };
+      });
+
+      const usedSegments = new Set();
+      const findPath = (requirement) => {
+        const origin = normalized(requirement.origin);
+        const destination = normalized(requirement.destination);
+        const date = normalized(requirement.date);
+        const bookingClass = normalized(requirement.class);
+
+        const search = (current, path, visited) => {
+          if (current === destination) return path;
+
+          for (const edge of edges) {
+            if (usedSegments.has(edge.index) || visited.has(edge.index)) continue;
+            if (edge.origin !== current || edge.date !== date || edge.class !== bookingClass) continue;
+
+            const nextVisited = new Set(visited);
+            nextVisited.add(edge.index);
+            const result = search(edge.destination, [...path, edge.index], nextVisited);
+            if (result) return result;
+          }
+
+          return null;
+        };
+
+        return search(origin, [], new Set());
+      };
+
+      for (const requirement of target.requiredSegments) {
+        totalChecks++;
+        const path = findPath(requirement);
+        const label = `${normalized(requirement.origin)}-${normalized(requirement.destination)} ${normalized(requirement.date)} class ${normalized(requirement.class)}`;
+        if (path) {
+          path.forEach((index) => usedSegments.add(index));
+          checksPassed++;
+          feedback.push(`[OK] Itinerario requerido encontrado (${label}).`);
+        } else {
+          feedback.push(`[PENDIENTE] Falta el itinerario requerido (${label}).`);
+        }
+      }
+    }
+
     // 3. Teléfono de contacto
     if (target.hasPhone) {
       totalChecks++;
