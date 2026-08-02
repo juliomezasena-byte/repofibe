@@ -43,11 +43,20 @@ Este es un módulo que el simulador AÚN NO TIENE (va después del FXX/DF/RM):
   - `075 29` → otras **agencias**.
 - Las **agencias aliadas con Iberia** manejan **GDS**.
 
-## Pendientes cuando se reanude (NO hacer hasta subir el límite de gasto)
-1. Agregar comandos de emisión al DSL (`TQT`, `ERK`, `TTO`, `FP`, `$$CONFIG`,
-   `$$PAY`, `TTP1`, `RTR`) con sus handlers y respuestas (`OK ETICKET`).
-2. Escenario de práctica del flujo completo de emisión/pago.
-3. Meter los datos teóricos (record locator 5 vs 6, stocks 075, F5/F6) al banco
-   del QuizEngine — el flujo de datos ya lo soporta (bancos estáticos SYNTAX_BANK
-   / FLOW_BANK) o vía un nuevo banco de "teoría de tickets".
-4. Verificar contra el documento oficial de David cuando lo publique.
+## Pendientes cuando se reanude
+
+1. ✅ **Implementado (02AGO26)**, confirmado también en pruebas reales de
+   David en producción: `TQT`, `ERK`, `TTO`, `FP`, `TTP1` ya existían;
+   `$$CONFIG:CCTYPE/{n}` y `$$PAY` se agregaron ahora (`handleConfigProfile`/
+   `handlePay` en `PnrStateMachine.js`, requieren perfil PCI cargado antes
+   de poder pagar). `RTR` se agregó como alias funcional de `RT` — el
+   comportamiento diferenciado real de "variante de recuperar" sigue sin
+   confirmar con David (se documenta, no se adivina). También se agregó
+   `RTF` (mencionado por David el 02AGO26, mismo tratamiento de alias).
+2. Escenario de práctica del flujo completo de emisión/pago — sigue
+   pendiente (candidato natural: extender el Nivel 23/24 o uno nuevo que
+   use `$$CONFIG`/`$$PAY` en vez de `FP` directo).
+3. Meter los datos teóricos (record locator 5 vs 6, stocks 075, F5/F6) al
+   banco del QuizEngine — sigue pendiente.
+4. Verificar contra el documento oficial de David cuando lo publique —
+   sigue pendiente.

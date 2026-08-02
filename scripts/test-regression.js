@@ -360,6 +360,130 @@ probarTolerancia('Sintaxis del manual ya parsea: TMC/L5, TQM/M1, TMI/M1/FP-',
   ['IU IB NN1 PENF MAD/P1', 'TMC/L5', 'TQM/M1', 'TMI/M1/FP-CASH,'],
   (r, s) => r.success && s.tsm?.fop === 'CASH' ? null : `resultado: ${JSON.stringify(r)} tsm=${JSON.stringify(s.tsm)}`);
 
+// ── Feedback de David en producción (02AGO26) ──
+probarTolerancia('Fare basis refleja la tarifa real: COMFORT -> letra U',
+  ['AN25NOVBOGMIA', 'SS1Y1', 'FXP/FF-COMFORT'],
+  (r, s) => s.tst?.fareBasis === 'YU' ? null : `fareBasis: ${s.tst?.fareBasis}`);
+probarTolerancia('Fare basis BASIC -> letra B, OPTIMA -> letra M',
+  ['AN25NOVBOGMIA', 'SS1Y1', 'FXP/FF-BASIC'],
+  (r, s) => s.tst?.fareBasis === 'YB' ? null : `fareBasis: ${s.tst?.fareBasis}`);
+probarTolerancia('Fare basis FLEX conserva el sufijo literal (letra sin confirmar con David)',
+  ['AN25NOVBOGMIA', 'SS1Y1', 'FXP/FF-FLEX'],
+  (r, s) => s.tst?.fareBasis === 'YFLEX' ? null : `fareBasis: ${s.tst?.fareBasis}`);
+
+probarTolerancia('Caso exacto de David: FXX/FF-PECOMFORT/RAD,GUA -> GTQ (no USD)',
+  ['AN25NOVBOGMIA', 'SS1Y1', 'FXX/FF-PECOMFORT/RAD,GUA'],
+  (r) => r.currency === 'GTQ' ? null : `currency: ${r.currency}`);
+probarTolerancia('Caso exacto de David: FXP/FF-PECOMFORT crea TST con fare basis letra U (Comfort)',
+  ['AN25NOVBOGMIA', 'SS1Y1', 'FXP/FF-PECOMFORT'],
+  (r, s) => s.tst?.fareBasis === 'YU' ? null : `fareBasis: ${s.tst?.fareBasis}`);
+probarTolerancia('FQC1440USD/GTQ convierte a Guatemala (auditoría propia: tabla de tasas duplicada, FQC tenía su propia copia sin GTQ)',
+  ['FQC1440USD/GTQ'],
+  (r) => r.success && r.data.toCurrency === 'GTQ' && r.data.convertedAmount === '11160.00' ? null : `resultado: ${JSON.stringify(r.data || r.error)}`);
+
+probarTolerancia('AP con formato válido se acepta', ['APBOG 573001234567-M'],
+  (r, s) => r.success && s.contacts.length === 1 ? null : 'no se registró');
+probarRegresionNegativa('AP con formato inválido se rechaza (hallazgo de David)',
+  ['APBOG-malformado'],
+  (r) => !r.success && /FORMAT ERROR/.test(r.error) ? null : 'aceptó un formato de contacto inválido');
+
+probarRegresionNegativa('AN sin origen/destino da error honesto, no default silencioso (hallazgo de David)',
+  ['AN25NOV'],
+  (r) => !r.success && /FORMAT ERROR/.test(r.error) ? null : `aceptó sin origen/destino: ${JSON.stringify(r)}`);
+
+(function probarLadderSinCeroInvalido() {
+  const fsmTmp = new PnrStateMachine();
+  let encontrado0 = false;
+  for (let seed = 1; seed <= 50; seed++) {
+    const ladder = fsmTmp.buildClassLadder(seed, 3);
+    Object.keys(ladder).forEach((k) => { if (ladder[k] === 0) encontrado0 = true; });
+  }
+  if (encontrado0) {
+    console.error('  [FAIL] buildClassLadder todavía genera un "0" inválido (hallazgo de David)');
+    toleranceFailures++;
+  } else {
+    console.log('  [PASS] buildClassLadder nunca genera "0" — solo abierto (1-9) o cerrado (C)');
+  }
+})();
+
+(function probarAnUsaCabinsCorrectamente() {
+  // Verifica el WIRING real de AN (formatAvailability), no solo la función
+  // aislada — la auditoría propia encontró que un replace_all anterior
+  // solo había corregido SN, dejando AN todavía leyendo equipment.json.
+  const vueloLargo = { line: 1, airline: 'IB', flightNumber: '999', classes: { J: 4, W: 3, Y: 9 }, cabins: 3, origin: 'BOG', destination: 'MIA', departure: '10:00', arrival: '11:00', equipment: 'NOEXISTE', stops: 0 };
+  const output = responseGen.formatAvailability({ date: '25NOV', origin: 'BOG', destination: 'MIA', flights: [vueloLargo] });
+  if (/W3/.test(output)) {
+    console.log('  [PASS] AN (formatAvailability) usa cabins del vuelo, no equipment.json (wiring real verificado)');
+  } else {
+    console.error(`  [FAIL] AN no muestra clase premium con cabins=3: ${output}`);
+    toleranceFailures++;
+  }
+})();
+
+probarTolerancia('SS doble segmento tolera espacios (mismo principio que SS normal)',
+  ['AN25NOVBOGMIA', 'SS 5 Y 1 * C 2'],
+  (r, s) => r.success && s.segments.length >= 2 && s.segments.some((seg) => seg.class === 'Y') && s.segments.some((seg) => seg.class === 'C')
+    ? null
+    : `segments: ${JSON.stringify(s.segments)}`);
+
+(function probarFormatFlightClassesUsaCabins() {
+  const classes = { J: 4, C: 5, Y: 9, W: 3, E: 2 };
+  const out2 = responseGen.formatFlightClasses(classes, 2);
+  const out3 = responseGen.formatFlightClasses(classes, 3);
+  if (/W3/.test(out2)) {
+    console.error(`  [FAIL] formatFlightClasses con cabins=2 mostró clase premium: ${out2}`);
+    toleranceFailures++;
+  } else if (!/W3/.test(out3)) {
+    console.error(`  [FAIL] formatFlightClasses con cabins=3 debería mostrar premium: ${out3}`);
+    toleranceFailures++;
+  } else {
+    console.log('  [PASS] formatFlightClasses usa cabins del vuelo (no equipment.json) como fuente única');
+  }
+})();
+
+probarTolerancia('FQN en cabina Business muestra NO PENALTY (hallazgo de David)',
+  ['AN25NOVBOGMIA', 'SS1J1', 'FXP/FF-BUSFLEX', 'FQN1*PE'],
+  (r) => r.success && /NO PENALTY \(BUSINESS FARE\)/.test(r.data.page) ? null : `pagina: ${r.data?.page}`);
+
+probarRegresionNegativa('$$PAY sin $$CONFIG falla (comando no existía, hallazgo de David)',
+  ['AN25NOVBOGMIA', 'SS1Y1', 'FXP', 'FP CASH,', '$$PAY'],
+  (r) => !r.success && /NO PCI PROFILE/.test(r.error) ? null : 'pagó sin perfil PCI cargado');
+probarTolerancia('$$CONFIG + $$PAY completan el flujo de cobro',
+  ['AN25NOVBOGMIA', 'SS1Y1', 'FXP', 'FP CASH,', '$$CONFIG:CCTYPE/2', '$$PAY'],
+  (r, s) => r.success && s.pciConfigured && s.paid ? null : `pciConfigured=${s.pciConfigured} paid=${s.paid}`);
+
+probarTolerancia('SS doble segmento vende 2 vuelos en un comando (propuesta de David)',
+  ['AN25NOVBOGMIA', 'SS5Y1*C2'],
+  (r, s) => r.success && s.segments.length >= 2 && s.segments.some((seg) => seg.class === 'Y') && s.segments.some((seg) => seg.class === 'C')
+    ? null
+    : `segments: ${JSON.stringify(s.segments)}`);
+
+probarTolerancia('RTR funciona como alias de RT',
+  ['NM1GARCIA/CARLOS MR', 'RTR'],
+  (r) => r.success && r.pnr ? null : 'RTR no redespliega el PNR');
+probarTolerancia('RTF funciona como alias de RT',
+  ['NM1GARCIA/CARLOS MR', 'RTF'],
+  (r) => r.success && r.pnr ? null : 'RTF no redespliega el PNR');
+
+(function probarNumeroBilleteEnPnr() {
+  fsm.reset();
+  fsm.setState({
+    passengers: [{ id: 1, name: 'TEST/PAX' }],
+    segments: [{ id: 1, flight: 'IB1', class: 'Y', date: '01ENE', route: 'MAD-BCN', status: 'HK1' }],
+    contacts: [{ id: 1, text: 'AP+5551234567' }],
+    ticketing: 'TK OK'
+  });
+  const secuencia = ['FXP', 'ER', 'TTP1/ET/RT'];
+  for (const cmd of secuencia) fsm.process(parser.parse(cmd), flights, locations);
+  const output = responseGen.formatResponse({ success: true, pnr: fsm.getState() }, fsm.getState());
+  if (/TKT: \d+/.test(output)) {
+    console.log('  [PASS] El número de billete aparece en el PNR redisplegado (hallazgo de David)');
+  } else {
+    console.error(`  [FAIL] El número de billete no aparece en el PNR: ${output}`);
+    toleranceFailures++;
+  }
+})();
+
 // ── FXX desglosa por tipo de pasajero (petición de David) ──
 probarTolerancia('FXX con ADT+CHD desglosa dos tarifas (CHD 75%)',
   ['AN13MARLIMBOG', 'SS2Y1', 'NM2PEREZ/CARLOS MR/JUAN(CHD/10MAY18)', 'FXX/FF-OPTIMA/RAD*CH,BOG'],

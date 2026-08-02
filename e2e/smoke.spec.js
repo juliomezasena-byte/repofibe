@@ -3,12 +3,10 @@
 // del manual (SN) y que la pestaña Teoria muestra el quiz.
 import { test, expect } from '@playwright/test';
 
+// El bypass de auth para E2E ya no vive en localStorage — se activa por
+// VITE_E2E_MOCK_AUTH en tiempo de build (ver playwright.config.js), así
+// que no hace falta inyectar nada aquí.
 test.describe('smoke', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
-      localStorage.setItem('PLAYWRIGHT_TEST', '1');
-    });
-  });
   test('el terminal responde SN 12 APR MEX SDQ con SCHEDULE NEUTRAL', async ({ page }) => {
     await page.goto('/');
 

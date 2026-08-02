@@ -1052,6 +1052,72 @@
       "errors": {
         "FORMAT_ERROR": "FORMAT ERROR - TTP1/TTM/T{n}/M{n}/ET/RT"
       }
+    },
+    {
+      "code": "$$CONFIG",
+      "category": "Ticketing",
+      "name": "Cargar Perfil de Tarjeta (PCI)",
+      "description": "Carga el perfil de tarjeta PCI en Amadeus antes de cobrar. Ej: $$CONFIG:CCTYPE/2.",
+      "syntax": [
+        "$$CONFIG:CCTYPE/{n}"
+      ],
+      "tokens": {},
+      "handler": "CONFIG_PROFILE",
+      "examples": [
+        "$$CONFIG:CCTYPE/2"
+      ],
+      "errors": {
+        "FORMAT_ERROR": "FORMAT ERROR - $$CONFIG:CCTYPE/{n}"
+      },
+      "payloadPattern": "^:CCTYPE/[0-9]+$"
+    },
+    {
+      "code": "$$PAY",
+      "category": "Ticketing",
+      "name": "Ejecutar el Cobro",
+      "description": "Ejecuta el cargo a la tarjeta configurada con $$CONFIG. Confirma siempre el costo total con el cliente antes de este comando.",
+      "syntax": [
+        "$$PAY"
+      ],
+      "tokens": {},
+      "handler": "EXECUTE_PAY",
+      "examples": [
+        "$$PAY"
+      ],
+      "errors": {
+        "NO_PROFILE": "NO PCI PROFILE LOADED - USE $$CONFIG:CCTYPE/{n} FIRST",
+        "NO_FOP": "NEED FORM OF PAYMENT BEFORE $$PAY"
+      }
+    },
+    {
+      "code": "RTR",
+      "category": "PNR Display",
+      "name": "Redisplay PNR (variante RTR)",
+      "description": "Variante de RT. Confirmado como alias funcional por el usuario — el comportamiento diferenciado exacto frente a RT/RTF sigue sin confirmar con David.",
+      "syntax": [
+        "RTR"
+      ],
+      "tokens": {},
+      "handler": "REDISPLAY_PNR",
+      "examples": [
+        "RTR"
+      ],
+      "errors": {}
+    },
+    {
+      "code": "RTF",
+      "category": "PNR Display",
+      "name": "Redisplay PNR (variante RTF)",
+      "description": "Variante de RT. Confirmado como alias funcional por el usuario — el comportamiento diferenciado exacto frente a RT/RTR sigue sin confirmar con David.",
+      "syntax": [
+        "RTF"
+      ],
+      "tokens": {},
+      "handler": "REDISPLAY_PNR",
+      "examples": [
+        "RTF"
+      ],
+      "errors": {}
     }
   ]
 }

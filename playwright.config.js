@@ -22,7 +22,13 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run build && npx vite preview --port 4173',
+    // scripts/e2e-server.js fuerza VITE_E2E_MOCK_AUTH vía child_process.spawn
+    // (env real de Node, no sintaxis de shell) — webServer.env de Playwright
+    // no propagaba de forma confiable a través del "&&" en este entorno.
+    // Un despliegue de producción normal (`npm run build` directo) nunca
+    // pasa por este script, así que el bypass de auth no es alcanzable
+    // desde DevTools en el sitio real.
+    command: 'node scripts/e2e-server.js',
     url: 'http://localhost:4173',
     reuseExistingServer: true,
     timeout: 120000, // el build de vite corre dentro de este presupuesto

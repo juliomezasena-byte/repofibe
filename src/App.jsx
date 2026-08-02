@@ -49,7 +49,11 @@ export function App() {
 
   // Escuchar estado de autenticación
   useEffect(() => {
-    if (localStorage.getItem('PLAYWRIGHT_TEST') === '1') {
+    // Mock de auth SOLO para E2E: resuelto en tiempo de build por Vite
+    // (import.meta.env.VITE_*), no en runtime — a diferencia de un flag de
+    // localStorage, un usuario no puede activarlo desde DevTools en
+    // producción porque el build de producción nunca define esta variable.
+    if (import.meta.env.VITE_E2E_MOCK_AUTH === '1') {
       setIsAuthenticated(true);
       setAuthLoading(false);
       return;

@@ -57,7 +57,9 @@ export class PnrStateMachine {
       markedExchange: false,
       fareDiffAdded: false,
       penaltyValueAdded: false,
-      combinedIssueDone: false
+      combinedIssueDone: false,
+      pciConfigured: false,
+      paid: false
     };
   }
 
@@ -145,7 +147,7 @@ export class PnrStateMachine {
         return this.handleAvailability(params, flightsCatalog);
 
       case 'SELL_SEGMENT':
-        return this.handleSellSegment(params);
+        return this.handleSellSegment(params, rawInput);
 
       case 'ADD_NAME':
         return this.handleAddName(params, rawInput);
@@ -262,6 +264,12 @@ export class PnrStateMachine {
       case 'COMBINED_ISSUE':
         return this.handleCombinedIssue(rawInput);
 
+      case 'CONFIG_PROFILE':
+        return this.handleConfigProfile(rawInput);
+
+      case 'EXECUTE_PAY':
+        return this.handlePay();
+
       case 'PAGE_DOWN':
         return this.handlePaging(1);
 
@@ -302,7 +310,10 @@ export class PnrStateMachine {
     const ladder = {};
     orden.forEach((letra, i) => {
       const v = (seed * 7 + i * 3) % 11;
-      ladder[letra] = v === 0 ? 'C' : v === 1 ? 0 : Math.min(9, v);
+      // Una clase está abierta (1-9 puestos) o cerrada ('C') — nunca "0"
+      // puestos abiertos, que no es un estado real de Amadeus (hallazgo
+      // de David: la disponibilidad mezclaba info de clase inconsistente).
+      ladder[letra] = (v === 0 || v === 1) ? 'C' : Math.min(9, v);
     });
     // Cabinas vendibles siempre abiertas
     ladder.Y = 4 + Math.floor(Math.random() * 6); // 4-9
@@ -390,10 +401,15 @@ export class PnrStateMachine {
     return flights;
   }
 
+  // Hallazgo de David: si el comando (o una variante no soportada) no
+  // parseaba bien origen/destino/fecha, el motor seguía con un default
+  // silencioso (BOG/MIA/25NOV) en vez de avisar — el estudiante veía
+  // vuelos "de la nada" sin saber que su comando no se leyó bien.
   handleAvailability(params, flightsCatalog) {
-    const origin = params.origin || 'BOG';
-    const destination = params.destination || 'MIA';
-    const date = params.date || '25NOV';
+    if (!params.origin || !params.destination || !params.date) {
+      return { success: false, error: 'FORMAT ERROR - CHECK DATE/ORIGIN/DESTINATION (AN{fecha}{origen}{destino})' };
+    }
+    const { origin, destination, date } = params;
 
     // Vuelos dinámicos en cada consulta (variedad para aprender).
     const matches = this.generateDynamicFlights(origin, destination);
@@ -402,7 +418,16 @@ export class PnrStateMachine {
     return { success: true, type: 'AVAILABILITY', data: this.state.lastAvailability };
   }
 
-  handleSellSegment(params) {
+  handleSellSegment(params, rawInput = '') {
+    // SS{pax}{clase1}{línea1}*{clase2}{línea2}: vender 2 vuelos de la
+    // misma disponibilidad en un solo comando (propuesta de David, ej.
+    // SS5Y2*V11) — mismo código "SS", se distingue por el "*" en el
+    // input; no puede ser un comando DSL separado porque colisionaría
+    // (mismo prefijo de 2 letras, el parser no soporta sub-modos).
+    if (rawInput && rawInput.includes('*')) {
+      return this.handleSellSegmentDouble(rawInput);
+    }
+
     if (!this.state.lastAvailability || !this.state.lastAvailability.flights.length) {
       return { success: false, error: 'NO AVAILABILITY DISPLAYED' };
     }
@@ -410,7 +435,13 @@ export class PnrStateMachine {
     const lineNum = parseInt(params.line || '1', 10);
     const count = parseInt(params.count || '1', 10);
     const bookingClass = params.class || 'Y';
+    return this._sellFromLine(lineNum, bookingClass, count);
+  }
 
+  // Vende el vuelo de una línea de state.lastAvailability (soporta
+  // escala). Extraído de handleSellSegment para reutilizarlo también
+  // desde handleSellSegmentDouble sin duplicar la lógica.
+  _sellFromLine(lineNum, bookingClass, count) {
     const flight = this.state.lastAvailability.flights.find(f => f.line === lineNum) || this.state.lastAvailability.flights[0];
 
     if (!flight.classes || flight.classes[bookingClass] === undefined) {
@@ -467,6 +498,27 @@ export class PnrStateMachine {
     }
   }
 
+  handleSellSegmentDouble(rawInput) {
+    // El "SS" normal tolera espacios vía normalize:"compact" del DSL, pero
+    // esa normalización solo aplica al payload interno de tokens, no a
+    // rawInput — hay que quitarlos aquí a mano para la misma tolerancia.
+    const compact = rawInput.replace(/\s+/g, '');
+    const m = compact.match(/^SS(\d+)([A-Z])(\d+)\*([A-Z])(\d+)$/i);
+    if (!m) {
+      return { success: false, error: 'FORMAT ERROR - SS{pax}{clase1}{linea1}*{clase2}{linea2}' };
+    }
+    if (!this.state.lastAvailability || !this.state.lastAvailability.flights.length) {
+      return { success: false, error: 'NO AVAILABILITY DISPLAYED' };
+    }
+    const [, paxStr, class1, line1Str, class2, line2Str] = m;
+    const count = parseInt(paxStr, 10);
+    const r1 = this._sellFromLine(parseInt(line1Str, 10), class1.toUpperCase(), count);
+    if (!r1.success) return r1;
+    const r2 = this._sellFromLine(parseInt(line2Str, 10), class2.toUpperCase(), count);
+    if (!r2.success) return r2;
+    return { success: true, segment: r1.segment, segment2: r2.segment };
+  }
+
   handleAddName(params, rawInput) {
     // Formato Amadeus: NM{cantidad}{APELLIDO}/{NOMBRE1} {TITULO1}/{NOMBRE2} {TITULO2}...
     // Ej: NM1GARCIA/CARLOS MR  ->  1 pax
@@ -516,7 +568,18 @@ export class PnrStateMachine {
     return { success: true, passengers: added, passenger: added[0] };
   }
 
+  // Valida el formato real del contacto (hallazgo de David: aceptaba
+  // cualquier texto sin validar, ej. un teléfono con separador incorrecto).
+  // Mismo principio ya usado en handleDecodeCity: error honesto, nunca
+  // datos inventados.
   handleAddContact(params, rawInput) {
+    const input = rawInput.trim().toUpperCase();
+    const isEmail = /^APE-.+@.+\..+$/.test(input);
+    const isIntl = /^AP\+\d{6,15}$/.test(input);
+    const isCityPhone = /^AP[A-Z]{3}\s?\d{6,15}-[A-Z]$/.test(input);
+    if (!isEmail && !isIntl && !isCityPhone) {
+      return { success: false, error: 'FORMAT ERROR - CHECK AP{CIUDAD} {TELEFONO}-{TIPO}, AP+{TELEFONO} O APE-{CORREO}' };
+    }
     const text = rawInput.replace(/^AP/, '').trim();
     const contact = {
       id: this.state.contacts.length + 1,
@@ -618,7 +681,10 @@ export class PnrStateMachine {
   static get USD_RATES() {
     return {
       USD: 1, COP: 4150.0, DOP: 59.0, MXN: 18.5, PEN: 3.75, EUR: 0.92,
-      ARS: 950.0, CLP: 950.0, BRL: 5.10, PAB: 1.0
+      ARS: 950.0, CLP: 950.0, BRL: 5.10, PAB: 1.0,
+      // Agregadas tras hallazgo de David (falta Guatemala/GTQ) — mismos
+      // países que ya existen en locations.json pero no tenían moneda.
+      GTQ: 7.75, CRC: 505.0, HNL: 25.8, NIO: 36.6
     };
   }
 
@@ -628,7 +694,13 @@ export class PnrStateMachine {
       'PERU': 'PEN', 'ARGENTINA': 'ARS', 'CHILE': 'CLP', 'BRAZIL': 'BRL',
       'PANAMA': 'PAB', 'UNITED STATES': 'USD', 'ECUADOR': 'USD',
       'SPAIN': 'EUR', 'FRANCE': 'EUR', 'ITALY': 'EUR', 'GERMANY': 'EUR',
-      'NETHERLANDS': 'EUR', 'PORTUGAL': 'EUR'
+      'NETHERLANDS': 'EUR', 'PORTUGAL': 'EUR',
+      // Agregados tras hallazgo de David: existían en locations.json pero
+      // caían a USD por defecto al no estar aquí.
+      'GUATEMALA': 'GTQ', 'COSTA RICA': 'CRC', 'EL SALVADOR': 'USD',
+      'HONDURAS': 'HNL', 'NICARAGUA': 'NIO'
+      // Venezuela (VES) queda fuera a propósito: moneda inestable, no hay
+      // una tasa BSR confiable que no sea inventada.
     };
   }
 
@@ -689,7 +761,6 @@ export class PnrStateMachine {
       return acc + p;
     }, 0);
     const taxesUSD = 45;
-    const fareBasis = `${this.state.segments[0].class}FLEX`;
 
     // Facturar en la moneda de la oficina (bug hallado por David: MAD -> EUR).
     const { currency, rate, office } = this.resolveOfficeCurrency(rawInput, locationsCatalog);
@@ -705,6 +776,19 @@ export class PnrStateMachine {
     const total = perPax.reduce((acc, p) => acc + (p.fare + p.taxes) * p.count, 0);
     const normalizedInput = rawInput.trim().toUpperCase().replace(/\s+/g, '');
     const fareFamily = (normalizedInput.match(/\/FF-([A-Z0-9-]+)/) || [])[1] || null;
+
+    // Fare basis real: la letra depende de la familia tarifaria pedida, no
+    // un sufijo "FLEX" fijo (bug hallado por David: pidió Comfort y vio
+    // "CFLEX"). Letras confirmadas por David: BASIC=B, OPTIMA=M, COMFORT=U.
+    // FLEX (letra exacta sin confirmar) y familias no reconocidas conservan
+    // el sufijo "FLEX" literal — no se inventa la letra que falta.
+    const fareTierLetter = fareFamily?.includes('BASIC') ? 'B'
+      : fareFamily?.includes('OPTIMA') ? 'M'
+      : fareFamily?.includes('COMFORT') ? 'U'
+      : null;
+    const fareBasis = fareTierLetter
+      ? `${this.state.segments[0].class}${fareTierLetter}`
+      : `${this.state.segments[0].class}FLEX`;
     const modifiers = [...normalizedInput.matchAll(/\/RAD\*([A-Z]+(?:\*[A-Z]+)*)/g)]
       .map((match) => `RAD*${match[1]}`);
     this.state.pricingHistory.push({
@@ -860,21 +944,11 @@ export class PnrStateMachine {
     const from = (params.fromCurrency || 'USD').toUpperCase();
     const to = (params.toCurrency || 'COP').toUpperCase();
 
-    // Tasas BSR sintéticas expresadas como: 1 USD = X moneda.
-    // Permite convertir el gasto de gestión (emitido en USD) a la moneda
-    // del país desde el que llama el cliente. Valores aproximados de clase.
-    const usdRates = {
-      USD: 1,
-      COP: 4150.0,     // Colombia
-      DOP: 59.0,       // República Dominicana
-      MXN: 18.5,       // México
-      PEN: 3.75,       // Perú
-      EUR: 0.92,       // Zona Euro
-      ARS: 950.0,      // Argentina
-      CLP: 950.0,      // Chile
-      BRL: 5.10,       // Brasil
-      PAB: 1.0         // Panamá
-    };
+    // Reutiliza el MISMO mapa de tasas que resolveOfficeCurrency (antes
+    // había una copia local duplicada aquí — corrección de auditoría: el
+    // fix de monedas LATAM de David solo se había aplicado al getter
+    // estático, dejando FQC todavía sin Guatemala/GTQ y las demás).
+    const usdRates = PnrStateMachine.USD_RATES;
 
     let rate;
     if (from === 'USD' && usdRates[to] !== undefined) {
@@ -903,10 +977,13 @@ export class PnrStateMachine {
     };
   }
 
+  // Mismo principio que handleAvailability: error honesto si no parseó,
+  // nunca un destino inventado (hallazgo de David).
   handleSchedule(params, flightsCatalog) {
-    const origin = params.origin || 'LIM';
-    const destination = params.destination || 'BOG';
-    const date = params.date || '13MAR';
+    if (!params.origin || !params.destination || !params.date) {
+      return { success: false, error: 'FORMAT ERROR - CHECK DATE/ORIGIN/DESTINATION (SN{fecha}{origen}{destino})' };
+    }
+    const { origin, destination, date } = params;
 
     // Vuelos dinámicos en cada consulta (variedad para aprender).
     const matches = this.generateDynamicFlights(origin, destination);
@@ -1019,22 +1096,32 @@ export class PnrStateMachine {
     const ticketNum = parseInt(params.ticket || '1', 10);
     const fare = this.state.tst;
     const base = fare ? `${fare.currency} ${fare.priceUSD}.00` : 'USD 450.00';
+    const fareBasis = fare?.fareBasis || 'YFLEX';
+
+    // Hallazgo de David: el texto era genérico fijo sin importar la
+    // tarifa real (ej. Business no debería mostrar penalidad). Cobertura
+    // acotada: no hay motor de reglas tarifarias completo, solo se refleja
+    // el caso confirmado (cabina Business = sin penalidad).
+    const bookingClass = fareBasis.charAt(0);
+    const isBusiness = PnrStateMachine.RBD_BUSINESS.includes(bookingClass);
+    const chargeLine = isBusiness ? '  CHARGE: NO PENALTY (BUSINESS FARE)' : '  CHARGE: GG + DF APLICAN';
+    const penaltyLine = isBusiness ? '  PENALTY: NO PENTY (BUSINESS FARE)' : '  PENALTY: NO PENTY + DF + GG';
 
     const pages = [
       [
         `FQN${ticketNum}*PE - FARE COMPONENTS TKT ${ticketNum}`,
-        `FC1  ${base}  FARE BASIS ${fare?.fareBasis || 'YFLEX'}`,
+        `FC1  ${base}  FARE BASIS ${fareBasis}`,
         ``,
         `CANCELLATIONS:`,
         `  BEFORE DEPARTURE - REFUND PERMITTED`,
-        `  CHARGE: GG + DF APLICAN`,
+        chargeLine,
         `  AFTER DEPARTURE  - REFUND NOT PERMITTED`
       ].join('\n'),
       [
         `FQN${ticketNum}*PE - FARE COMPONENTS TKT ${ticketNum} (CONT.)`,
         `CHANGES:`,
         `  BEFORE DEPARTURE - CHANGES PERMITTED`,
-        `  PENALTY: NO PENTY + DF + GG`,
+        penaltyLine,
         `  AFTER DEPARTURE  - CHANGES WITH PENALTY`,
         ``,
         `NOTA: REGISTRA LAS CONDICIONES CON RM *FECHA* FC1,2 ...`
@@ -1345,6 +1432,30 @@ export class PnrStateMachine {
       autoRT: tail.toUpperCase().includes('RT'),
       message: 'OK ETICKET / OK EMD ISSUED'
     };
+  }
+
+  // $$CONFIG:CCTYPE/{n}: carga el perfil de tarjeta (PCI) en Amadeus.
+  // Confirmado como faltante por David en pruebas reales (FORMAT ERROR).
+  handleConfigProfile(rawInput) {
+    const m = rawInput.match(/^\$\$CONFIG:CCTYPE\/(\d+)$/i);
+    if (!m) {
+      return { success: false, error: 'FORMAT ERROR - $$CONFIG:CCTYPE/{n}' };
+    }
+    this.state.pciConfigured = true;
+    return { success: true, message: `PCI PROFILE CCTYPE/${m[1]} LOADED` };
+  }
+
+  // $$PAY: ejecuta el cargo. Requiere perfil PCI cargado y al menos una
+  // forma de pago (TST o TSM) ya registrada.
+  handlePay() {
+    if (!this.state.pciConfigured) {
+      return { success: false, error: 'NO PCI PROFILE LOADED - USE $$CONFIG:CCTYPE/{n} FIRST' };
+    }
+    if (!this.state.tst?.fop && !this.state.tsm?.fop) {
+      return { success: false, error: 'NEED FORM OF PAYMENT BEFORE $$PAY' };
+    }
+    this.state.paid = true;
+    return { success: true, message: 'OK $$PAY - CHARGE PROCESSED' };
   }
 
   handleAddRemark(params, rawInput) {

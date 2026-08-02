@@ -15,10 +15,14 @@ export class ResponseGenerator {
     this.equipmentCatalog = equipmentCatalog;
   }
 
-  formatFlightClasses(classesObj, equipmentCode) {
-    const equip = this.equipmentCatalog[equipmentCode] || { cabins: ['Y'] };
-    const hasBusiness = equip.cabins.includes('J');
-    const hasPremium = equip.cabins.includes('W');
+  // cabins (2 o 3) viene del propio vuelo (tipoRadio ya calculado en
+  // generateDynamicFlights) — antes se derivaba de equipment.json de forma
+  // independiente, y podía no coincidir con el ladder de clases realmente
+  // generado para ese vuelo, ocultando clases que sí existían (hallazgo
+  // de David: "no comprende los vuelos de largo/corto/medio radio").
+  formatFlightClasses(classesObj, cabins = 3) {
+    const hasBusiness = true;
+    const hasPremium = cabins === 3;
 
     // Mismo orden que en PnrStateMachine (pedido por David)
     const businessKeys = ['J', 'C', 'D', 'R', 'I', 'U'];
@@ -89,7 +93,7 @@ export class ResponseGenerator {
       let lines = [`SN ${date} ${origin}${destination}`];
       lines.push(`** AMADEUS SCHEDULE NEUTRAL - SN ** ${origin} ${destination}  ${date}`);
       (flights || []).forEach((f, idx) => {
-        const classStr = this.formatFlightClasses(f.classes || { Y: 9 }, f.equipment || 'A320');
+        const classStr = this.formatFlightClasses(f.classes || { Y: 9 }, f.cabins || 3);
         const viaStr = f.via ? ` VIA ${f.via}` : '';
         const cabStr = f.tipoRadio === 'LARGO' ? ' [LR 3CAB]' : f.tipoRadio === 'MEDIO' ? ' [MR 2CAB]' : ' [CR 2CAB]';
         lines.push(
@@ -256,7 +260,7 @@ export class ResponseGenerator {
 
     (flights || []).forEach((f, idx) => {
       const lineNo = f.line || idx + 1;
-      const classStr = this.formatFlightClasses(f.classes || { Y: 9 }, f.equipment || 'A320');
+      const classStr = this.formatFlightClasses(f.classes || { Y: 9 }, f.cabins || 3);
       const viaStr = f.via ? ` VIA ${f.via}` : '';
       const cabStr = f.tipoRadio === 'LARGO' ? ' [LR 3CAB]' : f.tipoRadio === 'MEDIO' ? ' [MR 2CAB]' : ' [CR 2CAB]';
 
@@ -328,6 +332,12 @@ export class ResponseGenerator {
 
 
     if (pnr.isTicketed) {
+      // Hallazgo de David: se emitía el billete pero el número nunca
+      // aparecía en el PNR redesplegado (solo el marcador genérico) — el
+      // estudiante no tenía forma de referenciarlo después de emitir.
+      if (pnr.issuedTicket?.number) {
+        lines.push(`TKT: ${pnr.issuedTicket.number}`);
+      }
       lines.push(`* TICKETED ELECTRONICALLY *`);
     }
 
