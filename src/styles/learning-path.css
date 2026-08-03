@@ -1,0 +1,107 @@
+/* Ruta guiada: mapa vertical compacto, accesible y sin bloquear el simulador. */
+.learning-path {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background: #0a121d;
+  border: 1px solid #1d3044;
+  border-radius: 8px;
+}
+
+.learning-path-heading,
+.learning-path-progress > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.learning-path-kicker {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--crt-cyan);
+  font: 600 0.68rem var(--font-mono);
+  letter-spacing: 0.08em;
+}
+
+.learning-path h2 { margin-top: 3px; color: #f8fafc; font-size: 1rem; }
+.learning-path-count { color: var(--crt-green); font: 600 0.75rem var(--font-mono); }
+
+.daily-mission {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px;
+  color: #e2e8f0;
+  text-align: left;
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.32);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.daily-mission:hover, .daily-mission:focus-visible { border-color: var(--crt-cyan); outline: none; }
+.daily-mission > svg:first-child { color: var(--crt-cyan); }
+.daily-mission > svg:last-of-type { color: var(--text-muted); }
+.daily-mission span { min-width: 0; }
+.daily-mission strong, .daily-mission small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.daily-mission strong { font-size: 0.8rem; }
+.daily-mission small { margin-top: 2px; color: #94a3b8; font-size: 0.7rem; }
+.daily-mission em { color: #94a3b8; font: 0.68rem var(--font-mono); font-style: normal; }
+
+.new-mission {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  color: #cbd5e1;
+  text-align: left;
+  background: rgba(0, 255, 153, 0.05);
+  border: 1px solid rgba(0, 255, 153, 0.2);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.new-mission:hover, .new-mission:focus-visible { border-color: var(--crt-green); outline: none; }
+.new-mission > svg { color: var(--crt-green); }
+.new-mission span { min-width: 0; }
+.new-mission strong, .new-mission small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.new-mission strong { font-size: 0.75rem; }
+.new-mission small { margin-top: 2px; color: #94a3b8; font-size: 0.68rem; }
+.new-mission em { color: #94a3b8; font: 0.68rem var(--font-mono); font-style: normal; }
+
+.learning-path-progress { display: flex; flex-direction: column; gap: 5px; }
+.learning-path-progress > div:first-child { color: #94a3b8; font-size: 0.7rem; }
+.learning-path-progress strong { color: var(--crt-cyan); font-family: var(--font-mono); }
+.learning-path-progress .progress-bar-bg { height: 5px; }
+.learning-path-note { color: #64748b; font-size: 0.68rem; line-height: 1.35; }
+
+.learning-phases { display: flex; flex-direction: column; gap: 5px; }
+.learning-phase { border-top: 1px solid #1a2636; padding-top: 5px; }
+.learning-phase summary { display: flex; justify-content: space-between; padding: 5px 0; color: #cbd5e1; cursor: pointer; font-size: 0.72rem; font-weight: 700; }
+.learning-phase summary small { color: #64748b; font-weight: 400; }
+.learning-node-list { display: flex; flex-direction: column; gap: 3px; padding: 2px 0 5px 6px; border-left: 1px solid #1d3044; }
+.learning-node { display: flex; align-items: flex-start; gap: 7px; width: 100%; padding: 6px 7px; color: #cbd5e1; text-align: left; background: transparent; border: 1px solid transparent; border-radius: 5px; cursor: pointer; }
+.learning-node:hover, .learning-node:focus-visible { background: #111d2c; border-color: #26415a; outline: none; }
+.learning-node-icon { display: flex; flex: 0 0 auto; padding-top: 1px; color: #64748b; }
+.learning-node-copy { min-width: 0; }
+.learning-node-copy strong, .learning-node-copy small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.learning-node-copy strong { font-size: 0.72rem; font-weight: 600; }
+.learning-node-copy small { margin-top: 2px; color: #64748b; font-size: 0.64rem; }
+.learning-node.current { background: rgba(0, 229, 255, 0.08); border-color: rgba(0, 229, 255, 0.35); }
+.learning-node.current .learning-node-icon, .learning-node.today .learning-node-icon { color: var(--crt-cyan); }
+.learning-node.completed .learning-node-icon, .learning-node.consolidated .learning-node-icon { color: var(--crt-green); }
+.learning-node.review .learning-node-icon { color: var(--crt-amber); }
+.learning-node.completed .learning-node-copy small, .learning-node.consolidated .learning-node-copy small { color: var(--crt-green); }
+.learning-node.review .learning-node-copy small { color: var(--crt-amber); }
+
+@media (max-width: 868px) {
+  .learning-path { padding: 10px; }
+  .learning-node-copy strong { font-size: 0.75rem; }
+}

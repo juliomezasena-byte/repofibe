@@ -11,6 +11,10 @@ export function Simulator() {
     handleExecuteCommand,
     history,
     scenarios,
+    curriculum,
+    learningProgress,
+    dailyPlan,
+    dailyScenarioId,
     activeScenarioId,
     handleSelectScenario,
     handleResetScenario,
@@ -48,6 +52,10 @@ export function Simulator() {
 
         <ScenarioSelector
           scenarios={scenarios}
+          curriculum={curriculum}
+          learningProgress={learningProgress}
+          dailyPlan={dailyPlan}
+          dailyScenarioId={dailyScenarioId}
           activeScenarioId={activeScenarioId}
           onSelectScenario={handleSelectScenario}
           evaluationResult={evaluationResult}

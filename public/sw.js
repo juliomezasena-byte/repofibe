@@ -6,7 +6,9 @@ const ASSETS_TO_CACHE = [
   '/profiles/amadeus/commands_meta.json',
   '/profiles/amadeus/flights.json',
   '/profiles/amadeus/scenarios.json',
-  '/profiles/amadeus/locations.json'
+  '/profiles/amadeus/locations.json',
+  '/profiles/amadeus/equipment.json',
+  '/profiles/amadeus/curriculum.json'
 ];
 
 self.addEventListener('install', (evt) => {

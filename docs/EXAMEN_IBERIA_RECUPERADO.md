@@ -29,9 +29,15 @@ c) Cotizar los vuelos y asientos con todas las tarifas combinables y disponibles
 d) Cotizar todas las tarifas combinables y disponibles para los vuelos seleccionados
 
 **6. Caso Jenny Almanza (7 pts)**
-Pasajera + bebé, ruta Oporto (OPO) → Múnich (MUC). ¿Transacción y cuántas plazas?
+Pasajera + "bebé" de 11 años, ruta Oporto (OPO) → Múnich (MUC). ¿Transacción y cuántas plazas?
 a) ANORGDESFECHA (2 Plazas) · b) SNFECHADES (2 Plazas)
 c) SNFECHAORGDES (1 Plaza) · d) SNFECHAORGDES (2 Plazas)
+
+> ✅ **RESUELTO (30JUL26):** trampa identificada por el usuario. "Bebé" es
+> coloquial y despista — el dato real es la EDAD, **11 años**, no 11 meses.
+> Un pasajero de 11 años es **CHD** (niño, 2-11 años) y **sí ocupa plaza**;
+> solo el infante real (<2 años) viaja sin asiento. Respuesta correcta:
+> **d) SNFECHAORGDES (2 Plazas)**.
 
 **7. Función de SN / AN (8 pts)**
 a) SN (clases disponibles) — AN (búsqueda general)

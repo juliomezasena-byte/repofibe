@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Target, CheckCircle2, Circle, RefreshCw, GraduationCap, Dumbbell, Send, Clock, Eye, ChevronDown, ChevronRight, BookOpen } from 'lucide-react';
+import { LearningPath } from './LearningPath';
 
 // Sección desplegable (idea de Juan Pablo: menús desplegables para no abrumar).
 const Collapse = ({ title, icon, children, defaultOpen = true }) => {
@@ -52,6 +53,10 @@ const Checklist = ({ feedback }) => (
 
 export const ScenarioSelector = ({
   scenarios,
+  curriculum,
+  learningProgress = {},
+  dailyPlan,
+  dailyScenarioId,
   activeScenarioId,
   onSelectScenario,
   evaluationResult,
@@ -92,6 +97,18 @@ export const ScenarioSelector = ({
         <Target size={20} className="text-crt-green" />
         <span>Escenarios de Capacitación</span>
       </div>
+
+      {curriculum?.nodes?.length > 0 && (
+        <LearningPath
+          scenarios={scenarios}
+          curriculum={curriculum}
+          progress={learningProgress}
+          dailyPlan={dailyPlan}
+          activeScenarioId={activeScenarioId}
+          dailyScenarioId={dailyScenarioId}
+          onSelectScenario={onSelectScenario}
+        />
+      )}
 
       <select
         className="scenario-select"

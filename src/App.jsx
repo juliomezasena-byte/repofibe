@@ -16,6 +16,8 @@ import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { getUserData, updateStreak } from './lib/db';
 import { useAudio } from './hooks/useAudio';
 import { useLocalStorage } from './hooks/useLocalStorage';
+import { useLearningProgress } from './hooks/useLearningProgress';
+import { getDailyPlan, recordScenarioCompletion } from './lib/learningPath';
 
 export function App() {
   const [profileConfig, setProfileConfig] = useState(null);
@@ -23,6 +25,7 @@ export function App() {
   const [locationsCatalog, setLocationsCatalog] = useState([]);
   const [equipmentCatalog, setEquipmentCatalog] = useState({});
   const [scenarios, setScenarios] = useState([]);
+  const [curriculum, setCurriculum] = useState({ version: 1, phases: [], nodes: [] });
   const [activeScenarioId, setActiveScenarioId] = useState('scenario-1');
   const [history, setHistory] = useState([]);
   const [examMode, setExamMode] = useState('practice'); // 'practice' | 'exam' | 'delivered'
@@ -37,6 +40,9 @@ export function App() {
   const terminalRef = useRef(null);
   const { isMuted, toggleMute, playSound } = useAudio();
   const [confettiShown, setConfettiShown] = useLocalStorage('amadeus_confetti_shown', {});
+  const progressUserKey = auth.currentUser?.uid || (import.meta.env.VITE_E2E_MOCK_AUTH === '1' ? 'e2e' : 'anonymous');
+  const [learningProgress, updateLearningProgress] = useLearningProgress(progressUserKey);
+  const completionRecordedRef = useRef(null);
 
   // Instancias de los motores del simulador
   const pnrFsm = useMemo(() => new PnrStateMachine(), []);
@@ -92,12 +98,13 @@ export function App() {
   useEffect(() => {
     async function loadProfile() {
       try {
-        const [cmdRes, flightRes, scenRes, locRes, equipRes] = await Promise.all([
+        const [cmdRes, flightRes, scenRes, locRes, equipRes, curriculumRes] = await Promise.all([
           fetch('/profiles/amadeus/commands_meta.json'),
           fetch('/profiles/amadeus/flights.json'),
           fetch('/profiles/amadeus/scenarios.json'),
           fetch('/profiles/amadeus/locations.json'),
-          fetch('/profiles/amadeus/equipment.json')
+          fetch('/profiles/amadeus/equipment.json'),
+          fetch('/profiles/amadeus/curriculum.json')
         ]);
 
         const cmdData = await cmdRes.json();
@@ -105,12 +112,14 @@ export function App() {
         const scenData = await scenRes.json();
         const locData = await locRes.json();
         const equipData = await equipRes.json();
+        const curriculumData = await curriculumRes.json();
 
         setProfileConfig(cmdData);
         setFlightsCatalog(flightData.flights || []);
         setScenarios(scenData.scenarios || []);
         setLocationsCatalog(locData.locations || []);
         setEquipmentCatalog(equipData.equipment || {});
+        setCurriculum(curriculumData);
       } catch (err) {
         console.error('Error cargando perfil Amadeus DSL:', err);
       }
@@ -159,6 +168,12 @@ export function App() {
   const activeScenario = useMemo(() => {
     return scenarios.find((s) => s.id === activeScenarioId) || scenarios[0];
   }, [scenarios, activeScenarioId]);
+
+  const dailyPlan = useMemo(
+    () => getDailyPlan(scenarios, curriculum, learningProgress),
+    [scenarios, curriculum, learningProgress]
+  );
+  const dailyScenarioId = dailyPlan.primaryScenarioId;
 
   // Reinicia el PNR al estado inicial del escenario dado y limpia la pantalla.
   const cargarEstadoInicial = (scen) => {
@@ -248,6 +263,21 @@ export function App() {
     if (!activeScenario) return null;
     return evalEngine.evaluate(activeScenario, pnrFsm.getState());
   }, [activeScenario, history, evalEngine, pnrFsm]);
+
+  useEffect(() => {
+    if (!evaluationResult?.completed || examMode !== 'practice' || !activeScenarioId) {
+      completionRecordedRef.current = null;
+      return;
+    }
+    if (completionRecordedRef.current === activeScenarioId) return;
+    completionRecordedRef.current = activeScenarioId;
+    updateLearningProgress((current) => recordScenarioCompletion(
+      current,
+      activeScenarioId,
+      evaluationResult.score,
+      curriculum
+    ));
+  }, [evaluationResult?.completed, evaluationResult?.score, examMode, activeScenarioId, curriculum, updateLearningProgress]);
 
   // Efecto para lanzar Confeti y Sonido de Éxito cuando se completa
   useEffect(() => {
@@ -378,7 +408,8 @@ export function App() {
 
       <AppProvider value={{
         profileConfig, flightsCatalog, locationsCatalog, equipmentCatalog,
-        scenarios, activeScenarioId, history, examMode, examStartTs, examResult,
+        scenarios, curriculum, learningProgress, dailyPlan, dailyScenarioId,
+        activeScenarioId, history, examMode, examStartTs, examResult,
         terminalRef, activeScenario, evaluationResult, chipStatus,
         handleSelectScenario, handleResetScenario, handleToggleExam,
         handleDeliver, handleExecuteCommand

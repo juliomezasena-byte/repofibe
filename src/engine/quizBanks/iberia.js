@@ -10,7 +10,8 @@ export const IBERIA_BANK = [
       'FRA-MAD, ACE-MAD, BOG-MAD, NRT-MAD'
     ],
     correctIndex: 0,
-    explanation: 'Narita (Tokio) es el más largo (~14.5h), seguido de Bogotá (~10h), Frankfurt (~2.75h) y Lanzarote (~2.5h).'
+    explanation: 'Narita (Tokio) es el más largo (~14.5h), seguido de Bogotá (~10h), Frankfurt (~2.75h) y Lanzarote (~2.5h).',
+    source: 'Examen recuperado — duraciones estimadas por distancia, PENDIENTE de verificar contra horarios oficiales'
   },
   {
     id: 'ib-q2',
@@ -23,7 +24,8 @@ export const IBERIA_BANK = [
       'F, A'
     ],
     correctIndex: 0,
-    explanation: 'Las letras Y, B, H, K, M, L (entre otras) denotan tarifas comerciales de Turista. J/C/D son Business y W/E/T son Turista Premium.'
+    explanation: 'Las letras Y, B, H, K, M, L (entre otras) denotan tarifas comerciales de Turista. J/C/D son Business y W/E/T son Turista Premium.',
+    source: 'Corregido con feedback de David (compañero, conocimiento operativo real) — 29JUL26'
   },
   {
     id: 'ib-q3',
@@ -36,7 +38,8 @@ export const IBERIA_BANK = [
       'G, E'
     ],
     correctIndex: 0,
-    explanation: 'En Iberia, normalmente solo las tarifas más altas/flexibles de Turista (Y, B o H) son elegibles para solicitar un Upgrade utilizando Avios.'
+    explanation: 'En Iberia, normalmente solo las tarifas más altas/flexibles de Turista (Y, B o H) son elegibles para solicitar un Upgrade utilizando Avios.',
+    source: 'Corregido con feedback de David (compañero, conocimiento operativo real) — 29JUL26'
   },
   {
     id: 'ib-q4',
@@ -49,7 +52,8 @@ export const IBERIA_BANK = [
       'AF, KL, DL'
     ],
     correctIndex: 0,
-    explanation: 'Oneworld incluye a Iberia, British Airways, American Airlines, Finnair, Cathay Pacific, Qatar, Qantas y Japan Airlines.'
+    explanation: 'Oneworld incluye a Iberia, British Airways, American Airlines, Finnair, Cathay Pacific, Qatar, Qantas y Japan Airlines.',
+    source: 'Conocimiento público de la alianza Oneworld (oneworld.com) — no específico de material interno Iberia'
   },
   {
     id: 'ib-q5',
@@ -62,20 +66,22 @@ export const IBERIA_BANK = [
       'Emitir un billete'
     ],
     correctIndex: 0,
-    explanation: 'FXX cotiza el itinerario sin crear un TST (Ticketed Status) permanente, ideal para consultar el precio exacto.'
+    explanation: 'FXX cotiza el itinerario sin crear un TST (Ticketed Status) permanente, ideal para consultar el precio exacto.',
+    source: 'public/profiles/amadeus/commands_meta.json (definición del comando FXX en el propio simulador)'
   },
   {
     id: 'ib-q6',
     type: 'policy-pax',
-    text: '¿Qué comando usas para reservar para Jenny Almanza viajando con un bebé (INF) de 11 meses (OPO-MUC)?',
+    text: 'Jenny Almanza solicita cotización de un vuelo económico para ella y su "bebé" de 11 años (ruta Oporto OPO → Múnich MUC). ¿Qué transacción usas y cuántas plazas?',
     options: [
       'SNFECHAORGDES (1 Plaza)',
       'SNFECHAORGDES (2 Plazas)',
       'SS1Y1',
       'NM2ALMANZA/JENNY/INF'
     ],
-    correctIndex: 0,
-    explanation: 'Un infante (menor de 2 años) no ocupa plaza física a menos que se compre un asiento adicional pagando tarifa Child.'
+    correctIndex: 1,
+    explanation: 'Trampa: la palabra "bebé" es coloquial y despista, pero el dato real es la EDAD — 11 AÑOS, no 11 meses. Un pasajero de 11 años es CHD (niño, 2-11 años) y SÍ ocupa plaza propia; solo el INFANTE real (menor de 2 años) viaja sin ocupar asiento. Por tanto son 2 pasajeros = 2 plazas, con la transacción SNFECHAORGDES.',
+    source: 'Corregido con feedback del usuario (identificó la trampa "bebé/11 años" tras revisar el examen recuperado) — 30JUL26'
   },
   {
     id: 'ib-q7',
@@ -88,7 +94,8 @@ export const IBERIA_BANK = [
       'No hay diferencia, ambos hacen lo mismo.'
     ],
     correctIndex: 0,
-    explanation: 'SN (Schedule) muestra el itinerario general con todas las clases de reserva, estén llenas o no. AN (Availability) filtra y muestra ÚNICAMENTE las clases que aún tienen plazas disponibles.'
+    explanation: 'SN (Schedule) muestra el itinerario general con todas las clases de reserva, estén llenas o no. AN (Availability) filtra y muestra ÚNICAMENTE las clases que aún tienen plazas disponibles.',
+    source: 'Corregido con feedback de David (compañero, conocimiento operativo real) — 29JUL26'
   },
   {
     id: 'ib-q8',
@@ -101,7 +108,8 @@ export const IBERIA_BANK = [
       'Solo en el mostrador del aeropuerto.'
     ],
     correctIndex: 0,
-    explanation: 'A través de la sección "Gestión de reservas" en iberia.com se puede seleccionar asiento; si la tarifa no lo incluye se paga el asiento, pero NO hay "gasto de gestión" (fee de emisión) adicional por usar la web.'
+    explanation: 'A través de la sección "Gestión de reservas" en iberia.com se puede seleccionar asiento; si la tarifa no lo incluye se paga el asiento, pero NO hay "gasto de gestión" (fee de emisión) adicional por usar la web.',
+    source: 'Examen recuperado — PENDIENTE de verificar contra iberia.com oficial (agente de verificación no pudo ejecutarse)'
   },
   {
     id: 'ib-q9',
@@ -114,7 +122,8 @@ export const IBERIA_BANK = [
       '120 minutos'
     ],
     correctIndex: 0,
-    explanation: 'Debido a la peculiaridad de los vuelos operados por Iberia desde la T4 en Madrid, el tiempo límite de cierre de facturación es de 55 minutos antes de la salida.'
+    explanation: 'Debido a la peculiaridad de los vuelos operados por Iberia desde la T4 en Madrid, el tiempo límite de cierre de facturación es de 55 minutos antes de la salida.',
+    source: 'Corregido con feedback de David (compañero, conocimiento operativo real de la T4 Madrid) — 29JUL26'
   },
   {
     id: 'ib-q10',
@@ -127,7 +136,8 @@ export const IBERIA_BANK = [
       '24 semanas'
     ],
     correctIndex: 0,
-    explanation: 'A partir de la semana 28 de gestación se requiere un certificado médico emitido no más de 7 días antes del vuelo.'
+    explanation: 'A partir de la semana 28 de gestación se requiere un certificado médico emitido no más de 7 días antes del vuelo.',
+    source: 'Examen recuperado — PENDIENTE de verificar contra iberia.com oficial (agente de verificación no pudo ejecutarse)'
   },
   {
     id: 'ib-q11',
@@ -140,6 +150,7 @@ export const IBERIA_BANK = [
       'IBERIA.COM -> Check-in -> Incidencias'
     ],
     correctIndex: 0,
-    explanation: 'La ruta oficial de auto-servicio es a través del menú de Ayuda -> Servicios Online.'
+    explanation: 'La ruta oficial de auto-servicio es a través del menú de Ayuda -> Servicios Online.',
+    source: 'Examen recuperado — PENDIENTE de verificar contra iberia.com oficial (agente de verificación no pudo ejecutarse)'
   }
 ];

@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "test:parser": "node scripts/test-parser.js",
     "test:regression": "node scripts/test-regression.js",
+    "test:learning": "node scripts/test-learning-path.js",
     "test:e2e": "playwright test"
   },
   "dependencies": {

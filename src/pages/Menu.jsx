@@ -24,8 +24,8 @@ export function Menu() {
           onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(30, 41, 59, 0.7)'; e.currentTarget.style.transform = 'translateY(0)'; }}
           >
             <TerminalSquare size={72} color="#38bdf8" style={{ marginBottom: '1.5rem' }} />
-            <h3 style={{ color: '#fff', fontSize: '1.4rem', marginBottom: '0.5rem' }}>Simulador PNR</h3>
-            <p style={{ color: '#94a3b8', textAlign: 'center', fontSize: '0.95rem' }}>Practica comandos y reservas en la consola Amadeus.</p>
+            <h3 style={{ color: '#fff', fontSize: '1.4rem', marginBottom: '0.5rem' }}>Ruta PNR guiada</h3>
+            <p style={{ color: '#94a3b8', textAlign: 'center', fontSize: '0.95rem' }}>Avanza por 24 nodos, practica una misión diaria y usa el simulador Amadeus sin bloqueos.</p>
           </div>
         </Link>
 

@@ -141,10 +141,10 @@ export class PnrStateMachine {
         return this.handleConvertCurrency(params, rawInput);
 
       case 'QUERY_SCHEDULE':
-        return this.handleSchedule(params, flightsCatalog);
+        return this.handleSchedule(params, flightsCatalog, rawInput);
 
       case 'QUERY_AVAILABILITY':
-        return this.handleAvailability(params, flightsCatalog);
+        return this.handleAvailability(params, flightsCatalog, rawInput);
 
       case 'SELL_SEGMENT':
         return this.handleSellSegment(params, rawInput);
@@ -405,17 +405,39 @@ export class PnrStateMachine {
   // parseaba bien origen/destino/fecha, el motor seguía con un default
   // silencioso (BOG/MIA/25NOV) en vez de avisar — el estudiante veía
   // vuelos "de la nada" sin saber que su comando no se leyó bien.
-  handleAvailability(params, flightsCatalog) {
+  handleAvailability(params, flightsCatalog, rawInput = '') {
     if (!params.origin || !params.destination || !params.date) {
       return { success: false, error: 'FORMAT ERROR - CHECK DATE/ORIGIN/DESTINATION (AN{fecha}{origen}{destino})' };
     }
-    const { origin, destination, date } = params;
+    return this._resolveAvailability(params.origin, params.destination, params.date, rawInput, 'AVAILABILITY');
+  }
 
-    // Vuelos dinámicos en cada consulta (variedad para aprender).
-    const matches = this.generateDynamicFlights(origin, destination);
+  // Ida + regreso mismo mes, desglosado en dos plantillas con numeración
+  // continua (sintaxis real confirmada por David: "SN 18 MAR MAD BER*30"
+  // — el "*30" es el día de regreso, mismo mes que la ida). Sin el "*",
+  // se comporta exactamente igual que antes (una sola plantilla).
+  _resolveAvailability(origin, destination, date, rawInput, type) {
+    const rtMatch = (rawInput || '').match(/\*\s*(\d{1,2})\s*$/);
+    const outbound = this.generateDynamicFlights(origin, destination);
 
-    this.state.lastAvailability = { date, origin, destination, flights: matches };
-    return { success: true, type: 'AVAILABILITY', data: this.state.lastAvailability };
+    if (!rtMatch) {
+      this.state.lastAvailability = { date, origin, destination, flights: outbound };
+      return { success: true, type, data: this.state.lastAvailability };
+    }
+
+    const returnDay = rtMatch[1].padStart(2, '0');
+    const month = (date.match(/[A-Z]{3}/i) || [''])[0].toUpperCase();
+    const returnDate = `${returnDay}${month}`;
+    const inbound = this.generateDynamicFlights(destination, origin);
+    const outboundCount = outbound.length;
+    inbound.forEach((f, i) => { f.line = outboundCount + i + 1; });
+
+    this.state.lastAvailability = {
+      date, origin, destination, returnDate, outboundCount,
+      isRoundTrip: true,
+      flights: [...outbound, ...inbound]
+    };
+    return { success: true, type, data: this.state.lastAvailability };
   }
 
   handleSellSegment(params, rawInput = '') {
@@ -979,22 +1001,11 @@ export class PnrStateMachine {
 
   // Mismo principio que handleAvailability: error honesto si no parseó,
   // nunca un destino inventado (hallazgo de David).
-  handleSchedule(params, flightsCatalog) {
+  handleSchedule(params, flightsCatalog, rawInput = '') {
     if (!params.origin || !params.destination || !params.date) {
       return { success: false, error: 'FORMAT ERROR - CHECK DATE/ORIGIN/DESTINATION (SN{fecha}{origen}{destino})' };
     }
-    const { origin, destination, date } = params;
-
-    // Vuelos dinámicos en cada consulta (variedad para aprender).
-    const matches = this.generateDynamicFlights(origin, destination);
-
-    this.state.lastAvailability = { date, origin, destination, flights: matches };
-
-    return {
-      success: true,
-      type: 'SCHEDULE',
-      data: { date, origin, destination, flights: matches }
-    };
+    return this._resolveAvailability(params.origin, params.destination, params.date, rawInput, 'SCHEDULE');
   }
 
   handleFareSummation(params, rawInput) {

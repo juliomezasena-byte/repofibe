@@ -8,7 +8,7 @@ import { test, expect } from '@playwright/test';
 // que no hace falta inyectar nada aquí.
 test.describe('smoke', () => {
   test('el terminal responde SN 12 APR MEX SDQ con SCHEDULE NEUTRAL', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/simulador');
 
     // La app cargo: el header del emulador muestra AMADEUS.
     await expect(page.getByText('AMADEUS 1A GDS')).toBeVisible();
@@ -21,7 +21,7 @@ test.describe('smoke', () => {
   });
 
   test('la pestania Teoria muestra el QUIZ RAPIDO', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/simulador');
 
     await page.getByText('Teoría').click();
 

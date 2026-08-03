@@ -1,0 +1,30 @@
+/* Atmosfera GDS: estatica, sutil y sin competir con el contenido. */
+:root {
+  --background-grid: rgba(148, 163, 184, 0.035);
+  --background-halo: rgba(0, 229, 255, 0.075);
+}
+
+body {
+  background-color: #060a10;
+  background-image:
+    radial-gradient(circle at 50% -12%, var(--background-halo), transparent 42rem),
+    linear-gradient(to right, var(--background-grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--background-grid) 1px, transparent 1px);
+  background-repeat: no-repeat, repeat, repeat;
+  background-size: auto, 48px 48px, 48px 48px;
+  background-position: center top, center top, center top;
+}
+
+@media (max-width: 868px) {
+  body {
+    --background-grid: rgba(148, 163, 184, 0.022);
+    --background-halo: rgba(0, 229, 255, 0.055);
+    background-size: auto, 64px 64px, 64px 64px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body {
+    background-attachment: scroll;
+  }
+}
