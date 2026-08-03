@@ -27,4 +27,24 @@ test.describe('smoke', () => {
 
     await expect(page.getByText('QUIZ RÁPIDO')).toBeVisible();
   });
+
+  test('Teoria no crashea si se abre antes de que carguen los catalogos', async ({ page }) => {
+    const errors = [];
+    page.on('pageerror', (err) => errors.push(err.message));
+
+    // Retrasa el catálogo de comandos para forzar la ventana en la que
+    // profileConfig sigue siendo null (antes: QuizEngine.pick() sobre un
+    // array vacío tiraba "Cannot read properties of undefined").
+    await page.route('**/profiles/amadeus/commands_meta.json', async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await route.continue();
+    });
+
+    await page.goto('/simulador');
+    await page.getByText('Teoría').click();
+
+    await expect(page.getByText('Cargando el manual de comandos')).toBeVisible();
+    await expect(page.getByText('QUIZ RÁPIDO')).toBeVisible({ timeout: 5000 });
+    expect(errors).toEqual([]);
+  });
 });

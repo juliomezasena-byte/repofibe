@@ -30,7 +30,11 @@ const users = [
   "juliomezasena@gmail.com"
 ];
 
-const DEFAULT_PASSWORD = "Estudiante2026!";
+const DEFAULT_PASSWORD = process.env.STUDENT_DEFAULT_PASSWORD;
+if (!DEFAULT_PASSWORD) {
+  console.error("Falta STUDENT_DEFAULT_PASSWORD en el entorno. Ejemplo: STUDENT_DEFAULT_PASSWORD='...' node scripts/create-users.js");
+  process.exit(1);
+}
 
 async function createUsers() {
   console.log("Iniciando creación de usuarios...");

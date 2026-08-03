@@ -329,7 +329,9 @@ export class QuizEngine {
         prompt: item.text,
         options,
         correctIndex,
-        explain: item.explanation
+        explain: item.explanation,
+        source: item.source,
+        verified: !/pendiente de verificar/i.test(item.source || '')
       });
     }
     // Barajamos el orden de las preguntas

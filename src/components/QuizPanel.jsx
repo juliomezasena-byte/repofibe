@@ -144,6 +144,21 @@ export const QuizPanel = ({ profileConfig, locationsCatalog, flightsCatalog, cou
   };
 
   const q = questions[current];
+  const catalogsReady = Boolean(profileConfig?.commands?.length);
+
+  if (!catalogsReady) {
+    return (
+      <div ref={panelRef} className="quiz-panel">
+        <div className="quiz-menu">
+          <div className="quiz-title">
+            <Brain size={22} />
+            <span>MODO TEORÍA — ¿QUÉ CÓDIGO ES PARA QUÉ?</span>
+          </div>
+          <p className="quiz-sub">Cargando el manual de comandos…</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div ref={panelRef} className="quiz-panel">

@@ -1311,6 +1311,12 @@ export class PnrStateMachine {
     if (mTkt && mTkt[1].replace(/-/g, '') !== String(t.number).replace(/-/g, '')) {
       return { success: false, error: 'TICKET NOT FOUND' };
     }
+    // Solo hay un billete activo en el PNR (no se modela numeración de
+    // líneas múltiples), así que la única línea válida es la 1 — antes
+    // TWD/L999 devolvía éxito igual que TWD/L1.
+    if (mLine && parseInt(mLine[1], 10) !== 1) {
+      return { success: false, error: 'TICKET NOT FOUND' };
+    }
     return { success: true, type: 'TICKET_DETAIL', data: { ticket: t } };
   }
 

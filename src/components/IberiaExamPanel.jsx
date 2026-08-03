@@ -71,8 +71,11 @@ export const IberiaExamPanel = ({ profileConfig, locationsCatalog, flightsCatalo
         {mode === 'menu' && (
           <div className="quiz-menu" style={{ textAlign: 'center', paddingTop: '20px' }}>
             <p className="quiz-sub" style={{ fontSize: '16px', marginBottom: '30px' }}>
-              Este es el simulacro oficial de certificación. Consta de <strong>11 preguntas exactas</strong> sobre enrutamiento, asignación de asientos, políticas de equipaje e infantes y gestión de reservas según los manuales oficiales.
+              Simulacro de certificación basado en un examen recuperado. Consta de <strong>11 preguntas exactas</strong> sobre enrutamiento, asignación de asientos, políticas de equipaje e infantes y gestión de reservas.
             </p>
+            <div style={{ backgroundColor: '#3a2a10', padding: '12px 15px', borderRadius: '6px', marginBottom: '20px', textAlign: 'left', borderLeft: '4px solid #e0a020', fontSize: '14px' }}>
+              Algunas respuestas aún están <strong>pendientes de verificación</strong> contra la fuente oficial de Iberia — se marcan durante el examen. No las trates como definitivas hasta confirmarlas con tu instructor.
+            </div>
             <div style={{ backgroundColor: '#222', padding: '15px', borderRadius: '6px', marginBottom: '30px', textAlign: 'left', borderLeft: '4px solid #d7192d' }}>
               <strong>Reglas del examen:</strong>
               <ul style={{ margin: '10px 0 0 0', paddingLeft: '20px' }}>
@@ -92,6 +95,12 @@ export const IberiaExamPanel = ({ profileConfig, locationsCatalog, flightsCatalo
             <div className="quiz-progress" style={{ color: '#d7192d', fontWeight: 'bold', borderBottom: '1px solid #333', paddingBottom: '10px', marginBottom: '15px' }}>
               PREGUNTA {current + 1} DE {questions.length}
             </div>
+
+            {q.verified === false && (
+              <div style={{ backgroundColor: '#3a2a10', color: '#e0a020', padding: '6px 12px', borderRadius: '4px', fontSize: '13px', fontWeight: 'bold', marginBottom: '10px', display: 'inline-block' }}>
+                ⚠ PENDIENTE DE VERIFICACIÓN OFICIAL
+              </div>
+            )}
 
             <div className="quiz-prompt">
               {q.prompt}

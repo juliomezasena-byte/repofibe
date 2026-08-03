@@ -343,7 +343,7 @@ probarRegresionNegativa('Nivel 24: no completa con clase distinta a Y',
     contacts: [{ id: 1, text: 'AP123' }],
     ticketing: 'TK OK'
   });
-  const secuencia = ['FXP', 'ER', 'TTP1/ET/RT', 'TWD/L9'];
+  const secuencia = ['FXP', 'ER', 'TTP1/ET/RT', 'TWD/L1'];
   let last = null;
   for (const cmd of secuencia) {
     last = fsm.process(parser.parse(cmd), flights, locations);
@@ -352,6 +352,27 @@ probarRegresionNegativa('Nivel 24: no completa con clase distinta a Y',
     console.log('  [PASS] TWD funciona tras una emisión real del motor (antes: NO TICKET ON FILE)');
   } else {
     console.error(`  [FAIL] TWD tras emisión real del motor: ${JSON.stringify(last)}`);
+    toleranceFailures++;
+  }
+})();
+
+(function probarTwdLineaInexistenteFalla() {
+  fsm.reset();
+  fsm.setState({
+    passengers: [{ id: 1, name: 'TEST/PAX' }],
+    segments: [{ id: 1, flight: 'IB1', class: 'Y', date: '01ENE', route: 'MAD-BCN', status: 'HK1' }],
+    contacts: [{ id: 1, text: 'AP123' }],
+    ticketing: 'TK OK'
+  });
+  const secuencia = ['FXP', 'ER', 'TTP1/ET/RT', 'TWD/L999'];
+  let last = null;
+  for (const cmd of secuencia) {
+    last = fsm.process(parser.parse(cmd), flights, locations);
+  }
+  if (!last.success) {
+    console.log('  [PASS] TWD/L999 no encuentra billete (antes: cualquier número de línea devolvía éxito)');
+  } else {
+    console.error(`  [FAIL] TWD/L999 debía fallar: ${JSON.stringify(last)}`);
     toleranceFailures++;
   }
 })();
