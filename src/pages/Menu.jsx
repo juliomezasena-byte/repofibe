@@ -7,7 +7,7 @@ export function Menu() {
     <main className="main-layout" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: '80vh' }}>
       <h2 style={{ marginBottom: '2.5rem', color: '#f8fafc', fontSize: '2.2rem', fontWeight: 'bold' }}>Elige tu entrenamiento</h2>
       <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-        <Link to="/simulador" style={{ textDecoration: 'none' }}>
+        <Link to="/guia" style={{ textDecoration: 'none' }}>
           <div style={{ 
             background: 'rgba(30, 41, 59, 0.7)', 
             border: '1px solid rgba(255, 255, 255, 0.1)', 

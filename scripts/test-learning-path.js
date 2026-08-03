@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { getDailyPlan, getDailyRecommendation, recordScenarioCompletion } from '../src/lib/learningPath.js';
+import { getLessonContent } from '../src/lib/lessonContent.js';
 
 const scenarios = JSON.parse(fs.readFileSync('public/profiles/amadeus/scenarios.json', 'utf8')).scenarios;
 const curriculum = JSON.parse(fs.readFileSync('public/profiles/amadeus/curriculum.json', 'utf8'));
@@ -14,6 +15,13 @@ for (const node of curriculum.nodes) {
   assert.ok(curriculum.phases.some((phase) => phase.id === node.phaseId), `${node.scenarioId}: fase inexistente`);
   for (const prerequisite of node.prerequisites) assert.ok(nodeIds.has(prerequisite), `${node.scenarioId}: prerrequisito inexistente`);
 }
+
+const firstLesson = getLessonContent(scenarios.find((scenario) => scenario.id === 'scenario-1'));
+assert.equal(firstLesson.title, 'Consultar disponibilidad');
+assert.ok(firstLesson.objective.length > 20, 'la lección debe tener un objetivo claro');
+assert.ok(firstLesson.steps.length >= 3, 'la lección debe tener pasos guiados');
+const fallbackLesson = getLessonContent(scenarios.find((scenario) => scenario.id === 'scenario-24'));
+assert.ok(fallbackLesson.steps.length >= 3, 'toda lección debe tener guía aunque use respaldo');
 
 const now = Date.UTC(2026, 7, 2, 12);
 let progress = {};

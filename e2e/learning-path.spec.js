@@ -1,6 +1,25 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Ruta guiada de aprendizaje', () => {
+  test('la pantalla inicial abre una guía de lecciones, no un mapa técnico', async ({ page }) => {
+    await page.goto('/');
+
+    await page.getByText('Ruta PNR guiada').click();
+    await expect(page).toHaveURL(/\/guia$/);
+    await expect(page.getByText('GUÍA DE APRENDIZAJE')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Aprende Amadeus practicando' })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Comenzar lección/ })).toBeVisible();
+    await expect(page.locator('.lesson-list-item')).toHaveCount(24);
+  });
+
+  test('la guía abre la práctica real del escenario seleccionado', async ({ page }) => {
+    await page.goto('/guia');
+
+    await page.getByRole('button', { name: /Comenzar lección/ }).click();
+    await expect(page).toHaveURL(/\/simulador$/);
+    await expect(page.getByText('RUTA GUIADA')).toBeVisible();
+  });
+
   test('muestra la misión diaria y los 24 nodos sin ocultar el selector libre', async ({ page }) => {
     await page.goto('/simulador');
 
