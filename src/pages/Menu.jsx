@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { TerminalSquare, Brain, FileCheck, Phone } from 'lucide-react';
+import { TerminalSquare, Brain, FileCheck, Phone, ShieldCheck } from 'lucide-react';
 
 export function Menu() {
   return (
@@ -70,6 +70,28 @@ export function Menu() {
             <FileCheck size={72} color="#ef4444" style={{ marginBottom: '1.5rem' }} />
             <h3 style={{ color: '#fff', fontSize: '1.4rem', marginBottom: '0.5rem', textAlign: 'center' }}>Examen Oficial Iberia</h3>
             <p style={{ color: '#94a3b8', textAlign: 'center', fontSize: '0.95rem' }}>Simulación exacta de las 11 preguntas del examen oficial recuperado.</p>
+          </div>
+        </Link>
+
+        <Link to="/examen-seguridad" style={{ textDecoration: 'none' }}>
+          <div style={{
+            background: 'rgba(30, 41, 59, 0.7)',
+            border: '1px solid rgba(2, 132, 199, 0.3)',
+            borderRadius: '12px',
+            padding: '2.5rem',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            width: '260px',
+            transition: 'transform 0.2s, background 0.2s',
+            backdropFilter: 'blur(10px)'
+          }}
+          onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(2, 132, 199, 0.15)'; e.currentTarget.style.transform = 'translateY(-5px)'; }}
+          onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(30, 41, 59, 0.7)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+          >
+            <ShieldCheck size={72} color="#0284c7" style={{ marginBottom: '1.5rem' }} />
+            <h3 style={{ color: '#fff', fontSize: '1.4rem', marginBottom: '0.5rem', textAlign: 'center' }}>Examen Filtro Seguridad</h3>
+            <p style={{ color: '#94a3b8', textAlign: 'center', fontSize: '0.95rem' }}>Evaluación dedicada sobre autenticación de titulares, PNR, esperas y protocolo de llamada.</p>
           </div>
         </Link>
 

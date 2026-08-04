@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { TerminalSquare, BookOpen, Brain, Layout, Volume2, VolumeX } from 'lucide-react';
+import { TerminalSquare, BookOpen, Brain, Layout, Volume2, VolumeX, ShieldCheck } from 'lucide-react';
 import { DslParser } from './engine/DslParser';
 import { PnrStateMachine } from './engine/PnrStateMachine';
 import { ResponseGenerator } from './engine/ResponseGenerator';
@@ -11,6 +11,7 @@ import { Simulator } from './pages/Simulator';
 import { Roleplay } from './pages/Roleplay';
 import { Theory } from './pages/Theory';
 import { IberiaExam } from './pages/IberiaExam';
+import { SecurityExam } from './pages/SecurityExam';
 import { LearningGuide } from './pages/LearningGuide';
 import { LoginScreen } from './components/LoginScreen';
 import { auth } from './lib/firebase';
@@ -398,6 +399,12 @@ export function App() {
             >
               <Brain size={14} /> Teoría
             </NavLink>
+            <NavLink
+              to="/examen-seguridad"
+              className={({ isActive }) => `seg-btn ${isActive ? 'seg-active' : ''}`}
+            >
+              <ShieldCheck size={14} /> Examen Filtro Seguridad
+            </NavLink>
           </div>
           <button
             onClick={() => { navigate('/simulador'); handleExecuteCommand('HE'); }}
@@ -423,6 +430,7 @@ export function App() {
           <Route path="/guia" element={<LearningGuide />} />
           <Route path="/teoria" element={<Theory />} />
           <Route path="/examen-iberia" element={<IberiaExam />} />
+          <Route path="/examen-seguridad" element={<SecurityExam />} />
           <Route path="*" element={<Menu />} />
         </Routes>
       </AppProvider>

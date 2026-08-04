@@ -7,6 +7,7 @@
  */
 
 import { IBERIA_BANK } from './quizBanks/iberia.js';
+import { SECURITY_FILTER_BANK } from './quizBanks/securityFilter.js';
 
 // PRNG mulberry32 — pequeño, determinista, suficiente para barajar preguntas.
 function mulberry32(seed) {
@@ -337,6 +338,29 @@ export class QuizEngine {
     // Barajamos el orden de las preguntas
     const shuffledQuestions = this.shuffle(questions, rnd);
     // Asignarles ID
+    return shuffledQuestions.map((q, i) => ({ ...q, id: i + 1 }));
+  }
+
+  /**
+   * Genera el Examen dedicado de Filtro de Seguridad y Protocolo de Llamada.
+   */
+  generateSecurityExam(seed = Date.now()) {
+    const rnd = mulberry32(seed);
+    const questions = [];
+    for (const item of SECURITY_FILTER_BANK) {
+      const correctOpt = item.options[item.correctIndex];
+      const { options, correctIndex } = this.buildOptions(correctOpt, item.options, rnd);
+      questions.push({
+        type: 'security',
+        prompt: item.text,
+        options,
+        correctIndex,
+        explain: item.explanation,
+        source: item.source,
+        verified: true
+      });
+    }
+    const shuffledQuestions = this.shuffle(questions, rnd);
     return shuffledQuestions.map((q, i) => ({ ...q, id: i + 1 }));
   }
 }
