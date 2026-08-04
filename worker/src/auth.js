@@ -29,7 +29,7 @@ export function assertValidClaims(payload, projectId) {
 }
 
 export async function verifyFirebaseIdToken(idToken, projectId) {
-  const { payload } = await jwtVerify(idToken, getJWKS());
+  const { payload } = await jwtVerify(idToken, getJWKS(), { algorithms: ['RS256'] });
   assertValidClaims(payload, projectId);
   return { uid: payload.sub };
 }
