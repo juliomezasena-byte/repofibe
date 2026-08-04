@@ -6,6 +6,7 @@ Thumbs.db
 .agent/
 .env
 .env.local
+.env.production
 
 # Playwright es dependencia OPCIONAL: se importa dinámicamente y el núcleo
 # degrada con gracia sin ella. Commitear un package.json que la liste la

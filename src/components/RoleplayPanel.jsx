@@ -28,7 +28,10 @@ export function RoleplayPanel({ scenarios, activeScenario, evaluationResult }) {
     try {
       let idToken = 'mock-token';
       if (import.meta.env.VITE_E2E_MOCK_AUTH !== '1') {
-        idToken = await auth.currentUser.getIdToken();
+        if (!auth.currentUser) {
+          throw new Error('Debes iniciar sesión para usar la llamada.');
+        }
+        idToken = await auth.currentUser.getIdToken(true);
       }
       const { passengerReply } = await sendTurn(idToken, scenarioId, newHistory);
       const withReply = [...newHistory, { role: 'passenger', text: passengerReply }];
@@ -38,7 +41,7 @@ export function RoleplayPanel({ scenarios, activeScenario, evaluationResult }) {
       if (err.status === 429) {
         setError('Ya usaste tu práctica gratuita de hoy. Vuelve mañana.');
       } else {
-        setError('No se pudo contactar al pasajero simulado. Intenta de nuevo.');
+        setError(err.message || 'No se pudo contactar al pasajero simulado. Intenta de nuevo.');
       }
     }
   }
@@ -66,7 +69,10 @@ export function RoleplayPanel({ scenarios, activeScenario, evaluationResult }) {
       let idToken = 'mock-token';
       let uid = 'e2e';
       if (import.meta.env.VITE_E2E_MOCK_AUTH !== '1') {
-        idToken = await auth.currentUser.getIdToken();
+        if (!auth.currentUser) {
+          throw new Error('Debes iniciar sesión.');
+        }
+        idToken = await auth.currentUser.getIdToken(true);
         uid = auth.currentUser.uid;
       }
       const result = await evaluateSession(idToken, scenarioId, history);
@@ -85,6 +91,8 @@ export function RoleplayPanel({ scenarios, activeScenario, evaluationResult }) {
   return (
     <div className="roleplay-panel">
       <h3>Llamada de práctica</h3>
+
+      {error && <p className="roleplay-error">{error}</p>}
 
       {!callActive && !feedback && (
         <>
@@ -122,8 +130,6 @@ export function RoleplayPanel({ scenarios, activeScenario, evaluationResult }) {
             )}
             <button type="submit" disabled={history.length >= MAX_TURNS}>Enviar</button>
           </form>
-
-          {error && <p className="roleplay-error">{error}</p>}
 
           <button onClick={endCall}><PhoneOff size={16} /> Finalizar llamada</button>
         </>

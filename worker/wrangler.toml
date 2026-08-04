@@ -4,11 +4,11 @@ compatibility_date = "2025-01-01"
 
 [[kv_namespaces]]
 binding = "ROLEPLAY_KV"
-id = "REEMPLAZAR_DESPUES_DE_CREAR_EL_NAMESPACE"
+id = "f4fa902d671a4c34bb20b6db2fbe5c42"
 
 [vars]
 FIREBASE_PROJECT_ID = "simulador-3362613"
-GEMINI_MODEL = "gemini-2.0-flash"
+GEMINI_MODEL = "gemini-2.5-flash"
 DAILY_QUOTA = "20"
 MAX_TURNS = "8"
 ALLOWED_ORIGIN = "https://simulador-3362613.web.app"

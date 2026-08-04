@@ -28,8 +28,8 @@ const transcript = [
 ];
 const evalPrompt = buildEvaluationPrompt(scenario, transcript);
 check('el prompt de evaluación incluye la transcripción', evalPrompt.includes('Quiero saber el estado de mi vuelo.'));
-check('el prompt de evaluación menciona los 5 pasos del guion corporativo', RUBRIC.every((c) => evalPrompt.includes(c.name)));
-check('RUBRIC tiene exactamente los 5 pasos del guion corporativo', RUBRIC.length === 5);
+check('el prompt de evaluación menciona todos los pasos del guion corporativo', RUBRIC.every((c) => evalPrompt.includes(c.name)));
+check('RUBRIC tiene exactamente los 6 pasos del guion corporativo', RUBRIC.length === 6);
 
 console.log(`\nResultados: ${passed} pasados, ${failed} fallidos.`);
 if (failed > 0) process.exit(1);

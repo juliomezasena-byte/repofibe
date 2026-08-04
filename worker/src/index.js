@@ -21,18 +21,15 @@ function findScenario(scenarioId) {
 
 async function authenticate(request, env) {
   const authHeader = request.headers.get('Authorization') || '';
-  const idToken = authHeader.replace('Bearer ', '');
-  if (!idToken) throw new Error('Falta el header Authorization');
+  const idToken = authHeader.replace('Bearer ', '').trim();
+  if (!idToken || idToken === 'undefined' || idToken === 'null') {
+    throw new Error('Token de autenticación faltante o inválido. Por favor vuelve a iniciar sesión.');
+  }
   return verifyFirebaseIdToken(idToken, env.FIREBASE_PROJECT_ID);
 }
 
 async function handleTurn(request, env) {
   const { uid } = await authenticate(request, env);
-
-  const quota = await checkAndConsumeQuota(env.ROLEPLAY_KV, uid, todayKey(), Number(env.DAILY_QUOTA));
-  if (!quota.allowed) {
-    return new Response(JSON.stringify({ error: 'quota_exceeded' }), { status: 429, headers: corsHeaders(env) });
-  }
 
   const { scenarioId, history } = await request.json();
   if (!scenarioId || !Array.isArray(history)) {
@@ -41,8 +38,13 @@ async function handleTurn(request, env) {
   if (history.length >= Number(env.MAX_TURNS)) {
     return new Response(JSON.stringify({ error: 'max_turns_reached' }), { status: 400, headers: corsHeaders(env) });
   }
-
   const scenario = findScenario(scenarioId);
+
+  const quota = await checkAndConsumeQuota(env.ROLEPLAY_KV, uid, todayKey(), Number(env.DAILY_QUOTA));
+  if (!quota.allowed) {
+    return new Response(JSON.stringify({ error: 'quota_exceeded' }), { status: 429, headers: corsHeaders(env) });
+  }
+
   const systemPrompt = buildPassengerSystemPrompt(scenario);
   const passengerReply = await generatePassengerReply(env.GEMINI_API_KEY, env.GEMINI_MODEL, systemPrompt, history);
 
@@ -81,6 +83,7 @@ export default {
       }
       return new Response(JSON.stringify({ error: 'not_found' }), { status: 404, headers: corsHeaders(env) });
     } catch (err) {
+      console.error('Worker Request Error:', err.message, err.stack);
       const status = /token|Authorization|Issuer|Audience|expirado|uid/i.test(err.message) ? 401 : 500;
       return new Response(JSON.stringify({ error: err.message }), { status, headers: corsHeaders(env) });
     }
