@@ -26,7 +26,10 @@ export function RoleplayPanel({ scenarios, activeScenario, evaluationResult }) {
     setHistory(newHistory);
 
     try {
-      const idToken = await auth.currentUser.getIdToken();
+      let idToken = 'mock-token';
+      if (import.meta.env.VITE_E2E_MOCK_AUTH !== '1') {
+        idToken = await auth.currentUser.getIdToken();
+      }
       const { passengerReply } = await sendTurn(idToken, scenarioId, newHistory);
       const withReply = [...newHistory, { role: 'passenger', text: passengerReply }];
       setHistory(withReply);
@@ -60,10 +63,15 @@ export function RoleplayPanel({ scenarios, activeScenario, evaluationResult }) {
   async function endCall() {
     setCallActive(false);
     try {
-      const idToken = await auth.currentUser.getIdToken();
+      let idToken = 'mock-token';
+      let uid = 'e2e';
+      if (import.meta.env.VITE_E2E_MOCK_AUTH !== '1') {
+        idToken = await auth.currentUser.getIdToken();
+        uid = auth.currentUser.uid;
+      }
       const result = await evaluateSession(idToken, scenarioId, history);
       setFeedback(result);
-      await saveRoleplaySession(auth.currentUser.uid, {
+      await saveRoleplaySession(uid, {
         scenarioId,
         technicalScore: evaluationResult?.score ?? 0,
         serviceScore: result.score,
@@ -99,21 +107,21 @@ export function RoleplayPanel({ scenarios, activeScenario, evaluationResult }) {
             ))}
           </div>
 
-          {supported ? (
-            <button onClick={handleMicClick} disabled={listening || history.length >= MAX_TURNS}>
-              <Mic size={16} /> {listening ? 'Escuchando...' : 'Hablar'}
-            </button>
-          ) : (
-            <form onSubmit={handleTextSubmit}>
-              <input
-                value={textInput}
-                onChange={(e) => setTextInput(e.target.value)}
-                placeholder="Escribe tu respuesta al pasajero"
-                disabled={history.length >= MAX_TURNS}
-              />
-              <button type="submit" disabled={history.length >= MAX_TURNS}>Enviar</button>
-            </form>
-          )}
+          <form onSubmit={handleTextSubmit} style={{ display: 'flex', gap: '8px' }}>
+            <input
+              value={textInput}
+              onChange={(e) => setTextInput(e.target.value)}
+              placeholder="Escribe tu respuesta al pasajero"
+              disabled={history.length >= MAX_TURNS}
+              style={{ flex: 1 }}
+            />
+            {supported && (
+              <button type="button" onClick={handleMicClick} disabled={listening || history.length >= MAX_TURNS}>
+                <Mic size={16} /> {listening ? 'Escuchando...' : 'Hablar'}
+              </button>
+            )}
+            <button type="submit" disabled={history.length >= MAX_TURNS}>Enviar</button>
+          </form>
 
           {error && <p className="roleplay-error">{error}</p>}
 

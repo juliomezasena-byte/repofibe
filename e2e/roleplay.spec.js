@@ -26,7 +26,7 @@ test('el agente completa una llamada de práctica y ve el feedback', async ({ pa
 
   const textInput = page.getByPlaceholder('Escribe tu respuesta al pasajero');
   await textInput.fill('Iberia, buenos días, ¿en qué puedo ayudarle?');
-  await page.getByRole('button', { name: /enviar/i }).click();
+  await page.getByRole('button', { name: 'Enviar', exact: true }).click();
 
   await expect(page.getByText('Buenos días, quisiera saber el estado de mi vuelo.')).toBeVisible();
 

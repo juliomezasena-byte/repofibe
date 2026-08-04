@@ -196,8 +196,8 @@ const transcript = [
 ];
 const evalPrompt = buildEvaluationPrompt(scenario, transcript);
 check('el prompt de evaluación incluye la transcripción', evalPrompt.includes('Quiero saber el estado de mi vuelo.'));
-check('el prompt de evaluación menciona los 5 criterios de la rúbrica', RUBRIC.every((c) => evalPrompt.includes(c.name)));
-check('RUBRIC tiene exactamente 5 criterios', RUBRIC.length === 5);
+check('el prompt de evaluación menciona los 5 pasos del guion corporativo', RUBRIC.every((c) => evalPrompt.includes(c.name)));
+check('RUBRIC tiene exactamente los 5 pasos del guion corporativo', RUBRIC.length === 5);
 
 console.log(`\nResultados: ${passed} pasados, ${failed} fallidos.`);
 if (failed > 0) process.exit(1);
@@ -212,11 +212,11 @@ Expected: `Error [ERR_MODULE_NOT_FOUND]` porque `src/prompts.js` no existe todav
 
 ```js
 export const RUBRIC = [
-  { name: 'Saludo corporativo', description: 'Se identifica como agente de Iberia y saluda con cortesía profesional.' },
-  { name: 'Tono y empatía', description: 'Mantiene un tono cálido y profesional acorde a la urgencia del caso.' },
-  { name: 'Escucha activa', description: 'Confirma o repite lo que el pasajero pidió antes de actuar.' },
-  { name: 'Claridad de la gestión', description: 'Explica con claridad qué está haciendo o qué opciones tiene el pasajero.' },
-  { name: 'Cierre y despedida', description: 'Resume la solución y se despide cortésmente.' }
+  { name: 'Saludo', description: 'Saluda al pasajero apropiadamente al contestar la llamada (identifica la aerolínea, cortesía profesional).' },
+  { name: 'Pedir nombre', description: 'Pregunta el nombre del pasajero.' },
+  { name: 'Parafraseo usando el nombre', description: 'Repite o parafrasea lo que dijo el pasajero, dirigiéndose a él/ella por su nombre.' },
+  { name: 'Verbalizar ayuda y pedir código de reserva y apellido', description: 'Ofrece ayuda mencionando el nombre del pasajero, y solicita el código de reserva (localizador) y el apellido.' },
+  { name: 'Pedir número de recontacto', description: 'Solicita un número de teléfono para poder recontactar al pasajero.' }
 ];
 
 export function buildPassengerSystemPrompt(scenario) {
