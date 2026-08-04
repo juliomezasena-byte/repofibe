@@ -1,0 +1,122 @@
+[
+  {
+    "id": "scenario-1",
+    "title": "Nivel 1: Consulta de Vuelos SN 12 APR MEX SDQ (Guía de Clase)",
+    "description": "PASAJEROS (PAXS): 1 ADT (Adulto: Carlos García MR). El cliente llama desde México (oficina MEX).\nRUTA: Ciudad de México (MEX) ➔ Santo Domingo (SDQ).\nFECHA SALIDA: 12 APR.\nTAREA: Revisa los horarios (SN 12 APR MEX SDQ), vende 1 puesto en clase Y (SS1Y1), ingresa nombre (NM1GARCIA/CARLOS MR), teléfono (APMEX 525512345678-M), opción TK OK, factura la tarifa del adulto en la oficina de México (FXX/FF-OPTIMA/RAD,MEX) y guarda con ER."
+  },
+  {
+    "id": "scenario-2",
+    "title": "Nivel 2: Reserva Doble Pasajeros Adultos (MAD-BCN)",
+    "description": "PASAJEROS (PAXS): 2 ADT (Adultos: Juan Pérez MR y María Pérez MRS).\nRUTA: Madrid (MAD) ➔ Barcelona (BCN).\nFECHA SALIDA: 15DEC.\nCABINA: Turista (Clase Y).\nTAREA: Revisa disponibilidad (AN15DECMADBCN), vende 2 puestos (SS2Y1), registra nombres (NM2PEREZ/JUAN MR/MARIA MRS), contacto (APMAD 34912345678-A), cotización (FXX) y guarda con ER."
+  },
+  {
+    "id": "scenario-3",
+    "title": "Nivel 3: Modificación y Cancelación de Elemento (XE)",
+    "description": "PASAJEROS (PAXS): 1 ADT (Lucía Martínez MS).\nRUTA: Bogotá (BOG) ➔ Miami (MIA) (25NOV).\nPROBLEMA: El PNR activo tiene un teléfono erróneo en la línea 3.\nTAREA: Abre la reserva (RT), cancela la línea 3 con XE3, agrega el celular actualizado y guarda el PNR con ER."
+  },
+  {
+    "id": "scenario-4",
+    "title": "Nivel 4: Ignorar Modificaciones en Área de Trabajo (IG)",
+    "description": "PASAJEROS (PAXS): Área de trabajo sucia: hay un pasajero mal escrito y un vuelo vendido por error que NO se deben guardar.\nTAREA: Limpia el terminal ignorando todas las modificaciones no guardadas con el comando IG. Verifica con RT que el área quedó limpia."
+  },
+  {
+    "id": "scenario-5",
+    "title": "Nivel 5: Cotización Formal con Registro TST (FXP)",
+    "description": "PASAJEROS (PAXS): 1 ADT (Pedro Rodríguez MR).\nRUTA: Bogotá (BOG) ➔ Miami (MIA) (25NOV).\nTAREA: Cotiza la reserva activa generando el registro de tarifa TST mediante FXP, registra recibido de RF PEDRO y guarda con ER."
+  },
+  {
+    "id": "scenario-6",
+    "title": "Nivel 6: Servicio Especial de Comida Vegetariana (SR VGML)",
+    "description": "PASAJEROS (PAXS): 1 ADT (Ana Silva MS).\nRUTA: Madrid (MAD) ➔ Barcelona (BCN) (15DEC).\nTAREA: Agrega la solicitud de comida vegetariana usando el comando SR VGML, registra recibido de RF ANA y guarda con ER."
+  },
+  {
+    "id": "scenario-7",
+    "title": "Nivel 7: Información de Servicio OSI Frecuente (OS AV)",
+    "description": "PASAJEROS (PAXS): 1 ADT (Mario López MR).\nRUTA: Bogotá (BOG) ➔ Miami (MIA) (25NOV).\nCABINA: Business (Clase J).\nTAREA: Agrega nota OSI para Avianca sobre pasajero frecuente VIP (OS AV PASAJERO VIP), ingresa RF MARIO y guarda con ER."
+  },
+  {
+    "id": "scenario-8",
+    "title": "Nivel 8: Emisión de Tiquete Electrónico (TTP)",
+    "description": "PASAJEROS (PAXS): 1 ADT (Luis Hernández MR).\nESTADO: PNR con registro TST grabado.\nTAREA: Con la cotización lista, ejecuta el comando de emisión de tiquete electrónico TTP."
+  },
+  {
+    "id": "scenario-9",
+    "title": "Nivel 9: Consulta de Ayuda y Sintaxis GDS (HE)",
+    "description": "TAREA: Revisa el manual de ayuda para consultar la sintaxis del comando de disponibilidad AN y del comando de nombres NM usando HE AN y HE NM."
+  },
+  {
+    "id": "scenario-10",
+    "title": "Nivel 10: Reto de Reserva y Emisión Completa (MEX-BOG)",
+    "description": "PASAJEROS (PAXS): 1 ADT (Diego Ramírez MR).\nRUTA: Ciudad de México (MEX) ➔ Bogotá (BOG).\nFECHA SALIDA: 20DEC.\nCABINA: Turista (Clase Y).\nTAREA: Disponibilidad AN20DECMEXBOG, venta SS1Y1, nombre NM1RAMIREZ/DIEGO MR, contacto APMEX 525512345678-M, opción TK OK, cotización FXP, recibido RF DIEGO, guarda con ER y emite con TTP."
+  },
+  {
+    "id": "scenario-11",
+    "title": "Nivel 11: Codificación IATA (DAN/DAC) y Conversión de Gastos (FQC)",
+    "description": "PASAJEROS (PAXS): Consulta de agencia.\nTAREA: Codifica el aeropuerto de Lima (DAN LIMA), decodifica el código IATA de Bogotá (DAC BOG) y calcula la conversión de $35 USD de gastos de gestión a COP (FQC35USD/COP)."
+  },
+  {
+    "id": "scenario-12",
+    "title": "Nivel 12: Reserva Familiar 1 ADT + 1 CHD con Tarifa de Niño (LIM-BOG)",
+    "description": "PASAJEROS (PAXS): 1 ADT (Carlos Pérez MR) + 1 CHD (Niño: Juan, nacido 10MAY18). El cliente llama desde Colombia (oficina BOG).\nRUTA: Lima (LIM) ➔ Bogotá (BOG).\nFECHA SALIDA: 13MAR.\nCABINA: Turista (Clase Y).\nTAREA: Consulta horarios (SN 13 MAR LIM BOG), vende 2 puestos (SS2Y1), ingresa adulto y niño (NM2PEREZ/CARLOS MR/JUAN(CHD/10MAY18)), contacto (APBOG 573001112233-M), TK OK, factura con tarifa de niño (FXX/FF-OPTIMA/RAD*CH,BOG) y guarda con ER."
+  },
+  {
+    "id": "scenario-13",
+    "title": "Nivel 13: Facturación y Suma de Tarifas (DF) - Ejemplo de Clase",
+    "description": "PASAJEROS (PAXS): 1 ADT ($2.200.000) + 1 CHD ($1.000.000) + 1 INF ($860.000) + Gastos de Gestión ($240.000 x 3 PAXS).\nTAREA: Utiliza el comando DF del manual de clase para calcular la suma total del vuelo (DF 2200000;1000000;860000; 240000*3). El motor calcula el total real de la expresión."
+  },
+  {
+    "id": "scenario-14",
+    "title": "Nivel 14: Registro de Notas de Tarifa y Políticas de Reembolso (RM)",
+    "description": "PASAJEROS (PAXS): 1 ADT (Carlos García MR).\nTAREA: Registra las notas explicativas en la reserva activa: valores por tipo de pasajero (RM *22JUL26* ADT 2200000, CHD 1000000, INF 860000, GG 240000 COP), total de la transacción (RM *22JUL26* TTL 12900000 COP) y política de reembolso (RM *22JUL26* FC1,2 TKT REEMB, CHG NO PENTY + DF + GG)."
+  },
+  {
+    "id": "scenario-15",
+    "title": "Nivel 15: Caso Integrador República Dominicana (Business Flex SDQ)",
+    "description": "PASAJEROS (PAXS): 1 ADT + 1 CHD en Cabina Business con Tarifa Flex en República Dominicana (SDQ).\nTAREA: Calcula la conversión de gastos (FQC 35USD/DOP), consulta horarios (SN 12 APR MEX SDQ), vende 2 puestos en Business (SS2C1), registra nombres (NM2PEREZ/JUAN MR/MARIA(CHD)), contacto (APSDQ 18095551234-M), TK OK, facturar tarifa Business Flex (FXX/FF-BUSFLEX/RAD*CH, SDQ) y guarda con ER."
+  },
+  {
+    "id": "scenario-16",
+    "title": "Nivel 16: Moverse entre Días del Itinerario (MN/MY/MO)",
+    "description": "PASAJEROS (PAXS): Consulta de agencia.\nRUTA: Ciudad de México (MEX) ➔ Santo Domingo (SDQ).\nTAREA: Consulta los horarios del 12 APR (SN 12 APR MEX SDQ), muévete al día siguiente con MN, regresa al día anterior con MY y vuelve al día original con MO. Observa cómo cambia la fecha del encabezado en cada pantalla."
+  },
+  {
+    "id": "scenario-17",
+    "title": "Nivel 17: Penalidades del Ticket y Paginación (FQN1*PE + MD/MU)",
+    "description": "PASAJEROS (PAXS): 1 ADT (Luis Hernández MR) con TST grabado.\nTAREA: El cliente pregunta si su tiquete se puede cancelar o cambiar y si tiene gasto de penalidad. Consulta los FARE COMPONENTS con FQN1*PE (CANCELLATIONS = reembolsos, CHANGES = cambios), avanza a la página siguiente con MD, regresa con MU, y registra la condición como nota final (RM *23JUL26* FC1,2 TKT REEMB, CHG NO PENTY + DF + GG)."
+  },
+  {
+    "id": "scenario-18",
+    "title": "Nivel 18: Confirmación y Seguridad de Contacto + Plazo (APE / CTCE / CTCM / TKXL)",
+    "description": "PASAJEROS (PAXS): 1 ADT (Ana Silva MS) con vuelo vendido.\nTAREA: Registra el correo de confirmación (APE-ANA@GMAIL.COM), la seguridad del correo (SR CTCE-ANA//GMAIL.COM), el teléfono con código de país (AP+573001112233), la seguridad del teléfono (SR CTCM-573001112233), fija el plazo de confirmación de 24 hrs (TKXL 24JUL), indica que el cliente paga por la página (OS YY HFBB) y guarda con ER."
+  },
+  {
+    "id": "scenario-19",
+    "title": "Nivel 19: Borrado de Celdas por Rango y Lista (XE1-3 / XE4,8)",
+    "description": "PASAJEROS (PAXS): 1 ADT (Carlos García MR).\nPROBLEMA: El PNR tiene TRES notas erróneas en las líneas 4, 5 y 6.\nTAREA: Abre la reserva (RT), borra las tres notas de una sola vez con el rango XE4-6 (el guion dice \"desde esta celda hasta esta\"), registra la nota correcta (RM *23JUL26* TTL 4780000 COP) y guarda con ER. Recuerda: XE4,8 con coma borraría solo las celdas 4 y 8."
+  },
+  {
+    "id": "scenario-20",
+    "title": "Nivel 20: Adulto con Infante en Brazos (NM con INF + Tarifa de Infante)",
+    "description": "PASAJEROS (PAXS): 1 ADT (Carlos García MR) + 1 INF (Infante: Sofía, nacida 01JAN25, viaja en brazos del adulto — no ocupa puesto). El cliente llama desde Colombia (oficina BOG).\nRUTA: Lima (LIM) ➔ Bogotá (BOG).\nFECHA SALIDA: 13MAR.\nTAREA: Disponibilidad (AN13MARLIMBOG), vende 1 puesto (SS1Y1), ingresa adulto con su infante (NM1GARCIA/CARLOS MR(INFGARCIA/SOFIA/01JAN25)), contacto (APBOG 573004445566-M), TK OK, factura con tarifa de infante (FXX/FF-OPTIMA/RAD*IN,BOG) y guarda con ER."
+  },
+  {
+    "id": "scenario-21",
+    "title": "Nivel 21: Servicio de Equipaje Extra y Emision del EMD (SRXBAG)",
+    "description": "PASAJEROS (PAXS): 1 ADT (Juan Palacios MR) con reserva MAD-BCN ya confirmada.\nTAREA: El cliente pide una maleta extra. Solicita el equipaje para el pasajero 1 en el segmento 1 (SRXBAG/P1/S1), guarda el servicio creando el TSM (FXG), registra la nota del servicio (RM*24JUL26* XBAG 150 EUR), despliega la reserva (RT), entra a la forma de pago y ve el TSM (TQM), registra el titular que paga (RM*CSY/JUAN:PALACIOS), agrega la forma de pago (TMI/FP-CASH,), emite el EMD del servicio (TTM/M1/RT) y guarda con ER."
+  },
+  {
+    "id": "scenario-22",
+    "title": "Nivel 22 (Examen): Flujo Completo de Ticketing y TTO",
+    "description": "PASAJEROS (PAXS): 1 ADT (Gomez/Juan MR).\nTAREA: El objetivo es vender 1 asiento de BOG a MIA el 20NOV (SN20NOVBOGMIA, SS1Y1), crear el pasajero (NM1GOMEZ/JUAN MR), agregar contacto y firmar (APBOG 123456-M, TKOK). Luego debes iniciar el proceso de cobro y emisión: Cotizar tarifa de cabina (FXP/FF-BUSFLEX), ingresar la forma de pago (FP CASH,), agregar el remark con el titular (RM*CSY/ JUAN:GOMEZ), aplicar los gastos de gestión requeridos al TST 1 (TTO/ST01/CSF/F35/T1), guardar transacción y regresar (ER) y finalmente emitir el tiquete (TTP1/ET/RT)."
+  },
+  {
+    "id": "scenario-23",
+    "title": "Nivel 23: Cambio Voluntario Manual — Solo la Ida (Intermedio)",
+    "description": "PASAJEROS (PAXS): DA SILVA/RONALDO (CHD/13FEB20). LOC 7KDAFV, billete 075-1000213325, DOI 30JUL26, ida IB781 MAD-BER 11MAR, vuelta IB788 BER-MAD 11APR. TAREA: el cliente quiere mover SOLO la ida +2 días, sin tocar la vuelta. Consulta el billete (TWD/TKT0751000213325), busca la nueva disponibilidad (AN13MARMADBER) y véndela (SS1Y1), cotiza informativo (FXX/S1/FF-NDHNENM2), calcula la diferencia (DF 267.19 - 267.19), documenta con RM y guarda (ER). Borra el TST viejo (TTE/ALL) y crea el nuevo (FXP/S1/FF-NDHNENM2), márcalo en reemisión (TTI/EXCH/T2) y agrégale la diferencia (TTK/T2/T0). Aplica el fare override (FO*L1/P1), solicita el servicio de penalidad (IU IB NN1 PENF MAD/P1) y guárdalo (TMC). Revisa la máscara (TQM), carga el valor de la penalidad (TMI/M1/F65/CV-65), agrega el gasto de gestión (TTO/ST01/CSF/F35) y verifícalo (TQO). Documenta el titular de la tarjeta (RM*CSY/...), agrega forma de pago al TST (FP CASH,) y al TSM (TMI/FP-CASH,), elimina la plaza vieja que ya no se usa (XE2) y emite billete+EMD juntos (TTP1/TTM/T2/M1/ET/RT)."
+  },
+  {
+    "id": "scenario-24",
+    "title": "Nivel 24: Cambio Voluntario Manual — Flujo Completo (Avanzado)",
+    "description": "PASAJEROS (PAXS): DA SILVA/RONALDO (CHD/13FEB20). Billete 075-1000213262, DOI 30JUL26, ida IB781 MAD-BER 11MAR, vuelta IB788 BER-MAD 11APR. TAREA: el cliente quiere mover TODO el viaje una semana: ida al 18MAR y vuelta al 18APR. Flujo completo: consulta el billete (TWD/TKT), cotiza la penalidad a histórico (FXX/S1,2/R,{DOI},UP/FF-...), revisa las condiciones (FQN01*CD), calcula la penalidad (DF), documenta y guarda. Vende la nueva ida y la nueva vuelta (AN/SS x2), cotiza informativo, calcula la diferencia de tarifa (DF), documenta y guarda (ER). Borra el TST viejo (TTE/ALL), crea el nuevo (FXP) marcándolo en reemisión (TTI/EXCH) con la diferencia (TTK). Aplica el fare override, solicita el servicio de penalidad (IU...PENF), guárdalo (TMC), revisa la máscara (TQM), carga el valor de la penalidad (TMI/M.../F.../CV-...), agrega el gasto de gestión (TTO) y verifícalo (TQO). Documenta el titular de la tarjeta y guarda, agrega forma de pago al TST y al TSM, elimina las DOS plazas viejas que ya no se usan (XE) y emite billete+EMD juntos (TTP1/TTM/.../ET/RT)."
+  }
+]
