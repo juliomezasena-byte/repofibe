@@ -1,0 +1,17 @@
+{
+  "name": "roleplay-worker",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "node scripts/test-prompts.js && node scripts/test-quota.js && node scripts/test-auth-claims.js"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  },
+  "dependencies": {
+    "jose": "^5.9.6"
+  }
+}
