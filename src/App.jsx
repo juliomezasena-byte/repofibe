@@ -8,6 +8,7 @@ import { AppProvider } from './context/AppContext';
 import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Menu } from './pages/Menu';
 import { Simulator } from './pages/Simulator';
+import { Roleplay } from './pages/Roleplay';
 import { Theory } from './pages/Theory';
 import { IberiaExam } from './pages/IberiaExam';
 import { LearningGuide } from './pages/LearningGuide';
@@ -418,6 +419,7 @@ export function App() {
         <Routes>
           <Route path="/" element={<Menu />} />
           <Route path="/simulador" element={<Simulator />} />
+          <Route path="/roleplay" element={<Roleplay />} />
           <Route path="/guia" element={<LearningGuide />} />
           <Route path="/teoria" element={<Theory />} />
           <Route path="/examen-iberia" element={<IberiaExam />} />
