@@ -89,19 +89,22 @@ export function RoleplayPanel({ scenarios, activeScenario, evaluationResult }) {
   }
 
   return (
-    <div className="roleplay-panel">
-      <h3>Llamada de práctica</h3>
+    <div className="sidebar-panel">
+      <div className="panel-title">
+        <Phone size={18} style={{ color: 'var(--crt-cyan)' }} />
+        <span>Llamada de práctica</span>
+      </div>
 
-      {error && <p className="roleplay-error">{error}</p>}
+      {error && <div className="roleplay-error">{error}</div>}
 
       {!callActive && !feedback && (
         <>
-          <select value={scenarioId} onChange={(e) => setScenarioId(e.target.value)}>
+          <select className="scenario-select" value={scenarioId} onChange={(e) => setScenarioId(e.target.value)}>
             {scenarios.map((s) => (
               <option key={s.id} value={s.id}>{s.title}</option>
             ))}
           </select>
-          <button onClick={startCall}><Phone size={16} /> Iniciar llamada</button>
+          <button className="quiz-big-btn" onClick={startCall}><Phone size={16} /> Iniciar llamada</button>
         </>
       )}
 
@@ -109,42 +112,67 @@ export function RoleplayPanel({ scenarios, activeScenario, evaluationResult }) {
         <>
           <div className="roleplay-transcript">
             {history.map((turn, i) => (
-              <p key={i} className={`roleplay-turn roleplay-${turn.role}`}>
-                <strong>{turn.role === 'agent' ? 'Tú' : 'Pasajero'}:</strong> {turn.text}
-              </p>
+              <div key={i} className={`roleplay-turn roleplay-${turn.role}`}>
+                <span className="roleplay-turn-role">{turn.role === 'agent' ? 'Tú' : 'Pasajero'}</span>
+                {turn.text}
+              </div>
             ))}
           </div>
 
-          <form onSubmit={handleTextSubmit} style={{ display: 'flex', gap: '8px' }}>
+          <form onSubmit={handleTextSubmit} className="roleplay-input-row">
             <input
+              className="roleplay-text-input"
               value={textInput}
               onChange={(e) => setTextInput(e.target.value)}
               placeholder="Escribe tu respuesta al pasajero"
               disabled={history.length >= MAX_TURNS}
-              style={{ flex: 1 }}
             />
             {supported && (
-              <button type="button" onClick={handleMicClick} disabled={listening || history.length >= MAX_TURNS}>
+              <button type="button" className="ghost-btn" onClick={handleMicClick} disabled={listening || history.length >= MAX_TURNS}>
                 <Mic size={16} /> {listening ? 'Escuchando...' : 'Hablar'}
               </button>
             )}
-            <button type="submit" disabled={history.length >= MAX_TURNS}>Enviar</button>
+            <button type="submit" className="quiz-big-btn" disabled={history.length >= MAX_TURNS}>Enviar</button>
           </form>
 
-          <button onClick={endCall}><PhoneOff size={16} /> Finalizar llamada</button>
+          <button className="quiz-big-btn secondary" onClick={endCall}><PhoneOff size={16} /> Finalizar llamada</button>
         </>
       )}
 
       {feedback && (
         <div className="roleplay-feedback">
-          <h4>Resultado de la llamada</h4>
-          <p>Resolución técnica: {evaluationResult?.score ?? 0}%</p>
-          <p>Atención al cliente: {feedback.score}%</p>
-          <p><strong>Fortalezas:</strong></p>
-          <ul>{feedback.strengths.map((s, i) => <li key={i}>{s}</li>)}</ul>
-          <p><strong>A mejorar:</strong></p>
-          <ul>{feedback.improvements.map((s, i) => <li key={i}>{s}</li>)}</ul>
-          <button onClick={startCall}>Practicar de nuevo</button>
+          <div className="panel-title">Resultado de la llamada</div>
+
+          <div className="progress-card">
+            <div className="progress-header">
+              <span>Resolución técnica</span>
+              <span style={{ color: 'var(--crt-cyan)' }}>{evaluationResult?.score ?? 0}%</span>
+            </div>
+            <div className="progress-bar-bg">
+              <div className="progress-bar-fill" style={{ width: `${evaluationResult?.score ?? 0}%` }}></div>
+            </div>
+          </div>
+
+          <div className="progress-card">
+            <div className="progress-header">
+              <span>Atención al cliente</span>
+              <span style={{ color: 'var(--crt-cyan)' }}>{feedback.score}%</span>
+            </div>
+            <div className="progress-bar-bg">
+              <div className="progress-bar-fill" style={{ width: `${feedback.score}%` }}></div>
+            </div>
+          </div>
+
+          <div>
+            <p className="roleplay-feedback-label">Fortalezas</p>
+            <ul>{feedback.strengths.map((s, i) => <li key={i}>{s}</li>)}</ul>
+          </div>
+          <div>
+            <p className="roleplay-feedback-label">A mejorar</p>
+            <ul>{feedback.improvements.map((s, i) => <li key={i}>{s}</li>)}</ul>
+          </div>
+
+          <button className="quiz-big-btn" onClick={startCall}>Practicar de nuevo</button>
         </div>
       )}
     </div>

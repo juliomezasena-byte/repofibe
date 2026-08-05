@@ -32,6 +32,7 @@ test('el agente completa una llamada de práctica y ve el feedback', async ({ pa
 
   await page.getByRole('button', { name: /finalizar llamada/i }).click();
 
-  await expect(page.getByText('Atención al cliente: 88%')).toBeVisible();
+  await expect(page.getByText('Atención al cliente')).toBeVisible();
+  await expect(page.getByText('88%')).toBeVisible();
   await expect(page.getByText('Saludo correcto')).toBeVisible();
 });
