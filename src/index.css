@@ -134,7 +134,7 @@ body {
 }
 
 .brand-icon {
-  color: #0284c7;
+  color: var(--color-tutor);
   width: 24px;
   height: 24px;
 }
@@ -142,7 +142,7 @@ body {
 .brand-title {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-light);
   letter-spacing: -0.02em;
   white-space: nowrap;
 }
@@ -150,9 +150,9 @@ body {
 .brand-tag {
   font-size: 0.75rem;
   padding: 2px 8px;
-  background: rgba(2, 132, 199, 0.08);
-  color: #0284c7;
-  border: 1px solid rgba(2, 132, 199, 0.25);
+  background: rgba(129, 140, 248, 0.08); /* --color-tutor con opacidad */
+  color: var(--color-tutor);
+  border: 1px solid rgba(129, 140, 248, 0.25);
   border-radius: 4px;
   font-family: var(--font-mono);
   white-space: nowrap;
@@ -164,9 +164,9 @@ body {
   font-size: 0.82rem;
   font-weight: 600;
   font-family: var(--font-sans);
-  background-color: rgba(255, 152, 0, 0.15);
-  color: #ff9800;
-  border: 1px solid rgba(255, 152, 0, 0.3);
+  background-color: rgba(245, 165, 36, 0.15); /* --crt-amber con opacidad */
+  color: var(--crt-amber);
+  border: 1px solid rgba(245, 165, 36, 0.3);
   display: inline-flex;
   align-items: center;
   white-space: nowrap;
@@ -184,7 +184,7 @@ body {
 
 .seg-control {
   display: flex;
-  background: #f1f5f9;
+  background: var(--bg-dark);
   border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 3px;
@@ -200,7 +200,7 @@ body {
   min-height: 34px;
   padding: 6px 14px;
   background: transparent;
-  color: #475569;
+  color: var(--text-muted);
   border: none;
   border-radius: 6px;
   font-family: var(--font-sans);
@@ -212,12 +212,13 @@ body {
 }
 
 .seg-btn:hover {
-  color: #1e293b;
+  color: var(--text-light);
 }
 
 .seg-btn.seg-active {
-  background: #0284c7;
-  color: #ffffff;
+  background: var(--bg-card);
+  color: var(--text-light);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
 }
 
 .ghost-btn {
@@ -227,9 +228,9 @@ body {
   gap: 6px;
   min-height: 34px;
   padding: 6px 12px;
-  background: #ffffff;
-  color: #0284c7;
-  border: 1px solid #cbd5e1;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   font-family: var(--font-sans);
   font-size: 0.85rem;
@@ -241,9 +242,9 @@ body {
 
 .ghost-btn:active,
 .ghost-btn:hover {
-  border-color: #0284c7;
-  color: #0284c7;
-  background: #f8fafc;
+  border-color: var(--color-tutor);
+  color: var(--text-light);
+  background: var(--bg-dark);
 }
 
 /* Grid Principal Terminal & Panel Escenarios */
@@ -1765,10 +1766,10 @@ body {
   display: flex; align-items: baseline; justify-content: space-between;
   gap: 0.5rem; flex-wrap: wrap;
 }
-.tut-procedimiento { font-weight: 700; font-size: 0.9rem; }
+.tut-procedimiento { font-weight: 700; font-size: 0.9rem; color: var(--text-light); }
 .tut-reiniciar {
   background: none; border: none; padding: 0;
-  color: var(--text-muted, #475569); font-size: 0.75rem;
+  color: var(--text-muted); font-size: 0.75rem;
   text-decoration: underline; cursor: pointer;
 }
 
@@ -1776,56 +1777,55 @@ body {
 .tut-camino { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.3rem; }
 .tut-camino li {
   display: grid; gap: 0.1rem;
-  border-left: 2px solid rgba(148, 163, 184, 0.35);
+  border-left: 2px solid var(--border-color);
   padding-left: 0.6rem; font-size: 0.78rem;
 }
-.tut-camino-preg { color: var(--text-muted, #475569); }
-.tut-camino strong { font-weight: 700; }
-.tut-camino em { font-style: normal; color: var(--text-muted, #475569); font-size: 0.72rem; }
+.tut-camino-preg { color: var(--text-muted); }
+.tut-camino strong { font-weight: 700; color: var(--text-light); }
+.tut-camino em { font-style: normal; color: var(--text-muted); font-size: 0.72rem; }
 
 /* Preguntas del árbol */
 .tut-pregunta { display: grid; gap: 0.5rem; }
-.tut-pregunta-texto { font-weight: 600; margin: 0; }
-.tut-pregunta-porque { margin: 0; font-size: 0.76rem; color: var(--text-muted, #475569); }
+.tut-pregunta-texto { font-weight: 600; margin: 0; color: var(--text-light); }
+.tut-pregunta-porque { margin: 0; font-size: 0.76rem; color: var(--text-muted); }
 .tut-opciones { display: grid; gap: 0.4rem; }
 .tut-opciones .quiz-big-btn { text-align: left; font-size: 0.82rem; }
 
 /* Pegar una pantalla real */
 .tut-pegar { display: grid; gap: 0.4rem; }
-.tut-pegar label { font-size: 0.78rem; font-weight: 600; }
+.tut-pegar label { font-size: 0.78rem; font-weight: 600; color: var(--text-light); }
 .tut-pegar textarea {
-  width: 100%; font-family: ui-monospace, monospace; font-size: 0.72rem;
+  width: 100%; font-family: var(--font-mono); font-size: 0.72rem;
   padding: 0.5rem; border-radius: 6px;
-  border: 1px solid rgba(148, 163, 184, 0.55);
-  /* Fondo claro: el panel es claro y el texto que escribe el alumno es
-     oscuro. Con el rgba(0,0,0,.35) de antes escribía casi a ciegas. */
-  background: #fff; color: var(--text-light, #1e293b); resize: vertical;
+  border: 1px solid var(--border-color);
+  background: var(--bg-dark); color: var(--text-light); resize: vertical;
 }
 
 /* Abrir la caja de pegar: discreto pero siempre a mano */
 .tut-pegar-abrir {
   display: flex; align-items: center; justify-content: center; gap: 0.35rem;
   width: 100%; padding: 0.4rem; font-size: 0.76rem;
-  border: 1px dashed rgba(148, 163, 184, 0.45); border-radius: 6px;
-  background: transparent; color: var(--text-muted, #475569); cursor: pointer;
+  border: 1px dashed var(--border-color); border-radius: 6px;
+  background: transparent; color: var(--text-muted); cursor: pointer;
 }
-.tut-pegar-abrir:hover { border-color: rgba(148, 163, 184, 0.8); color: inherit; }
+.tut-pegar-abrir:hover { border-color: var(--color-tutor); color: var(--text-light); }
 
 /* Acuse de recibo de lo leído: confirma que pegar SÍ hizo algo */
 .tut-leido {
   display: flex; gap: 0.4rem; align-items: flex-start;
   font-size: 0.76rem; line-height: 1.45;
   padding: 0.45rem 0.55rem; border-radius: 6px;
-  border: 1px solid rgba(22, 163, 74, 0.35);
-  background: rgba(22, 163, 74, 0.08);
-  color: #15803d;
+  border: 1px solid rgba(23, 201, 100, 0.3);
+  background: rgba(23, 201, 100, 0.1);
+  color: var(--crt-green);
 }
-.tut-leido strong { color: #14532d; }
+.tut-leido strong { color: #ffffff; }
 
 /* El paso */
 .tut-paso {
   display: grid; gap: 0.45rem;
-  border: 1px solid rgba(148, 163, 184, 0.3);
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.02);
   border-radius: 8px; padding: 0.7rem;
 }
 .tut-paso-badges { display: flex; gap: 0.3rem; flex-wrap: wrap; }
@@ -1833,89 +1833,80 @@ body {
   font-size: 0.65rem; font-weight: 700; letter-spacing: 0.03em;
   text-transform: uppercase; padding: 0.15rem 0.45rem; border-radius: 4px;
 }
-.tut-sis-amadeus    { background: #4b4bf9; color: #fff; }
-.tut-sis-resiber    { background: #8bf0bb; color: #09092d; }
-.tut-sis-natiba     { background: #ff8d96; color: #09092d; }
-.tut-sis-salesforce { background: #bfa1ff; color: #09092d; }
-.tut-sis-iberianet  { background: #f9ef77; color: #09092d; }
-/* Los distintivos van sobre el panel CLARO: el texto tiene que ser oscuro.
-   Con los tonos pastel originales (pensados para fondo negro) el badge se
-   leía como una mancha de color sin letras. */
-.tut-conf-verbatim  { background: rgba(22, 163, 74, 0.15);  color: #15803d; }
-.tut-conf-derivado  { background: rgba(217, 119, 6, 0.15);  color: #92400e; }
-.tut-conf-hueco     { background: rgba(220, 38, 38, 0.15);  color: #b91c1c; }
-.tut-bloqueante     { background: #b91c1c; color: #fff; }
+.tut-sis-amadeus    { background: rgba(129, 140, 248, 0.2); color: var(--color-tutor); }
+.tut-sis-resiber    { background: rgba(0, 229, 255, 0.2); color: var(--crt-cyan); }
+.tut-sis-natiba     { background: rgba(243, 18, 96, 0.2); color: var(--crt-red); }
+.tut-sis-salesforce { background: rgba(167, 139, 250, 0.2); color: #A78BFA; }
+.tut-sis-iberianet  { background: rgba(245, 165, 36, 0.2); color: var(--crt-amber); }
+.tut-conf-verbatim  { background: rgba(23, 201, 100, 0.15);  color: var(--crt-green); }
+.tut-conf-derivado  { background: rgba(245, 165, 36, 0.15);  color: var(--crt-amber); }
+.tut-conf-hueco     { background: rgba(243, 18, 96, 0.15);  color: var(--crt-red); }
+.tut-bloqueante     { background: var(--crt-red); color: #000; }
 
-.tut-paso-proceso { margin: 0; font-size: 0.86rem; line-height: 1.4; }
-.tut-paso-n { color: var(--text-muted, #475569); font-weight: 700; margin-right: 0.3rem; }
+.tut-paso-proceso { margin: 0; font-size: 0.86rem; line-height: 1.4; color: var(--text-light); }
+.tut-paso-n { color: var(--color-tutor); font-weight: 700; margin-right: 0.3rem; }
 
 .tut-comando {
-  display: block; font-family: ui-monospace, monospace; font-size: 0.9rem;
+  display: block; font-family: var(--font-mono); font-size: 0.9rem;
   font-weight: 700; padding: 0.45rem 0.6rem; border-radius: 6px;
-  background: #000; color: #00ff66; overflow-x: auto; white-space: pre;
+  background: var(--bg-terminal); border: 1px solid var(--border-color); color: var(--crt-green); overflow-x: auto; white-space: pre;
 }
 .tut-sin-comando, .tut-nota, .tut-explicacion {
   margin: 0; font-size: 0.78rem; line-height: 1.45;
 }
-/* Estos colores estaban pensados para un panel oscuro (rojo y amarillo
-   pálidos, gris muy claro). Sobre el fondo claro de la app no se leían: la
-   explicación del tutor era casi invisible. Ahora son tonos oscuros con
-   contraste suficiente. */
-.tut-sin-comando { color: #b91c1c; font-weight: 600; }
+.tut-sin-comando { color: var(--crt-red); font-weight: 600; }
 .tut-nota {
-  color: #92400e; display: flex; gap: 0.3rem; align-items: flex-start;
+  color: var(--crt-amber); display: flex; gap: 0.3rem; align-items: flex-start;
 }
-.tut-explicacion { color: var(--text-light, #1e293b); }
+.tut-explicacion { color: var(--text-muted); }
 
 /* Veredicto */
 .tut-veredicto {
   display: grid; gap: 0.25rem; padding: 0.5rem 0.65rem;
   border-radius: 6px; font-size: 0.8rem; font-weight: 600;
 }
-.tut-ok  { background: rgba(22, 163, 74, 0.12);  color: #15803d; }
-.tut-parcial { background: rgba(217, 119, 6, 0.14); color: #b45309; border: 1px solid rgba(217, 119, 6, 0.3); }
-.tut-mal { background: rgba(220, 38, 38, 0.12);  color: #b91c1c; }
-.tut-pista { font-weight: 400; font-size: 0.74rem; opacity: 0.9; }
+.tut-ok  { background: rgba(23, 201, 100, 0.1); border: 1px solid rgba(23, 201, 100, 0.3); color: var(--crt-green); }
+.tut-parcial { background: rgba(245, 165, 36, 0.1); border: 1px solid rgba(245, 165, 36, 0.3); color: var(--crt-amber); }
+.tut-mal { background: rgba(243, 18, 96, 0.1); border: 1px solid rgba(243, 18, 96, 0.3); color: var(--crt-red); }
+.tut-pista { font-weight: 400; font-size: 0.74rem; opacity: 0.9; color: var(--text-light); }
 
 .tut-advertencia, .tut-aviso {
   margin: 0; font-size: 0.76rem; line-height: 1.45;
   display: flex; gap: 0.3rem; align-items: flex-start;
 }
-.tut-advertencia { color: #b91c1c; font-weight: 600; }
-.tut-aviso { color: var(--text-muted, #475569); }
+.tut-advertencia { color: var(--crt-red); font-weight: 600; }
+.tut-aviso { color: var(--text-muted); }
 
 /* Escribir el comando */
 .tut-form { display: grid; gap: 0.4rem; }
 .tut-form input {
-  width: 100%; font-family: ui-monospace, monospace; font-size: 0.85rem;
+  width: 100%; font-family: var(--font-mono); font-size: 0.85rem;
   padding: 0.5rem 0.6rem; border-radius: 6px;
-  border: 1px solid rgba(148, 163, 184, 0.55);
-  background: #fff; color: var(--text-light, #1e293b); text-transform: uppercase;
+  border: 1px solid var(--border-color);
+  background: var(--bg-dark); color: var(--text-light); text-transform: uppercase;
 }
-/* El comando se teclea en mayúsculas y en mono: que se vea al escribirlo. */
-.tut-form input::placeholder { color: #94a3b8; text-transform: none; }
+.tut-form input::placeholder { color: var(--text-muted); text-transform: none; }
 
 .tut-ayuda {
   display: flex; align-items: center; justify-content: center; gap: 0.35rem;
   width: 100%; padding: 0.5rem; border-radius: 6px; cursor: pointer;
-  border: 1px dashed rgba(148, 163, 184, 0.5);
-  background: none; color: inherit; font-size: 0.8rem; font-weight: 600;
+  border: 1px dashed var(--border-color);
+  background: none; color: var(--text-muted); font-size: 0.8rem; font-weight: 600;
 }
-.tut-ayuda:hover:not(:disabled) { background: rgba(148, 163, 184, 0.12); }
+.tut-ayuda:hover:not(:disabled) { background: rgba(255,255,255,0.05); color: var(--text-light); }
 
-.tut-terminado { color: #15803d; font-weight: 700; display: flex; gap: 0.35rem; align-items: center; }
-.tut-cargando { color: var(--text-muted, #475569); font-size: 0.78rem; display: flex; gap: 0.35rem; align-items: center; }
-/* El paso ya está en pantalla; esto solo avisa de que la IA está ampliando. */
+.tut-terminado { color: var(--crt-green); font-weight: 700; display: flex; gap: 0.35rem; align-items: center; }
+.tut-cargando { color: var(--color-tutor); font-size: 0.78rem; display: flex; gap: 0.35rem; align-items: center; }
 .tut-redactando {
   margin: 0; font-size: 0.72rem; font-style: italic;
-  color: var(--text-muted, #475569);
+  color: var(--text-muted);
   display: flex; gap: 0.3rem; align-items: center;
 }
-.tut-error { color: #b91c1c; font-size: 0.78rem; font-weight: 600; }
+.tut-error { color: var(--crt-red); font-size: 0.78rem; font-weight: 600; }
 .tut-salto {
   display: flex; gap: 0.4rem; align-items: center;
-  background: rgba(75, 75, 249, 0.15); border-left: 3px solid #4b4bf9;
-  padding: 0.45rem 0.6rem; border-radius: 0 6px 6px 0; font-size: 0.78rem;
+  background: rgba(129, 140, 248, 0.15); border-left: 3px solid var(--color-tutor);
+  padding: 0.45rem 0.6rem; border-radius: 0 6px 6px 0; font-size: 0.78rem; color: var(--text-light);
 }
 
 .tut-girando { animation: tut-giro 1s linear infinite; }
