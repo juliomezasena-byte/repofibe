@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "nota": "Catálogo de sistemas que toca el trabajo real de un agente Iberia. Cada paso de cada procedimiento declara a cuál pertenece. NO se mezclan lenguajes de comando.",
+  "sistemas": [
+    {
+      "id": "amadeus",
+      "nombre": "Amadeus",
+      "tipo": "GDS",
+      "color": "#4b4bf9",
+      "usoPrincipal": "Venta, emisión y pago. Gestión del PNR.",
+      "ejemplosComando": [
+        "SP1-2",
+        "EF",
+        "ER",
+        "RTAXR",
+        "FXP",
+        "TTP",
+        "RHA",
+        "XE2"
+      ]
+    },
+    {
+      "id": "resiber",
+      "nombre": "Resiber",
+      "tipo": "host-propio-iberia",
+      "color": "#8bf0bb",
+      "usoPrincipal": "Cotizar y verificar billetes/reembolsos.",
+      "ejemplosComando": [
+        "DTR:TN 075-XXXX",
+        "DTR:H",
+        "RT/BONILLA/IB125/22MAR",
+        "PNRC:HSDJH",
+        "ÑI",
+        "BSL/IB1234/22MAR"
+      ],
+      "confianza": "verbatim",
+      "catalogo": "public/profiles/resiber/commands_meta.json",
+      "nota": "BLOQUEANTE Nº1 RESUELTO (08AGO26): el manual #3593 '9.4 TRANSACCIONES UTILES' trae 26 comandos de Resiber verbatim. Detalles que no se adivinan: la Ñ es prefijo de guardado (ALT+165), el sufijo ',A' marca vuelos ya pasados, y PNRC: es el puente Resiber→Amadeus."
+    },
+    {
+      "id": "natiba",
+      "nombre": "Natiba",
+      "tipo": "web-interna",
+      "color": "#ff8d96",
+      "usoPrincipal": "Acceso a la reserva. Primer intento SIEMPRE, para asegurar el filtro de seguridad.",
+      "entrada": [
+        "APELLIDO DEL PASAJERO",
+        "LOCALIZADOR (PNR)"
+      ],
+      "ejemplosComando": []
+    },
+    {
+      "id": "salesforce",
+      "nombre": "Salesforce",
+      "tipo": "crm-casos",
+      "color": "#bfa1ff",
+      "usoPrincipal": "Crear el caso de reembolso para que lo evalúe el BO.",
+      "ejemplosComando": [],
+      "trampa": "En IBERIA sí se crea caso. En IBEX (billete 060) NO se crea caso — se tramita todo por Amadeus/cola."
+    },
+    {
+      "id": "iberianet",
+      "nombre": "IberiaNet / iberia.com",
+      "tipo": "web-interna",
+      "color": "#f9ef77",
+      "usoPrincipal": "Consultar gastos de gestión y valor de penalidad.",
+      "ejemplosComando": []
+    }
+  ],
+  "aerolineas": [
+    {
+      "id": "IB",
+      "nombre": "Iberia",
+      "placa": "075",
+      "nota": "Reembolso crea caso en Salesforce."
+    },
+    {
+      "id": "I2",
+      "nombre": "Iberia Express (IBEX)",
+      "placa": "060",
+      "nota": "NO se crean casos en Salesforce; se tramita por Amadeus + cola. El cliente confunde 075 con 060 constantemente — verificar la placa SIEMPRE antes de aplicar un procedimiento."
+    }
+  ],
+  "conmutadorEntreSistemas": {
+    "confianza": "verbatim",
+    "fuente": "Usuario (agente Iberia en activo), 08AGO26.",
+    "comando": ":",
+    "texto": "Amadeus y Resiber comparten LA MISMA PANTALLA de terminal. Se alterna entre uno y otro tecleando dos puntos (:). El sistema responde con el estado en el que queda.",
+    "respuestas": [
+      {
+        "mensaje": "DESCONECTADO DE AMADEUS",
+        "significa": "Has salido de Amadeus: ahora estás en RESIBER."
+      },
+      {
+        "mensaje": "CONECTADO AMADEUS",
+        "significa": "Has vuelto a AMADEUS."
+      }
+    ],
+    "esAlternador": true,
+    "porQueImporta": "Es el paso invisible de casi todos los procedimientos. Los manuales dicen \"en Resiber haz X\" y \"en Amadeus haz Y\" sin decir NUNCA cómo se pasa de uno a otro. Un principiante se queda atascado ahí. Además explica por qué hay comandos que existen en los dos sistemas con función distinta (RTA, RT, XE): estás en la misma ventana y es fácil equivocarse de sistema sin darte cuenta.",
+    "ojo": "Antes de teclear cualquier comando, LEE el último mensaje de estado. Si no sabes en cuál estás, teclea : y mira qué responde."
+  }
+}

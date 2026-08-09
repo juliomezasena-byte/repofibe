@@ -13,9 +13,20 @@ function run(command, args) {
   });
 }
 
+// El build de E2E va a SU PROPIA carpeta, nunca a dist/.
+//
+// Antes compilaba sobre dist/ con VITE_E2E_MOCK_AUTH=1, así que la secuencia
+// normal de trabajo —compilar, pasar los tests, desplegar— subía a producción
+// el build que se salta el login: el sitio real mandaba "Bearer mock-token" y
+// el Worker respondía 500 (Invalid Compact JWS). Pasó el 09AGO26.
+//
+// Con outDir separado, `firebase deploy` no puede recoger el build de pruebas
+// ni aunque los tests se ejecuten justo antes.
+const SALIDA = 'dist-e2e';
+
 async function main() {
-  await run('npm', ['run', 'build']);
-  await run('npx', ['vite', 'preview', '--port', '4173']);
+  await run('npx', ['vite', 'build', '--outDir', SALIDA]);
+  await run('npx', ['vite', 'preview', '--outDir', SALIDA, '--port', '4173']);
 }
 
 main().catch((err) => {

@@ -132,7 +132,7 @@
       ],
       "tokens": {
         "count": "^(\\d{1})",
-        "class": "^([A-Z]{1})",
+        "class": "^([A-Z]{1,2})",
         "line": "^(\\d{1,2})"
       },
       "handler": "SELL_SEGMENT",
@@ -182,9 +182,7 @@
         "AP+{codigo pais y telefono}"
       ],
       "tokens": {
-        "city": "^([A-Z]{3}) ",
-        "phone": "^([0-9 +]+)-",
-        "type": "^([A-Z]{1})"
+        "params": "^(.*)"
       },
       "handler": "ADD_CONTACT",
       "examples": [
@@ -882,7 +880,7 @@
       "errors": {
         "NO_TICKET": "NO TICKET ON FILE - CHECK TWD/TKT OR TWD/L"
       },
-      "payloadPattern": "^/(TKT\\d{3}-?\\d{10}|L\\d+|TAX)$"
+      "payloadPattern": "^/(TKT\\s*\\d{3}-?\\d{10}|L\\d+|TAX)$"
     },
     {
       "code": "TTE",
@@ -1118,6 +1116,106 @@
         "RTF"
       ],
       "errors": {}
+    },
+    {
+      "code": "FXI",
+      "category": "Pricing",
+      "name": "Cotización Informativa Tarifa Más Baja (FXI)",
+      "description": "Cotización informativa de la tarifa más baja disponible para el itinerario activo sin crear máscara TST.",
+      "syntax": ["FXI", "FXI/S{segments}", "FXI/R,{modifier}"],
+      "tokens": { "params": "^(.*)" },
+      "handler": "PRICE_LOWEST_INFORMATIVE",
+      "examples": ["FXI", "FXI/S1,2"]
+    },
+    {
+      "code": "FXF",
+      "category": "Pricing",
+      "name": "Cotización por Familias Tarifarias (FXF)",
+      "description": "Cotización comparativa por familias tarifarias de Iberia (BASIC, OPTIMA, FLEX, BUSFLEX).",
+      "syntax": ["FXF", "FXF/FF-{fareFamily}", "FXF/S{segments}"],
+      "tokens": { "params": "^(.*)" },
+      "handler": "PRICE_FARE_FAMILY",
+      "examples": ["FXF", "FXF/FF-OPTIMA"]
+    },
+    {
+      "code": "FXE",
+      "category": "Pricing",
+      "name": "Cotización Tarifa Más Baja E-Ticket (FXE)",
+      "description": "Cotización de la tarifa más económica exigiendo emisión de tiquete electrónico.",
+      "syntax": ["FXE", "FXE/S{segments}"],
+      "tokens": { "params": "^(.*)" },
+      "handler": "PRICE_BEST_BUY_ET",
+      "examples": ["FXE"]
+    },
+    {
+      "code": "FXQ",
+      "category": "Pricing",
+      "name": "Cotizar y Guardar TST de Reemisión (FXQ)",
+      "description": "Cotiza y guarda la máscara TST para reemisión o cambio automático registrando saldo y penalidad.",
+      "syntax": ["FXQ", "FXQ/S{segments}", "FXQ/R,{modifier}"],
+      "tokens": { "params": "^(.*)" },
+      "handler": "PRICE_AND_STORE_EXCHANGE",
+      "examples": ["FXQ", "FXQ/S1,2"]
+    },
+    {
+      "code": "FXO",
+      "category": "Pricing",
+      "name": "Búsqueda de Tarifas Óptimas (FXO)",
+      "description": "Búsqueda de alternativas óptimas de vuelo para optimizar la tarifa actual.",
+      "syntax": ["FXO", "FXO/S{segments}"],
+      "tokens": { "params": "^(.*)" },
+      "handler": "PRICE_OPTIMAL_OPTIONS",
+      "examples": ["FXO"]
+    },
+    {
+      "code": "FHE",
+      "category": "Services",
+      "name": "Elemento de Hotel (FHE)",
+      "description": "Consulta de disponibilidad o elemento de hotel.",
+      "syntax": ["FHE", "FHE{cityCode}"],
+      "tokens": { "params": "^(.*)" },
+      "handler": "HOTEL_ELEMENT",
+      "examples": ["FHE MAD"]
+    },
+    {
+      "code": "DTR",
+      "category": "Ticketing",
+      "name": "Consulta de Registro de Billete (DTR)",
+      "description": "Muestra los detalles y cupones del billete electrónico en Resiber/Amadeus o reenvía confirmación por e-mail.",
+      "syntax": ["DTR:TN {ticketNumber}", "DTR TN {ticketNumber}", "DTR H"],
+      "tokens": { "params": "^(.*)" },
+      "handler": "SHOW_RESIBER_TICKET_DETAIL",
+      "examples": ["DTR:TN 0752533334760", "DTR TN 0751000213325,EML/USER@MAIL.COM"]
+    },
+    {
+      "code": "SP",
+      "category": "PNR State",
+      "name": "Dividir PNR (SP)",
+      "description": "Separa uno o varios pasajeros del PNR activo hacia un PNR hijo.",
+      "syntax": ["SP{paxIndex}"],
+      "tokens": { "paxIndex": "^([0-9,]+)" },
+      "handler": "SPLIT_PNR",
+      "examples": ["SP1", "SP2,3"]
+    },
+    {
+      "code": "EF",
+      "category": "PNR State",
+      "name": "Archivar División (EF)",
+      "description": "Finaliza y archiva la división del PNR (SP), creando el PNR hijo.",
+      "syntax": ["EF"],
+      "tokens": {},
+      "handler": "END_AND_FILE_SPLIT",
+      "examples": ["EF"]
+    },
+    {
+      "code": "FQQ",
+      "category": "Pricing",
+      "name": "Detalle de Construcción Tarifaria (FQQ)",
+      "description": "Muestra el desglose detallado de la línea de construcción tarifaria (Fare Calculation Line, NUC, ROE).",
+      "syntax": ["FQQ", "FQQ{tstNumber}", "FQQ/T{tstNumber}"],
+      "tokens": { "params": "^(.*)" },
+      "handler": "SHOW_FARE_QUOTE_DETAILS",
+      "examples": ["FQQ", "FQQ1", "FQQ/T1"]
     }
   ]
 }

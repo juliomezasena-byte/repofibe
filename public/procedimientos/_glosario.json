@@ -1,0 +1,465 @@
+{
+  "id": "glosario",
+  "titulo": "Glosario — lo que los manuales dan por sabido",
+  "tipo": "referencia",
+  "nota": "Archivo con prefijo _ : es referencia, no un procedimiento con pasos.",
+  "porQueExiste": {
+    "texto": "Los manuales están escritos para quien ya lleva meses en el puesto. Usan 33 términos técnicos 636 veces y no definen NINGUNO. Un principiante lee 'colocar el TKT en FHE' sin saber qué es un FHE, o 'eliminar TST' sin saber qué está borrando.",
+    "medidoCon": "node scripts/medir-vocabulario.mjs",
+    "fecha": "2026-08-08"
+  },
+  "disciplina": {
+    "verbatim": "El material SÍ lo define en algún sitio. Se cita dónde.",
+    "derivado": "No hay definición, pero se deduce sin ambigüedad de cómo se usa en los procedimientos. Se explica de qué se dedujo.",
+    "hueco": "Nadie lo define y no se puede deducir con seguridad. Va a la lista de preguntas para el instructor."
+  },
+  "terminos": [
+    {
+      "termino": "segmento",
+      "apariciones": 93,
+      "definicion": "Cada tramo de vuelo dentro de la reserva. Se numera y se referencia como S2, S3… en los comandos, y como línea numerada en el PNR.",
+      "confianza": "derivado",
+      "comoSeDeduce": "Todos los procedimientos lo usan así: 'S2,3 - SEGMENTOS QUE EL CLIENTE VA A VOLAR' (#3111 paso 5), 'XE {línea de los segmentos}' (#3638 paso 10).",
+      "comandosRelacionados": [
+        "SS",
+        "XE",
+        "/S2-3"
+      ],
+      "ojo": "No confundir el número de SEGMENTO (S) con el número de PASAJERO (P) ni con el número de LÍNEA del PNR. Los tres son números y se mezclan en el mismo comando."
+    },
+    {
+      "termino": "EMD",
+      "apariciones": 87,
+      "nombreCompleto": "Electronic Miscellaneous Document",
+      "definicion": "Documento electrónico independiente del billete que sirve para cobrar servicios: equipaje adicional, mascota, menor no acompañado, penalidad de cambio, asiento… Cada servicio tiene su código (E0B0 = UMNR, C0B3 = mascota en bodega hasta 10 kg).",
+      "confianza": "derivado",
+      "comoSeDeduce": "El catálogo de 36 servicios EMD (_servicios-emd.json) y el procedimiento UMNR muestran que se abre con WEMD/DEMR, se crea con TMC y se emite con TTM. Ningún manual lo define, pero su función es inequívoca.",
+      "sistema": "ambos",
+      "comandosRelacionados": [
+        "DEMR:DN",
+        "DEMR:H",
+        "TMC",
+        "TTM1",
+        "WEMD:"
+      ],
+      "ojo": "El EMD nace de un TSM. Primero se crea el TSM (la máscara), luego el EMD (el documento)."
+    },
+    {
+      "termino": "TST",
+      "apariciones": 47,
+      "nombreCompleto": "Transitional Stored Ticket",
+      "definicion": "La máscara donde vive la TARIFA cotizada antes de emitir el billete. Se crea al guardar una cotización (FXP), se consulta con TQT, se borra con TTE y se emite con TTP.",
+      "confianza": "derivado",
+      "comoSeDeduce": "#3058 paso 11 lo llama 'GUARDA LA TARIFA COTIZADA' con FXP y el paso 12 'VERIFICAR QUE SE HAYA CREADO LA MASCARA TST'. Todos los procedimientos de reemisión lo borran (TTE/ALL) antes de recotizar.",
+      "sistema": "amadeus",
+      "comandosRelacionados": [
+        "FXP",
+        "TQT",
+        "TTE",
+        "TTI",
+        "TTK",
+        "TTP",
+        "TTC",
+        "TQTC"
+      ],
+      "ojo": "Si hay varios tipos de pasajero hay VARIOS TST (T1, T2…). Casi todos los comandos piden cuál."
+    },
+    {
+      "termino": "TSM",
+      "apariciones": 49,
+      "nombreCompleto": "Transitional Stored Miscellaneous",
+      "definicion": "El equivalente al TST pero para SERVICIOS y PENALIDADES, no para la tarifa. Es la máscara de la que sale el EMD. Se consulta con TQM, se edita con TMI y se emite con TTM.",
+      "confianza": "derivado",
+      "comoSeDeduce": "#3121 pasos 14-17: 'SOLICITAMOS EL TSM' (IU IB NN1 PENF), 'CREAR EL EMD' (TMC), 'VERIFICAR QUE SE HAYA CREADO LA MASCARA TSM' (TQM), 'INGRESA EL VALOR DE LA PENALIDAD' (TMI).",
+      "sistema": "amadeus",
+      "comandosRelacionados": [
+        "TQM",
+        "TMI",
+        "TMC",
+        "TMX",
+        "TTM1",
+        "IU … PENF"
+      ],
+      "ojo": "En un cambio con penalidad, la DIFERENCIA DE TARIFA va en el TST y la PENALIDAD va en el TSM. Son dos cobros distintos que se emiten juntos con TTP1/TTM/T2/M1/ET/RT."
+    },
+    {
+      "termino": "PNR",
+      "apariciones": 49,
+      "nombreCompleto": "Passenger Name Record",
+      "definicion": "La reserva. Se identifica con un localizador de 6 caracteres (p.ej. KFQQV, M2SZ8E). Contiene pasajeros, segmentos, contactos, servicios y elementos de facturación.",
+      "confianza": "derivado",
+      "comoSeDeduce": "El material lo usa como sinónimo de 'reserva' y de 'localizador': 'filtro de seguridad: APELLIDO + PNR', 'Código de reserva (PNR)' en la pantalla de Natiba.",
+      "sistema": "ambos",
+      "comandosRelacionados": [
+        "RT",
+        "RTA",
+        "RTC",
+        "PNRC:"
+      ]
+    },
+    {
+      "termino": "TKT",
+      "apariciones": 51,
+      "definicion": "El billete emitido. Se identifica por su número con placa: 075-1422342526 (Iberia) o 060-… (Iberia Express).",
+      "confianza": "derivado",
+      "comoSeDeduce": "Uso constante: 'ABRE EL TKT Y COPIA EL FAREBASIS, EL DOI Y EL VALOR TOTAL — TWD/TKT 075-1422342526'.",
+      "sistema": "ambos",
+      "comandosRelacionados": [
+        "TWD/TKT",
+        "DTR:TN",
+        "FHE",
+        "TTP"
+      ]
+    },
+    {
+      "termino": "NN1",
+      "apariciones": 56,
+      "definicion": "Estado y cantidad al SOLICITAR un servicio. NN = solicitud pendiente de respuesta de la aerolínea; el número es la cantidad. NN2 = se piden dos.",
+      "confianza": "derivado",
+      "comoSeDeduce": "Aparece siempre al pedir un servicio ('SR AVIH IB NN1 - …'), y los manuales dicen que después queda en HN o HK. En AVIH con dos mascotas el manual escribe NN2, lo que confirma que el dígito es la cantidad.",
+      "sistema": "ambos",
+      "comandosRelacionados": [
+        "SR",
+        "SSR",
+        "IU"
+      ]
+    },
+    {
+      "termino": "FHE",
+      "apariciones": 25,
+      "definicion": "Elemento que ASOCIA un billete ya emitido al pasajero dentro del PNR. Es el primer paso obligatorio de toda reemisión: sin FHE el sistema no sabe qué billete está cambiando.",
+      "confianza": "derivado",
+      "comoSeDeduce": "Los cuatro procedimientos de reemisión empiezan igual: 'COLOCAR EL TKT DEL ADT/CHD EN FHE — FHE 075-…/P1'. Para infante, FHE INF … apuntando al adulto.",
+      "sistema": "amadeus",
+      "comandosRelacionados": [
+        "FHE",
+        "FHE INF"
+      ],
+      "ojo": "Las cotizaciones de reemisión pueden referirse al FHE por su LÍNEA (FXF/T23) en vez de por el número de billete."
+    },
+    {
+      "termino": "DOI",
+      "apariciones": 16,
+      "nombreCompleto": "Date of Issue",
+      "definicion": "Fecha de emisión original del billete.",
+      "confianza": "verbatim",
+      "dondeSeDefine": "reembolso-iberia-general: 'El DOI (fecha de emisión original)'. #3113: '01DEC23 - FECHA DE EMISIóN'.",
+      "sistema": "ambos",
+      "ojo": "Aparece literalmente en la cabecera del billete al abrirlo con DTR:TN ('DOI: 29SEP25'). Se necesita para cotizar a histórico (/R,{DOI},UP) y para comprobar la vigencia de 18 meses en reembolsos."
+    },
+    {
+      "termino": "fare basis",
+      "alias": [
+        "FAREBASIS"
+      ],
+      "apariciones": 12,
+      "definicion": "Código alfanumérico que identifica la tarifa aplicada a un cupón (p.ej. AON4NQM7, ONLONNB7). Su ÚLTIMA LETRA indica la familia tarifaria.",
+      "confianza": "verbatim",
+      "dondeSeDefine": "#3590 GAMA DE TARIFAS da la tabla TARIFA→FINAL: BASICA=B#, OPTIMA=M#, COMFORT=U#, FLEXIBLE=S# o Y#.",
+      "ojo": "Es la vía más rápida para saber si un billete es reembolsable sin cotizar nada. Ver _tipos-de-tarifas-beneficios.json."
+    },
+    {
+      "termino": "cupón",
+      "alias": [
+        "cupon"
+      ],
+      "apariciones": 17,
+      "definicion": "Cada tramo del billete, uno por segmento volado. Cada cupón tiene su propio estado (OPEN FOR USE, USED, CHECKED IN…) y su propio fare basis.",
+      "confianza": "derivado",
+      "comoSeDeduce": "En la salida de DTR:TN cada línea 'O FM:'/'O TO:' es un cupón con su estado. #3111 usa 'CK1 - NUMERO DEL CUPON EN CHECK-IN'.",
+      "sistema": "ambos",
+      "ojo": "Que el vuelo ya haya pasado NO significa que el cupón esté volado: hay que leer su estado."
+    },
+    {
+      "termino": "OPEN FOR USE",
+      "apariciones": 6,
+      "definicion": "Estado de un cupón que aún no se ha usado. Es el estado que exige un reembolso.",
+      "confianza": "verbatim",
+      "dondeSeDefine": "reembolso-iberia-general paso 3: 'El estado del billete debe ser \"OPEN FOR USE\" (O)'.",
+      "sistema": "ambos"
+    },
+    {
+      "termino": "placa",
+      "apariciones": 7,
+      "definicion": "Los tres dígitos iniciales del número de billete, que identifican a la aerolínea emisora. 075 = Iberia · 060 = Iberia Express.",
+      "confianza": "derivado",
+      "comoSeDeduce": "El catálogo de transacciones describe DNA como 'información del código de una aerolínea, nombre, código o placa del billete', y los manuales distinguen constantemente 075 de 060.",
+      "ojo": "La placa decide el procedimiento: en 075 se crea caso en Salesforce, en 060 NO."
+    },
+    {
+      "termino": "radio",
+      "apariciones": 17,
+      "definicion": "Clasificación de un vuelo por su alcance: CORTO, MEDIANO y LARGO radio.",
+      "confianza": "derivado",
+      "comoSeDeduce": "Se usa para tres cosas distintas: si hay Turista Premium (no la hay en corto radio), el umbral de cambio involuntario (1 h en corto/medio vs 3 h en largo) y la penalidad de COMFORT.",
+      "hueco": "NINGÚN manual dice dónde está la frontera en kilómetros u horas. Pendiente de preguntar al instructor.",
+      "ojo": "El simulador la deduce de la duración del vuelo (≥6 h = largo, 3-6 h = medio, <3 h = corto), pero eso es una convención NUESTRA, no del material."
+    },
+    {
+      "termino": "HK",
+      "apariciones": 4,
+      "definicion": "Estado CONFIRMADO de un segmento o servicio.",
+      "confianza": "verbatim",
+      "dondeSeDefine": "perro-asistencia-svan: 'SERVICIO QUEDARA EN HK CONFIRMADO'.",
+      "sistema": "ambos"
+    },
+    {
+      "termino": "HN",
+      "apariciones": 4,
+      "definicion": "Estado PENDIENTE de confirmación por la aerolínea.",
+      "confianza": "verbatim",
+      "dondeSeDefine": "mascota-en-bodega-avih: 'SERVICIO QUEDARA EN HN Y SE CONFIRMARA EN 24HORAS'.",
+      "sistema": "ambos"
+    },
+    {
+      "termino": "TK",
+      "apariciones": 3,
+      "definicion": "Estado de segmento: itinerario MODIFICADO o vuelo SUGERIDO por la aerolínea.",
+      "confianza": "verbatim",
+      "dondeSeDefine": "#3129: tabla ESTADO/SIGNIFICADO — 'TK: Itinerario modificado o Vuelo sugerido'.",
+      "sistema": "amadeus",
+      "ojo": "Ver un TK es la señal de que puede tratarse de un cambio INVOLUNTARIO y de que el pasajero quizá no deba pagar nada."
+    },
+    {
+      "termino": "UN",
+      "apariciones": 3,
+      "definicion": "Estado de segmento: CANCELADO.",
+      "confianza": "verbatim",
+      "dondeSeDefine": "#3129: tabla ESTADO/SIGNIFICADO — 'UN: Cancelado'.",
+      "sistema": "amadeus"
+    },
+    {
+      "termino": "PENTY",
+      "apariciones": 7,
+      "definicion": "Abreviatura de PENALIDAD usada en las notas del PNR.",
+      "confianza": "derivado",
+      "comoSeDeduce": "Aparece siempre en remarks de coste: 'RM…PAX AVDO COSTE PENTY 3279MXN X ADT + 680MXN SF'. Junto a SF (gasto de gestión) y DF (diferencia de tarifa).",
+      "sistema": "amadeus"
+    },
+    {
+      "termino": "PENF",
+      "apariciones": 3,
+      "definicion": "Código de servicio que se usa al solicitar el TSM donde vivirá la penalidad de un cambio.",
+      "confianza": "derivado",
+      "comoSeDeduce": "#3121 paso 14: 'SOLICITAMOS EL TSM — IU IB NN1 PENF BOG/P1'. Es el único sitio donde aparece.",
+      "sistema": "amadeus"
+    },
+    {
+      "termino": "EXCH",
+      "apariciones": 8,
+      "definicion": "Marca de INTERCAMBIO/reemisión. Como comando (TTI/EXCH/T2) pone el TST en modo reemisión; como campo del billete indica contra qué billete anterior se emitió.",
+      "confianza": "derivado",
+      "comoSeDeduce": "#3121 paso 11: 'COLOCAMOS EL TST EN REEMISION — TTI/EXCH/T2'. Y en la salida de DTR:TN aparece un campo 'EXCH:' con el número del billete anterior.",
+      "sistema": "ambos"
+    },
+    {
+      "termino": "reemisión",
+      "alias": [
+        "remisión"
+      ],
+      "apariciones": 17,
+      "definicion": "Emitir un billete NUEVO en sustitución de uno anterior, cobrando lo que proceda (diferencia de tarifa, penalidad, gasto de gestión).",
+      "confianza": "derivado",
+      "comoSeDeduce": "Es lo que hacen #3111, #3113, #3121 y #3638. Se opone a REVALIDAR.",
+      "ojo": "El árbol de manuales escribe 'REMISION' (#3059) y 'REEMISION' indistintamente. Parece la misma cosa."
+    },
+    {
+      "termino": "revalidar",
+      "apariciones": 2,
+      "definicion": "Actualizar el MISMO billete con vuelos nuevos, sin emitir uno nuevo y sin cobrar. Solo vale si se mantienen clase y ruta.",
+      "confianza": "verbatim",
+      "dondeSeDefine": "#3639: 'REVALIDACIÓN TTP/ETRV: actualiza el mismo billete con los nuevos vuelos sin necesidad de cotizar penalidad ni generar TST de reemisión'.",
+      "sistema": "amadeus",
+      "ojo": "Confundir revalidar con reemitir cuesta dinero: revalidar NO cobra, reemitir SÍ."
+    },
+    {
+      "termino": "ON HOLD",
+      "apariciones": 9,
+      "definicion": "Reserva confirmada pero SIN pagar, con un plazo límite para emitir. El pasajero completa el pago en iberia.com.",
+      "confianza": "verbatim",
+      "dondeSeDefine": "#3058: 'Para todas las reservas de primera emisión, solo se realizarán reservas on hold. El pasajero deberá finalizar el pago a través del sitio web IBERIA.COM'.",
+      "sistema": "amadeus",
+      "comandosRelacionados": [
+        "TKXL",
+        "TKTL",
+        "TKOK"
+      ]
+    },
+    {
+      "termino": "ARNK",
+      "apariciones": 2,
+      "definicion": "Arrival Unknown. Elemento que marca un tramo por superficie: el pasajero llega a una ciudad y sale de otra por sus propios medios.",
+      "confianza": "verbatim",
+      "dondeSeDefine": "_transacciones-utiles: 'SI ARNK — ESPECIFICAR ARRIVO DESCONOCIDO'.",
+      "sistema": "amadeus",
+      "ojo": "Se relaciona con el FQP 'surface' de #3113, que usa --- para marcar ese hueco."
+    },
+    {
+      "termino": "TQT",
+      "apariciones": 9,
+      "definicion": "Transacción que muestra la máscara TST (la tarifa guardada). TQT/T1 para un TST concreto.",
+      "confianza": "verbatim",
+      "dondeSeDefine": "#3058 paso 12: 'VERIFICAR QUE SE HAYA CREADO LA MASCARA TST — TQT'.",
+      "sistema": "amadeus"
+    },
+    {
+      "termino": "TQM",
+      "apariciones": 11,
+      "definicion": "Transacción que muestra la máscara TSM (servicios y penalidades). TQM/M1 para uno concreto.",
+      "confianza": "verbatim",
+      "dondeSeDefine": "#3121 paso 16: 'VERIFICAR QUE SE HAYA CREADO LA MASCARA TSM — TQM'.",
+      "sistema": "amadeus"
+    },
+    {
+      "termino": "TQO",
+      "apariciones": 3,
+      "definicion": "Transacción que comprueba si el gasto de gestión quedó agregado al TST.",
+      "confianza": "verbatim",
+      "dondeSeDefine": "#3111 paso 11: 'Para consultar si el importe esta agregado puedes usar la transacción TQO'.",
+      "sistema": "amadeus"
+    },
+    {
+      "termino": "Cyber",
+      "apariciones": 12,
+      "definicion": null,
+      "confianza": "hueco",
+      "queSabemos": "Se crea con RMCSY/{NOMBRE}:{APELLIDO} — 'INCLUIR DATOS DEL TITULAR DE LA TARJETA' — y hay que BORRARLO (XE{línea}) antes de poder emitir.",
+      "queNoSabemos": "Qué es exactamente, por qué se llama así, y por qué impide emitir si no se borra.",
+      "preguntarA": "instructor"
+    },
+    {
+      "termino": "SVC",
+      "apariciones": 4,
+      "definicion": null,
+      "confianza": "hueco",
+      "queSabemos": "Es un elemento del PNR con número de línea, y esa línea es lo que pide TMC para crear el EMD: 'TMC/L5 — L5 = LÍNEA DEL ELEMENTO SVC'.",
+      "queNoSabemos": "Qué crea el elemento SVC, en qué paso aparece y cómo se distingue de otros elementos.",
+      "preguntarA": "instructor"
+    },
+    {
+      "termino": "ETRV",
+      "apariciones": 7,
+      "definicion": null,
+      "confianza": "hueco",
+      "queSabemos": "Forma parte de TTP/ETRV, la transacción de revalidación de #3639.",
+      "queNoSabemos": "Qué significan las siglas y si hay variantes.",
+      "preguntarA": "instructor"
+    },
+    {
+      "termino": "RBD",
+      "apariciones": 2,
+      "definicion": null,
+      "confianza": "hueco",
+      "queSabemos": "Aparece en el mensaje de error '*NO FARES/RBD/CARRIER/PASSENGER TYPE'. Por el contexto son las clases de reserva (las letras J, C, D, Y, B…).",
+      "queNoSabemos": "El material nunca lo expande ni lo explica.",
+      "preguntarA": "instructor"
+    },
+    {
+      "termino": "CV",
+      "apariciones": 2,
+      "definicion": null,
+      "confianza": "hueco",
+      "queSabemos": "Aparece en TMI/M1/F3279/CV-3279 — el importe de la penalidad se escribe DOS veces, una como F y otra como CV.",
+      "queNoSabemos": "Qué es el 'cupón value' y por qué hay que repetir el importe.",
+      "preguntarA": "instructor"
+    },
+    {
+      "termino": ":",
+      "alias": [
+        "dos puntos",
+        "conmutador"
+      ],
+      "apariciones": 0,
+      "definicion": "Alterna entre Amadeus y Resiber en la MISMA pantalla de terminal. Responde \"DESCONECTADO DE AMADEUS\" (estás en Resiber) o \"CONECTADO AMADEUS\" (estás en Amadeus).",
+      "confianza": "verbatim",
+      "dondeSeDefine": "Aportado por el usuario, agente Iberia en activo (08AGO26). NINGÚN manual del material lo menciona.",
+      "sistema": "ambos",
+      "ojo": "Es el paso invisible de casi todos los procedimientos. Si no sabes en qué sistema estás, teclea : y lee la respuesta."
+    }
+  ],
+  "elementosDelPnr": {
+    "confianza": "derivado",
+    "nota": "Códigos de dos letras que aparecen como líneas del PNR. Deducidos de las capturas reales y de los procedimientos que los manipulan; el material no los define.",
+    "lista": [
+      {
+        "codigo": "AP",
+        "que": "Teléfono de contacto",
+        "comando": "AP+ 3463232323"
+      },
+      {
+        "codigo": "APE",
+        "que": "Correo de contacto",
+        "comando": "APE- AB@AB.COM"
+      },
+      {
+        "codigo": "TK",
+        "que": "Elemento de plazo de emisión",
+        "comando": "TKXL / TKTL / TKOK"
+      },
+      {
+        "codigo": "SSR",
+        "que": "Special Service Request — servicio solicitado a la aerolínea",
+        "comando": "SR / SSR"
+      },
+      {
+        "codigo": "OSI",
+        "que": "Other Service Information — información sin servicio confirmado",
+        "comando": "OS YY HBFF"
+      },
+      {
+        "codigo": "FA",
+        "que": "Línea del billete emitido dentro del PNR",
+        "comando": "se elimina con XE al reemitir"
+      },
+      {
+        "codigo": "FB",
+        "que": "Referencia de la emisión",
+        "comando": "—"
+      },
+      {
+        "codigo": "FE",
+        "que": "Endoso y restricciones de la tarifa",
+        "comando": "FE X0/P1"
+      },
+      {
+        "codigo": "FO",
+        "que": "Referencia al billete ORIGINAL en una reemisión",
+        "comando": "FOL14/P1 · FOINF*L15/P1"
+      },
+      {
+        "codigo": "FP",
+        "que": "Forma de pago",
+        "comando": "FP O/CCVI+/{token}"
+      },
+      {
+        "codigo": "FV",
+        "que": "Transportista validador",
+        "comando": "—"
+      },
+      {
+        "codigo": "RM",
+        "que": "Remark — nota libre en el PNR",
+        "comando": "RM{fecha}PAX AVDO …"
+      },
+      {
+        "codigo": "INT",
+        "que": "Notas, pero en RESIBER (equivale al RM de Amadeus)",
+        "comando": "INT IB PAX AVDO …"
+      }
+    ]
+  },
+  "resumen": {
+    "total": 34,
+    "verbatim": 14,
+    "derivado": 14,
+    "hueco": 5,
+    "huecosParaElInstructor": [
+      "Cyber",
+      "SVC",
+      "ETRV",
+      "RBD",
+      "CV",
+      "la frontera de RADIO en km u horas"
+    ]
+  }
+}

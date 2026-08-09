@@ -1,0 +1,412 @@
+{
+  "id": "cambio-voluntario-automatico",
+  "titulo": "Cambio de vuelo VOLUNTARIO — automático",
+  "aerolinea": "IB",
+  "categoria": "reemision",
+  "resumen": "Reemisión por cambio voluntario cuando el sistema SÍ devuelve cotización automática (FXF/FXE). Si no la devuelve, se pasa al manual de CAMBIO MANUAL.",
+  "advertencias": [
+    {
+      "nivel": "critico",
+      "texto": "ANTES DE INICIAR: realiza el filtro de seguridad — APELLIDO + PNR.",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "critico",
+      "texto": "PUNTO DE BIFURCACIÓN (paso 5): si el sistema respondió con una cotización, continúa con este manual. Si NO respondió con cotización, pasa a cambio-manual-sin-segmento-volado.json (#3121).",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "alto",
+      "texto": "Si el billete está en CHECK-IN debes solicitar al supervisor retirarlo para poder continuar (antes del paso 8).",
+      "confianza": "verbatim"
+    }
+  ],
+  "fuente": {
+    "documento": "IberiaNet Lite — #3111 \"1. VOLUNTARIO\" (hijo de #3107 \"CAMBIOS DE VUELO\")",
+    "tipo": "manual-oficial-interno",
+    "recibido": "2026-08-08",
+    "confianzaGlobal": "verbatim",
+    "nota": "Hermano de #3638 (cambio INVOLUNTARIO). Comparten los pasos 1-4 y 19-22; se diferencian en el motor de cotización: aquí FXF/FXE, allí FXI."
+  },
+  "pasos": [
+    {
+      "n": 0,
+      "sistema": "natiba",
+      "proceso": "Filtro de seguridad",
+      "comando": null,
+      "explicacion": "APELLIDO + PNR.",
+      "confianza": "verbatim",
+      "esBloqueante": true
+    },
+    {
+      "n": 1,
+      "sistema": "amadeus",
+      "proceso": "Colocar el TKT del ADT/CHD en FHE",
+      "comando": "FHE 075-1422342526/P1",
+      "plantilla": "FHE {numeroBillete}/P{pasajero}",
+      "explicacion": "075-142… = ticket del ADT o CHD · P1 = número del pax.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 1.1,
+      "sistema": "amadeus",
+      "proceso": "Colocar el TKT del INF en FHE",
+      "comando": "FHE INF 075-1422342526/P1",
+      "plantilla": "FHE INF {numeroBillete}/P{pasajero}",
+      "explicacion": "P1 = número del ADT que va con el infante.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 2,
+      "sistema": "amadeus",
+      "proceso": "Eliminar el TKT en FA (solo si aplica)",
+      "comando": "XE 14",
+      "plantilla": "XE {lineaFA}",
+      "explicacion": "14 = línea del elemento FA del pax.",
+      "confianza": "verbatim",
+      "opcional": true
+    },
+    {
+      "n": 3,
+      "sistema": "amadeus",
+      "proceso": "Buscar fechas de vuelo",
+      "comando": "AN 11MAR MADBOG",
+      "variantes": [
+        "AN 11MAR MADBOG * 23OCT",
+        "SN 11MAR MADBOG"
+      ],
+      "explicacion": "PRO TIP: MY = día anterior · MN = día siguiente.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 4,
+      "sistema": "amadeus",
+      "proceso": "Seleccionar plazas",
+      "comando": "SS 2 A 1",
+      "variantes": [
+        "SS 2 A 1 * S 11",
+        "SS 2 A S 1"
+      ],
+      "explicacion": "Ida y vuelta con *. Clases diferentes por vuelo: SS 2 A S 1.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 5,
+      "sistema": "amadeus",
+      "proceso": "Cotizar los vuelos que el cliente va a volar — TKT en OPEN",
+      "comando": "FXF/T23 /S2,3/R,UNDCIBAAPP,UP/FF-BASIC",
+      "plantilla": "FXF/T{lineasDeLosFHE}/S{segmentos}/R,UNDCIBAAPP,UP/FF-{TARIFA}",
+      "explicacion": "2,3 = segmentos que el cliente va a volar. UNDCIBAAPP,UP es constante.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 5.1,
+      "sistema": "amadeus",
+      "proceso": "Cotizar — TKT en CK (check-in)",
+      "comando": "FXF/TKT 075-1423456789/S2,3/R,UNDCIBAAPP,UP/P#/CK1",
+      "plantilla": "FXF/TKT {numeroBillete}/S{segmentos}/R,UNDCIBAAPP,UP/P{pax}/CK{cupon}",
+      "explicacion": "CK1 = número del cupón en check-in.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 5.2,
+      "sistema": "amadeus",
+      "proceso": "Si NO deja con las anteriores — un solo pasajero",
+      "comando": "FXE/TKT 075-1423456789/S2,3/R,UNDCIBAAPP,UP/P#/FF-BASIC",
+      "plantilla": "FXE/TKT {numeroBillete}/S{segmentos}/R,UNDCIBAAPP,UP/P{pax}/FF-{TARIFA}",
+      "explicacion": "Alternativa cuando FXF falla.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 5.3,
+      "sistema": "amadeus",
+      "proceso": "Si NO deja con las anteriores — varios pasajeros",
+      "comando": "FXE/T23,24 /S2,3/R,UNDCIBAAPP,UP/FF-BASIC",
+      "plantilla": "FXE/T{lineasDeLosFHE}/S{segmentos}/R,UNDCIBAAPP,UP/FF-{TARIFA}",
+      "explicacion": "Familias: Turista FF-BASIC/OPTIMA/COMFORT/FLEX · T.Premium FF-PEOPTIMA/PECOMFORT/PEFLEX · Business FF-BUSOPTIMA/BUSCOMFORT/BUSFLEX.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 5.4,
+      "sistema": "amadeus",
+      "proceso": "⚖️ BIFURCACIÓN — ¿respondió con cotización?",
+      "comando": null,
+      "explicacion": "SÍ respondió → continúa con este manual. NO respondió → continúa con el MANUAL DE CAMBIO MANUAL: #3121 SIN SEGMENTO VOLADO (cambio-manual-sin-segmento-volado.json), ya capturado.",
+      "confianza": "verbatim",
+      "esBloqueante": true
+    },
+    {
+      "n": 6,
+      "sistema": "amadeus",
+      "proceso": "Documentar valores a cobrar",
+      "comando": "RM24MAR26 PAX AVDO COSTE CHG 120250MXN X ADT INCYE SF, DF Y PENTY / WP",
+      "explicacion": "SF = gasto de gestión · DF = diferencia de tarifa · PENTY = penalidad.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 7,
+      "sistema": "amadeus",
+      "proceso": "Eliminar TST",
+      "comando": "TTE/ALL",
+      "variantes": [
+        "TTE/T1"
+      ],
+      "explicacion": "TTE/ALL = todos · TTE/T{n} = uno específico. RECUERDA: si el billete está en CHECK-IN debes solicitar al supervisor retirarlo para poder continuar.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 8,
+      "sistema": "amadeus",
+      "proceso": "Guardar tarifa — si cotizaste con FXF (un pasajero)",
+      "comando": "FXQ/TKT 075-1423456789/S2,3/R,UNDCIBAAPP,UP/P#/FF-BASIC",
+      "plantilla": "FXQ/TKT {numeroBillete}/S{segmentos}/R,UNDCIBAAPP,UP/P{pax}",
+      "explicacion": "FXF se guarda con FXQ.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 8.1,
+      "sistema": "amadeus",
+      "proceso": "Guardar tarifa — si cotizaste con FXF (varios pasajeros)",
+      "comando": "FXQ/T23,24 /S2,3/R,UNDCIBAAPP,UP/FF-BASIC",
+      "plantilla": "FXQ/T{lineasDeLosFHE}/S{segmentos}/R,UNDCIBAAPP,UP",
+      "explicacion": "Por pasajero o varios a la vez.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 8.2,
+      "sistema": "amadeus",
+      "proceso": "Guardar tarifa — si cotizaste con FXE (un pasajero)",
+      "comando": "FXO/TKT 075-1423456789/S2,3/R,UNDCIBAAPP,UP/P#/FF-BASIC",
+      "plantilla": "FXO/TKT {numeroBillete}/S{segmentos}/R,UNDCIBAAPP,UP/P{pax}/FF-{TARIFA}",
+      "explicacion": "FXE se guarda con FXO. Regla mnemotécnica: FXF→FXQ, FXE→FXO.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 8.3,
+      "sistema": "amadeus",
+      "proceso": "Guardar tarifa — si cotizaste con FXE (varios pasajeros)",
+      "comando": "FXO/T23,24 /S2,3/R,UNDCIBAAPP,UP/FF-BASIC",
+      "plantilla": "FXO/T{lineasDeLosFHE}/S{segmentos}/R,UNDCIBAAPP,UP",
+      "explicacion": "Guardar cambios hasta el momento con ER.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 9,
+      "sistema": "amadeus",
+      "proceso": "Verificar los TST",
+      "comando": "TQT",
+      "variantes": [
+        "TQT/T3"
+      ],
+      "explicacion": "3 = número del TST.",
+      "confianza": "verbatim",
+      "nota": "⚠️ ERRATA EN EL MANUAL: la columna TRANSACCIÓN dice TQT/T3 pero la columna EXPLICACIÓN escribe \"TTQ/T TST\" — con las letras cambiadas. El comando correcto es TQT (así aparece también en #3058 paso 12). Se preserva la errata como aviso."
+    },
+    {
+      "n": 9.1,
+      "sistema": "amadeus",
+      "proceso": "Verificar los TSM",
+      "comando": "TQM",
+      "variantes": [
+        "TQM/M1"
+      ],
+      "explicacion": "1 = número del TSM.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 10,
+      "sistema": "amadeus",
+      "proceso": "Eliminar todas las FP",
+      "comando": "XE 22",
+      "plantilla": "XE {lineaFP}",
+      "explicacion": "22 = línea del elemento FP.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 11,
+      "sistema": "amadeus",
+      "proceso": "Incluir el gasto de gestión",
+      "comando": "TTO/ST01/CSF/F3500",
+      "variantes": [
+        "TTO/ST01/CSF/F3500/T2"
+      ],
+      "explicacion": "T2 = número del TST cuando hay varios. PRO TIP: consulta con TQO si el importe quedó agregado. Si quedó mal: TTO/ST01/T{numeroTST} lo elimina y se vuelve a cargar.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 11.1,
+      "sistema": "amadeus",
+      "proceso": "PRO TIP — comprobar que el gasto de gestión quedó agregado",
+      "comando": "TQO",
+      "explicacion": "Consulta si el importe está agregado.",
+      "confianza": "verbatim",
+      "opcional": true
+    },
+    {
+      "n": 11.2,
+      "sistema": "amadeus",
+      "proceso": "Eliminar el gasto de gestión si quedó mal (y volverlo a cargar)",
+      "comando": "TTO/ST01/T2",
+      "plantilla": "TTO/ST01/T{numeroTST}",
+      "explicacion": "Lo elimina para poder recargarlo con TTO/ST01/CSF/F...",
+      "confianza": "verbatim",
+      "opcional": true
+    },
+    {
+      "n": 12,
+      "sistema": "amadeus",
+      "proceso": "Incluir datos del titular de la tarjeta (nuevo Cyber)",
+      "comando": "RMCSY/JUAN:PELAEZ",
+      "plantilla": "RMCSY/{NOMBRE}:{APELLIDO}",
+      "explicacion": "Guardamos con ER.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 13,
+      "sistema": "iberianet",
+      "proceso": "Tomar los datos de tarjeta",
+      "comando": null,
+      "explicacion": "PCI Pal: EUROPA → FORMAS DE PAGO → PCI PAL. Travel Pay: EUROPA → FORMAS DE PAGO → TRAVEL PAY.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 14,
+      "sistema": "amadeus",
+      "proceso": "Forma de pago del TST (diferencia de tarifa y gasto de gestión)",
+      "comando": "FP O/CCVI+/MS-TT,VI1234567890123456-1023-V1234ABCD",
+      "plantilla": "FP O/CCVI+/{token}",
+      "explicacion": "El token se copia de PCI o Travel Pay.",
+      "confianza": "verbatim",
+      "nota": "CUARTA aparición de CCVI+ en fuentes oficiales. El 'CCSVI+' del bot EverGPT queda definitivamente descartado."
+    },
+    {
+      "n": 15,
+      "sistema": "amadeus",
+      "proceso": "Forma de pago del TSM (penalidad)",
+      "comando": "TMI/M1/FP-MS-TT,VI1234567890123456-1023-V1234ABCD",
+      "plantilla": "TMI/M{tsm}/FP-{token}",
+      "explicacion": "La penalidad se cobra en el TSM, aparte del TST.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 16,
+      "sistema": "amadeus",
+      "proceso": "Cargar el perfil de PCI en Amadeus",
+      "comando": "$$CONFIG:CCTYPE/2",
+      "explicacion": "Configura el perfil de tarjeta antes de cobrar.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 17,
+      "sistema": "amadeus",
+      "proceso": "Realizar el cargo a la tarjeta del cliente",
+      "comando": "$$PAY",
+      "explicacion": "Ejecuta el cobro.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 18,
+      "sistema": "amadeus",
+      "proceso": "Borrar el Cyber para poder emitir",
+      "comando": "XE17",
+      "plantilla": "XE{linea}",
+      "explicacion": "17 = línea donde esté el Cyber.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 19,
+      "sistema": "amadeus",
+      "proceso": "Reconfirmar el itinerario al cliente",
+      "comando": null,
+      "explicacion": "Paso de comunicación, sin transacción.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 20,
+      "sistema": "amadeus",
+      "proceso": "Eliminar las plazas que el cliente NO va a usar",
+      "comando": "XE 14",
+      "plantilla": "XE {lineaSegmentos}",
+      "explicacion": "14 = línea de los segmentos.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 21,
+      "sistema": "amadeus",
+      "proceso": "Emitir penalidad y billete AL TIEMPO",
+      "comando": "TTP1/TTM/T2/M1/ET/RT",
+      "plantilla": "TTP1/TTM/T{tst}/M{tsm}/ET/RT",
+      "explicacion": "T2 = número del TST · M1 = número del TSM.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 21.1,
+      "sistema": "amadeus",
+      "proceso": "Emitir SOLO la penalidad",
+      "comando": "TTM1/M1/RT",
+      "plantilla": "TTM1/M{tsm}/RT",
+      "explicacion": "M1 = número del TSM.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 21.2,
+      "sistema": "amadeus",
+      "proceso": "Emitir SOLO el billete",
+      "comando": "TTP1/ET/RT/T2",
+      "plantilla": "TTP1/ET/RT/T{tst}",
+      "explicacion": "T2 = número del TST.",
+      "confianza": "verbatim",
+      "nota": "El manual escribe 'TTP1/ET/RT/T2' en la columna TRANSACCIÓN y 'TTP1/T2/ET/RT' en la EXPLICACIÓN — mismo baile de orden que en #3638. Se preserva la columna TRANSACCIÓN."
+    },
+    {
+      "n": 22,
+      "sistema": "amadeus",
+      "proceso": "Enviar itinerario y documentos",
+      "comando": "IBP-EMLA/LPSP",
+      "variantes": [
+        "IEPJ-EMLA/LPSP",
+        "ITR-EMLA"
+      ],
+      "explicacion": "IBP = itinerario · IEPJ = itinerario y servicios · ITR = billetes electrónicos.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 22.1,
+      "sistema": "resiber",
+      "proceso": "Enviar documentos desde RESIBER",
+      "comando": "ITP:/RESERVA/EMAIL",
+      "variantes": [
+        "DTR TN 075-1234567890,EML/EMAIL",
+        "DEMR DN 075-1234567890,EML/EMAIL"
+      ],
+      "explicacion": "Itinerario · billetes electrónicos · EMD.",
+      "confianza": "verbatim"
+    }
+  ],
+  "motoresDeCotizacion": {
+    "confianza": "verbatim",
+    "nota": "Tres motores según el tipo de cambio. Confundirlos es el error más caro de la reemisión.",
+    "tabla": [
+      {
+        "motor": "FXF",
+        "cuando": "Cambio VOLUNTARIO, billete en OPEN",
+        "seGuardaCon": "FXQ"
+      },
+      {
+        "motor": "FXE",
+        "cuando": "Cambio VOLUNTARIO, cuando FXF no deja",
+        "seGuardaCon": "FXO"
+      },
+      {
+        "motor": "FXI",
+        "cuando": "Cambio INVOLUNTARIO (manual #3638). Con /SC si el vuelo nuevo está a +48h",
+        "seGuardaCon": "—"
+      }
+    ]
+  },
+  "huecosConocidos": [
+    "Qué significa exactamente la constante 'UNDCIBAAPP,UP'.",
+    "Cómo se sabe si el billete está en OPEN o en CK antes de elegir el motor.",
+    "El manual de CAMBIO MANUAL (#3112, 3 hijos) al que deriva la bifurcación del paso 5."
+  ]
+}

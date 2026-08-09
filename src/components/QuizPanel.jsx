@@ -152,7 +152,7 @@ export const QuizPanel = ({ profileConfig, locationsCatalog, flightsCatalog, cou
         <div className="quiz-menu">
           <div className="quiz-title">
             <Brain size={22} />
-            <span>MODO TEORÍA — ¿QUÉ CÓDIGO ES PARA QUÉ?</span>
+            <span>BANCO DE TEORÍA GDS — ¿QUÉ CÓDIGO ES PARA QUÉ?</span>
           </div>
           <p className="quiz-sub">Cargando el manual de comandos…</p>
         </div>
@@ -166,7 +166,7 @@ export const QuizPanel = ({ profileConfig, locationsCatalog, flightsCatalog, cou
         <div className="quiz-menu">
           <div className="quiz-title">
             <Brain size={22} />
-            <span>MODO TEORÍA — ¿QUÉ CÓDIGO ES PARA QUÉ?</span>
+            <span>BANCO DE TEORÍA GDS — ¿QUÉ CÓDIGO ES PARA QUÉ?</span>
           </div>
           <p className="quiz-sub">
             Preguntas generadas del manual: comandos, códigos IATA, escalera de clases, sintaxis y flujo. Lo que falles vuelve a salir hasta que lo respondas bien.
@@ -257,7 +257,7 @@ export const QuizPanel = ({ profileConfig, locationsCatalog, flightsCatalog, cou
             <Zap size={18} /> OTRA VEZ
           </button>
           <button className="quiz-big-btn secondary" onClick={() => setMode('menu')}>
-            VOLVER AL MENÚ
+            VOLVER AL MENÚ DE TEORÍA
           </button>
         </div>
       )}
@@ -280,7 +280,7 @@ export const QuizPanel = ({ profileConfig, locationsCatalog, flightsCatalog, cou
               SIGUIENTE TARJETA
             </button>
             <button className="quiz-big-btn secondary" onClick={() => setMode('menu')}>
-              VOLVER AL MENÚ
+              VOLVER AL MENÚ DE TEORÍA
             </button>
           </div>
         </div>

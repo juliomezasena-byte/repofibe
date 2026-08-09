@@ -1,0 +1,129 @@
+{
+  "id": "reembolso-ibex-no-pcc",
+  "titulo": "Reembolso Iberia Express (IBEX) por NO PCC",
+  "aerolinea": "I2",
+  "categoria": "reembolsos",
+  "resumen": "Reembolso de billete 060 (Iberia Express) por NO PCC. NO se crea caso en Salesforce: se tramita por Amadeus y se envía a cola.",
+  "aplicaSolo": "Billetes 060- (IBERIA EXPRESS). Si es 075- es Iberia y aplica OTRO procedimiento.",
+  "advertencias": [
+    {
+      "nivel": "critico",
+      "texto": "El cliente muchas veces NO distingue entre 075 (Iberia) y 060 (Iberia Express). Verificar la placa del billete ANTES de aplicar cualquier procedimiento.",
+      "confianza": "derivado"
+    },
+    {
+      "nivel": "critico",
+      "texto": "En IBEX NO se crea caso en Salesforce. Todo se tramita a través de Amadeus.",
+      "confianza": "derivado"
+    }
+  ],
+  "fuente": {
+    "documento": "Resumen del bot interno EverGPT citando 'IBEX proc. 1' e 'IBEX proc. 20'",
+    "tipo": "resumen-de-bot",
+    "recibido": "2026-08-07",
+    "confianzaGlobal": "derivado",
+    "nota": "⚠️ NINGÚN paso de este procedimiento es verbatim. Todo proviene de un bot resumiendo documentos que NO tenemos ('IBEX 20 - REEMBOLSO POR NO PCC.md', 'IBEX 14 - VERIFICAR REEMBOLSO EN RESIBER.md'). Los comandos pueden estar mal transcritos. NO usar como solucionario hasta obtener los .md originales."
+  },
+  "pasos": [
+    {
+      "n": 1,
+      "sistema": "natiba",
+      "proceso": "Filtro de seguridad",
+      "comando": null,
+      "explicacion": "Apellido del pasajero + localizador.",
+      "confianza": "derivado",
+      "nota": "EverGPT lo cita desde 'IBEX proc. 20'. Coincide con el filtro de seguridad de Natiba visto en manual/reembolso latinoamerica/, lo que lo hace creíble, pero no está corroborado para IBEX."
+    },
+    {
+      "n": 2,
+      "sistema": "resiber",
+      "proceso": "Abrir el número de billete en Resiber",
+      "comando": "DTR TN 060-123466",
+      "plantilla": "DTR TN {numeroBillete}",
+      "explicacion": "Abre el billete en Resiber. Revisar el status de los cupones (OPEN) y el DOI.",
+      "confianza": "derivado",
+      "nota": "Comando citado por el bot desde 'IBEX proc. 1'. Sin manual de Resiber para verificar la sintaxis exacta."
+    },
+    {
+      "n": 3,
+      "sistema": "resiber",
+      "proceso": "Abrir el histórico del billete",
+      "comando": "DTR H",
+      "explicacion": "Revisar si ya existe un número de reembolso RFT y abrir la referencia del reembolso.",
+      "confianza": "derivado",
+      "nota": "Mismo origen que el paso 2. Sin verificar."
+    },
+    {
+      "n": 4,
+      "sistema": "resiber",
+      "proceso": "Enviar comprobante por correo",
+      "comando": null,
+      "explicacion": "Ingresar el correo electrónico y agregar Y en RCPT.",
+      "confianza": "derivado",
+      "nota": "EverGPT citando 'IBEX proc. 1'. RCPT no está documentado en ninguna otra fuente que tengamos.",
+      "opcional": true
+    },
+    {
+      "n": 5,
+      "sistema": "amadeus",
+      "proceso": "Comprobar que aplica NO PCC",
+      "comando": null,
+      "explicacion": "El pasajero debe tener una nueva reserva para que aplique el reembolso por NO PCC.",
+      "confianza": "derivado",
+      "nota": "EverGPT citando 'IBEX proc. 20'. Regla de negocio sin comando asociado; no verificada contra el manual original.",
+      "esBloqueante": true
+    },
+    {
+      "n": 6,
+      "sistema": "amadeus",
+      "proceso": "Dejar nota en el PNR",
+      "comando": "RM PAX SOLICITA REEMBOLSO POR NO PCC",
+      "explicacion": "Y una segunda nota: RM NUEVO CODIGO DE RESERVA {nuevoPNR}, ANTERIOR {pnrAnterior}",
+      "confianza": "derivado",
+      "nota": "EverGPT citando 'IBEX proc. 20'. El comando RM sí está corroborado como Amadeus en el simulador; el TEXTO exacto de la nota no."
+    },
+    {
+      "n": 7,
+      "sistema": "amadeus",
+      "proceso": "Eliminar plazas",
+      "comando": "XE2",
+      "plantilla": "XE{linea}",
+      "explicacion": "Elimina el elemento/segmento indicado.",
+      "confianza": "derivado",
+      "nota": "EverGPT citando 'IBEX proc. 20'. XE sí está corroborado como comando Amadeus en commands_meta.json; lo NO verificado es que aquí sea la línea 2."
+    },
+    {
+      "n": 8,
+      "sistema": "amadeus",
+      "proceso": "Guardar",
+      "comando": "ER",
+      "explicacion": "Guarda y redisplaya.",
+      "confianza": "verbatim",
+      "nota": "ER sí está corroborado como comando Amadeus por el propio simulador (commands_meta.json)."
+    },
+    {
+      "n": 9,
+      "sistema": "amadeus",
+      "proceso": "Enviar a cola de reembolso",
+      "comando": "QE/MADI20500/36",
+      "explicacion": "Cola 36 = NO PCC. Para reembolso por cambio involuntario la cola es 97 (QE/MADI20500/97).",
+      "confianza": "derivado",
+      "nota": "⚠️ Número de cola crítico: enviar a la cola equivocada pierde el caso. Verificar contra el manual IBEX original antes de enseñarlo."
+    },
+    {
+      "n": 10,
+      "sistema": "salesforce",
+      "proceso": "NO crear caso",
+      "comando": null,
+      "explicacion": "En IBEX no se crea caso en Salesforce.",
+      "confianza": "derivado",
+      "nota": "EverGPT citando 'IBEX proc. 1' y 'IBEX proc. 20'. Contrasta con Iberia (075), donde SÍ se crea caso — esa asimetría es la trampa principal de este procedimiento."
+    }
+  ],
+  "huecosConocidos": [
+    "Falta el manual de Resiber completo — bloqueante nº1.",
+    "Faltan los .md originales: 'IBEX 20 - REEMBOLSO POR NO PCC.md', 'IBEX 14 - VERIFICAR REEMBOLSO EN RESIBER.md', 'Iberia 36 - Reembolsos.md'.",
+    "Sin verificar: sintaxis exacta de DTR TN y DTR H.",
+    "Sin verificar: números de cola 36 y 97."
+  ]
+}

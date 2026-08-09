@@ -1,0 +1,70 @@
+{
+  "id": "mascotas-restricciones-ruta",
+  "titulo": "Restricciones de PETC / AVIH / IAG CARGO por trayecto",
+  "tipo": "referencia",
+  "nota": "Archivo con prefijo _ : es referencia, no un procedimiento con pasos.",
+  "fuente": {
+    "documento": "manual/mascota/IMG-20250819T135441108.png — tabla \"IMPORTANTE: TENER PRESENTE LAS SOLICITUDES DE PETC / AVIH PARA ESTOS TRAYECTOS\"",
+    "tipo": "material-formacion-interno",
+    "fecha": "2025-08-19",
+    "recibido": "2026-08-08",
+    "confianzaGlobal": "verbatim"
+  },
+  "porQueImporta": "Un agente puede seguir el procedimiento de AVIH perfectamente y aun así estar vendiendo algo imposible: en 20 de los 23 trayectos de esta tabla el AVIH está PROHIBIDO. Esta comprobación va ANTES de solicitar el servicio.",
+  "hallazgoClave": {
+    "titulo": "La restricción NO es simétrica — la dirección del vuelo cambia la respuesta",
+    "ejemplos": [
+      "MAD→DUB permite AVIH · DUB→MAD NO lo permite",
+      "MAD→LHR prohíbe PETC · LHR→MAD sí lo permite",
+      "MAD→RAK permite IAG Cargo · RAK→MAD NO",
+      "Lo mismo en MAN, EDI: saliendo de MAD se bloquea PETC, entrando a MAD se permite"
+    ],
+    "consecuencia": "Nunca asumir que la vuelta funciona igual que la ida. Hay que mirar cada trayecto por separado — que además encaja con que en Resiber el servicio se pide SEGMENTO POR SEGMENTO.",
+    "confianza": "verbatim"
+  },
+  "leyenda": {
+    "permitido": "✓ — el servicio se puede solicitar en ese trayecto",
+    "prohibido": "✗ — NO se puede solicitar",
+    "iagCargo": "Canal alternativo de carga. Cuando AVIH y PETC están bloqueados pero IAG CARGO está permitido, esa es la única vía para que el animal viaje."
+  },
+  "trayectos": [
+    { "trayecto": "BOS-MAD", "avih": false, "petc": true, "iagCargo": true },
+    { "trayecto": "MAD-BOS", "avih": false, "petc": true, "iagCargo": true },
+    { "trayecto": "IAD-MAD", "avih": false, "petc": true, "iagCargo": true },
+    { "trayecto": "MAD-IAD", "avih": false, "petc": true, "iagCargo": true },
+    { "trayecto": "MAD-DUB", "avih": true, "petc": true, "iagCargo": true },
+    { "trayecto": "DUB-MAD", "avih": false, "petc": true, "iagCargo": true },
+    { "trayecto": "MAD-KEF", "avih": false, "petc": false, "iagCargo": false },
+    { "trayecto": "KEF-MAD", "avih": false, "petc": true, "iagCargo": false },
+    { "trayecto": "MAD-LGW", "avih": false, "petc": false, "iagCargo": true },
+    { "trayecto": "LGW-MAD", "avih": false, "petc": false, "iagCargo": true },
+    { "trayecto": "MAD-LHR", "avih": false, "petc": false, "iagCargo": true },
+    { "trayecto": "LHR-MAD", "avih": false, "petc": true, "iagCargo": true },
+    { "trayecto": "MAD-MAN", "avih": false, "petc": false, "iagCargo": true },
+    { "trayecto": "MAN-MAD", "avih": false, "petc": true, "iagCargo": true },
+    { "trayecto": "MAD-EDI", "avih": false, "petc": false, "iagCargo": true },
+    { "trayecto": "EDI-MAD", "avih": false, "petc": true, "iagCargo": true },
+    { "trayecto": "MAD-CAI", "avih": false, "petc": true, "iagCargo": false },
+    { "trayecto": "CAI-MAD", "avih": false, "petc": true, "iagCargo": false },
+    { "trayecto": "MAD-RAK", "avih": true, "petc": true, "iagCargo": true },
+    { "trayecto": "RAK-MAD", "avih": true, "petc": true, "iagCargo": false },
+    { "trayecto": "MAD-TLV", "avih": false, "petc": true, "iagCargo": false },
+    { "trayecto": "TLV-MAD", "avih": false, "petc": true, "iagCargo": false },
+    { "trayecto": "MLN-GRX", "avih": false, "petc": false, "iagCargo": false }
+  ],
+  "resumen": {
+    "confianza": "derivado",
+    "nota": "Cuentas hechas sobre la tabla de arriba; el manual no las da.",
+    "totalTrayectos": 23,
+    "avihPermitido": ["MAD-DUB", "MAD-RAK", "RAK-MAD"],
+    "avihProhibidoEn": 20,
+    "sinNingunaOpcion": ["MAD-KEF", "MLN-GRX"],
+    "soloPorIagCargo": ["MAD-LGW", "LGW-MAD", "MAD-LHR", "MAD-MAN", "MAD-EDI"],
+    "lectura": "El AVIH es la excepción, no la regla: solo 3 de 23 trayectos lo admiten. En MAD-KEF y MLN-GRX el animal NO puede viajar por ninguna vía."
+  },
+  "huecosConocidos": [
+    "La tabla cubre 23 trayectos concretos. NO dice qué pasa en los trayectos que no aparecen: ¿se aplican las reglas generales o hay que consultar?",
+    "No se indica desde qué fecha rige ni hasta cuándo (la imagen es de 19AGO2025).",
+    "No explica el procedimiento para tramitar por IAG CARGO cuando es la única opción."
+  ]
+}

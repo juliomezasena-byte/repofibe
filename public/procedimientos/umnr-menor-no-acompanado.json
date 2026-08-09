@@ -1,0 +1,153 @@
+{
+  "id": "umnr-menor-no-acompanado",
+  "titulo": "UMNR — Menor no acompañado: cobro del servicio por WEMD en Resiber",
+  "aerolinea": "IB",
+  "categoria": "servicios",
+  "resumen": "Emisión del EMD de UMNR (Unaccompanied Minor Fee, código E0B0) desde la pantalla WEMD de Resiber, con pago por IberiaPay.",
+  "advertencias": [
+    { "nivel": "critico", "texto": "Edad obligatoria: menores entre 5 y 11 años. Opcional hasta los 17.", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "Antelación: reserva del servicio con al menos 24 HORAS de antelación.", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "Documentación: formulario de \"Descargo de Responsabilidad\" completo y ORIGINAL.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "Contacto: datos de quien entrega y quien recoge al menor. Imprescindible que sean correctos.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "Un niño menor de 12 años, en la fecha del vuelo, puede viajar ACOMPAÑADO de alguna persona que haya cumplido al menos 16 años de edad, que sea capaz de cuidar de él durante el vuelo y de aplicar las consignas en tierra y en vuelo, incluyendo formalidades en los aeropuertos.", "confianza": "verbatim" }
+  ],
+  "fuente": {
+    "documento": "manual/umr/ (12 capturas de pantalla real de Resiber, MAD905 y MAD002)",
+    "tipo": "material-formacion-interno",
+    "recibido": "2026-08-08",
+    "confianzaGlobal": "verbatim",
+    "nota": "Capturas del sistema real en vivo, no transcripción. Confirma lo que el bot EverGPT solo había insinuado: el cobro del UMNR se hace por WEMD desde Resiber."
+  },
+  "limitesEdadPorAerolinea": {
+    "confianza": "verbatim",
+    "nota": "Edad a partir de la cual el menor deja de necesitar el servicio, según cada aerolínea del grupo.",
+    "tabla": [
+      { "aerolinea": "American Airlines", "codigo": "AA", "edad": 15 },
+      { "aerolinea": "British Airways", "codigo": "BA", "edad": 14 },
+      { "aerolinea": "LEVEL", "codigo": "LV", "edad": 14 },
+      { "aerolinea": "Iberia", "codigo": "IB", "edad": 12 }
+    ]
+  },
+  "pasos": [
+    {
+      "n": 1,
+      "sistema": "resiber",
+      "proceso": "Abrir la pantalla de emisión de EMD con el número de billete",
+      "comando": "WEMD:0752000951035",
+      "plantilla": "WEMD:{numeroBillete}",
+      "explicacion": "Abre la máscara EMDA. Cabecera: OFC (oficina) · IATA · DVC · CUR (moneda) · AGT (agente) · DOC:EMDA.",
+      "confianza": "verbatim",
+      "validacion": { "tipo": "regex", "patron": "^WEMD:\\d{10,15}$" }
+    },
+    {
+      "n": 2,
+      "sistema": "resiber",
+      "proceso": "Ver la lista de servicios disponibles",
+      "comando": "X",
+      "explicacion": "En el campo LISTA SERVICIOS se escribe X y se transmite: \"TRANSMIT HERE TO VIEW THE LIST OF SERVICES\". Abre el catálogo de 36 servicios EMD.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 3,
+      "sistema": "resiber",
+      "proceso": "Seleccionar el servicio UNACCOMPANIED MINOR FEE",
+      "comando": "X",
+      "explicacion": "En la lista, marcar con X la línea 4 — código E0B0 UNACCOMPANIED MINOR FEE. El campo TIPO DE SERVICIO queda en E0B0. Teclas: F2 pantalla principal · F3 salir · F4 refrescar.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 4,
+      "sistema": "resiber",
+      "proceso": "Escribir el remark",
+      "comando": "EMISION UMNR",
+      "explicacion": "En el campo RMK de la máscara.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 5,
+      "sistema": "resiber",
+      "proceso": "Marcar el/los segmento(s) a los que aplica",
+      "comando": "X",
+      "explicacion": "Cada cupón aparece como '1. IB MAD BOG 0151 O 15NOV OPEN FOR USE'. Se marca con X el que lleva el servicio. En el ejemplo solo el tramo de ida.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 6,
+      "sistema": "resiber",
+      "proceso": "Comprobar el importe",
+      "comando": null,
+      "explicacion": "FARE y TOTAL deben cuadrar. En el ejemplo: EUR 150.00.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 7,
+      "sistema": "resiber",
+      "proceso": "Cargar el perfil de pago",
+      "comando": "$$CONFIG:CCTYPE/2",
+      "explicacion": "Se escribe en el campo PROCEED TO PAYMENT. El sistema responde: \"SITEL TSCLIENT PROFILE LOADED FOR IBERIAPAY PAYMENTS\".",
+      "confianza": "verbatim",
+      "validacion": { "tipo": "exacto", "patron": "$$CONFIG:CCTYPE/2" },
+      "nota": "Mismo comando que en Amadeus (#3058 paso 18), pero aquí dentro de la máscara WEMD de Resiber."
+    },
+    {
+      "n": 8,
+      "sistema": "resiber",
+      "proceso": "Cobrar con el token de tarjeta",
+      "comando": "$$PAY:MS-TT,VI82000007783311111-0225-V001AS8KM",
+      "plantilla": "$$PAY:{token}",
+      "explicacion": "El token se copia de PCI Pal / Travel Pay.",
+      "confianza": "verbatim",
+      "nota": "DIFERENCIA CON AMADEUS: en Amadeus el token va en un elemento FP aparte y el cobro es '$$PAY' a secas. Aquí el token va INLINE tras los dos puntos: '$$PAY:{token}'."
+    },
+    {
+      "n": 9,
+      "sistema": "resiber",
+      "proceso": "Confirmar la creación y abrir el EMD",
+      "comando": "DEMR:DN0754013579407",
+      "plantilla": "DEMR:DN{numeroEMD}",
+      "explicacion": "El sistema responde \"EMD CREATED SUCCESSFULLY\" y ofrece el DEMR:DN con el número del EMD recién creado.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 10,
+      "sistema": "resiber",
+      "proceso": "Verificar que el EMD quedó asociado al billete",
+      "comando": "DTR:TN 0751234567890",
+      "plantilla": "DTR:TN {numeroBillete}",
+      "explicacion": "En el billete aparece la línea: EMD: 0754013579407C1'UA' - E0B0 - UNACCOMPANIED MIN  OPEN, colgando del cupón al que aplica.",
+      "confianza": "verbatim",
+      "resultadoEsperado": {
+        "texto": "EMD: {numero}C1'UA' - E0B0 - UNACCOMPANIED MIN   OPEN",
+        "confianza": "verbatim"
+      }
+    }
+  ],
+  "erroresComunes": [
+    {
+      "sintoma": "Se cobra el UMNR a un menor que no lo necesita",
+      "causa": "Cada aerolínea tiene un límite de edad distinto: IB 12, BA 14, LEVEL 14, AA 15. Aplicar el de Iberia a un vuelo operado por AA cobra de más.",
+      "gravedad": "alta",
+      "confianza": "derivado",
+      "nota": "Deducido de la tabla de límites por aerolínea del propio manual; el manual no lo lista como error."
+    }
+  ],
+  "capturas": [
+    "manual/umr/IMG-20240607T122028073.png",
+    "manual/umr/IMG-20260204T1655038.png",
+    "manual/umr/IMG-20260204T16555605.png",
+    "manual/umr/IMG-20260204T165653696.png",
+    "manual/umr/IMG-20260216T140419119.png",
+    "manual/umr/IMG-20260216T140541325.png",
+    "manual/umr/IMG-20260216T141125962.png",
+    "manual/umr/IMG-20260216T141707792.png",
+    "manual/umr/IMG-20260216T141937169.png",
+    "manual/umr/IMG-20260216T142133349.png",
+    "manual/umr/IMG-20260216T142158565.png",
+    "manual/umr/IMG-20260311T161346327.png"
+  ],
+  "huecosConocidos": [
+    "No se ve de dónde sale el importe de 150.00 EUR: si es tarifa fija, por tramo o por tabla de país.",
+    "No se ve el procedimiento cuando el vuelo es operado por BA/AA/LEVEL en lugar de IB.",
+    "El formulario de \"Descargo de Responsabilidad\" no está en el material."
+  ]
+}

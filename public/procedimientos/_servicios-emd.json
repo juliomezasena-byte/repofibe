@@ -1,0 +1,74 @@
+{
+  "id": "servicios-emd",
+  "titulo": "Catálogo de servicios EMD (Resiber / pantalla WEMD)",
+  "tipo": "catalogo",
+  "nota": "Archivo con prefijo _ : es un catálogo, no un procedimiento con pasos.",
+  "fuente": {
+    "documento": "manual/umr/IMG-20260204T165653696.png — pantalla 'LIST OF EMD SERVICES' del sistema real",
+    "tipo": "captura-sistema-real",
+    "recibido": "2026-08-08",
+    "confianzaGlobal": "verbatim",
+    "nota": "Los 36 servicios tal como los lista la pantalla. Se accede escribiendo X en el campo LISTA SERVICIOS de la máscara WEMD. Teclas: F2 pantalla principal · F3 salir · F4 refrescar."
+  },
+  "comoSeUsa": "WEMD:{numeroBillete} → X en LISTA SERVICIOS → X en la línea del servicio → el campo TIPO DE SERVICIO toma su código.",
+  "servicios": [
+    { "n": 1, "codigo": "A0B5", "descripcion": "SEAT ASSIGNMENT" },
+    { "n": 2, "codigo": "D993", "descripcion": "PENALTY FEE" },
+    { "n": 3, "codigo": "C0BT", "descripcion": "PET IN CABIN", "equivaleSSR": "PETC" },
+    { "n": 4, "codigo": "E0B0", "descripcion": "UNACCOMPANIED MINOR FEE", "equivaleSSR": "UMNR" },
+    { "n": 5, "codigo": "D990", "descripcion": "BOOKING FEE" },
+    { "n": 6, "codigo": "C0IJ", "descripcion": "INTERLINE EXCESS BAGGAGE" },
+    { "n": 7, "codigo": "IUPP", "descripcion": "UPGRADE CHECK-IN" },
+    { "n": 8, "codigo": "IUPS", "descripcion": "UPGRADE SUBASTA" },
+    { "n": 9, "codigo": "C0GO", "descripcion": "EXTRA PIECE", "nota": "Aparece como COGO en docs/MANUAL_CAMBIO_VOLUNTARIO_SIN_SEGMENTO.md (equipaje EXTRA PIECE)." },
+    { "n": 10, "codigo": "G01P", "descripcion": "LEVEL STANDARD MEAL" },
+    { "n": 11, "codigo": "C0D4", "descripcion": "GOLF-GOLF EQUIPMENT UP TO 15", "equivaleSSR": "SPEQ" },
+    { "n": 12, "codigo": "C0D6", "descripcion": "FISH-FISHING EQUIPMENT", "equivaleSSR": "SPEQ" },
+    { "n": 13, "codigo": "C0D8", "descripcion": "SURF-SURFBOARD UP TO 109IN 2", "equivaleSSR": "SPEQ" },
+    { "n": 14, "codigo": "C0EC", "descripcion": "BIKE-BICYCLE", "equivaleSSR": "SPEQ" },
+    { "n": 15, "codigo": "C0EE", "descripcion": "SCUB-SCUBA DIVING", "equivaleSSR": "SPEQ" },
+    { "n": 16, "codigo": "C0FM", "descripcion": "BAGGAGE UP TO 32KGS", "equivaleSSR": "XBAG" },
+    { "n": 17, "codigo": "IPCR", "descripcion": "TASA SALVADOR" },
+    { "n": 18, "codigo": "F0LA", "descripcion": "GIFT CARD OR VOUCHER" },
+    { "n": 19, "codigo": "A04D", "descripcion": "UPGRADE CAMPAIGN" },
+    { "n": 20, "codigo": "C0LM", "descripcion": "BAG UP TO 15KGS", "equivaleSSR": "XBAG", "nota": "Coincide con el 'BAG UP TO 15KGS (COLM)' visto en un billete real de docs/." },
+    { "n": 21, "codigo": "D0A2", "descripcion": "FLEX CHANGE OVERRIDE" },
+    { "n": 22, "codigo": "D0A4", "descripcion": "FLEX REFUND OVERRIDE" },
+    { "n": 23, "codigo": "ITLU", "descripcion": "TIER LEVEL UPGRADE" },
+    { "n": 24, "codigo": "E0G6", "descripcion": "PRIORITY BOARDING" },
+    { "n": 25, "codigo": "IGST", "descripcion": "GROUP PREPAID SEAT" },
+    { "n": 26, "codigo": "D0L7", "descripcion": "NAME CORRECTION", "nota": "Conecta con el procedimiento de corrección de nombre (IBEX 23 / Iberia 32)." },
+    { "n": 27, "codigo": "C0DD", "descripcion": "SKII-SKI EQUIPMENT", "equivaleSSR": "SPEQ" },
+    { "n": 28, "codigo": "D0A3", "descripcion": "FLEX REISSUE AND REFUND" },
+    { "n": 29, "codigo": "ISPR", "descripcion": "SERVICIO PROTOCOLO" },
+    { "n": 30, "codigo": "F07U", "descripcion": "SAVINGS PLAN" },
+    { "n": 31, "codigo": "ITKF", "descripcion": "TICKETING FEE" },
+    { "n": 32, "codigo": "IVCL", "descripcion": "VOUCHER COLABORATIVO" },
+    { "n": 33, "codigo": "C0B3", "descripcion": "PET IN HOLD 0KG-10KG", "equivaleSSR": "AVIH" },
+    { "n": 34, "codigo": "E0BY", "descripcion": "SENIOR FEE - CONTIGO" },
+    { "n": 35, "codigo": "C026", "descripcion": "PET IN HOLD 11KG-25KG", "equivaleSSR": "AVIH" },
+    { "n": 36, "codigo": "C05X", "descripcion": "PET IN HOLD 26KG-45KG", "equivaleSSR": "AVIH" }
+  ],
+  "cierraHuecos": [
+    {
+      "hueco": "AVIH (animal vivo en bodega) sin confirmar en ningún sistema",
+      "cierre": "PET IN HOLD existe en Resiber con TRES tramos de peso: C0B3 (0-10 kg), C026 (11-25 kg), C05X (26-45 kg). Era el único servicio que quedaba sin respaldo en servicios-adicionales.json.",
+      "confianza": "verbatim",
+      "matiz": "Esto confirma que el SERVICIO se cobra por EMD en Resiber. NO confirma cuál es el SSR de Amadeus para AVIH — sigue sin aparecer."
+    },
+    {
+      "hueco": "XBAG solo confirmado en Amadeus",
+      "cierre": "C0FM (hasta 32 kg) y C0LM (hasta 15 kg) son el equipaje adicional en Resiber. XBAG queda confirmado en AMBOS sistemas.",
+      "confianza": "verbatim"
+    },
+    {
+      "hueco": "PETC / SPEQ solo por ejemplo del bot",
+      "cierre": "C0BT (pet in cabin) y cinco códigos de equipaje deportivo (golf, pesca, surf, bici, buceo, esquí) confirman ambos en Resiber por captura del sistema, no por resumen de bot.",
+      "confianza": "verbatim"
+    }
+  ],
+  "observaciones": [
+    "Los prefijos agrupan por familia: C0/C1 = equipaje y mascotas · D9/D0 = fees y overrides · E0 = fees de pasajero · A0 = asientos y upgrades · I** = fees internos · F0/G0 = vouchers y comidas.",
+    "PET IN HOLD se cobra por TRAMO DE PESO (3 códigos), no por un único servicio. Preguntar el peso del animal antes de cotizar."
+  ]
+}

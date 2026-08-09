@@ -20,3 +20,5 @@ dist/
 test-results/
 playwright-report/
 .gstack/
+
+dist-e2e/

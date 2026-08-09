@@ -54,6 +54,9 @@ export const SecurityExamPanel = ({ profileConfig, locationsCatalog, flightsCata
       return;
     }
     setMode('done');
+    try {
+      localStorage.setItem('cryptic-security-exam-v1', JSON.stringify({ score, total: questions.length, date: Date.now() }));
+    } catch (e) {}
     resetScroll();
   };
 
@@ -64,7 +67,7 @@ export const SecurityExamPanel = ({ profileConfig, locationsCatalog, flightsCata
       {/* Cabecera formal */}
       <div style={{ backgroundColor: '#0284c7', color: 'white', padding: '15px 20px', display: 'flex', alignItems: 'center', gap: '10px', margin: '-20px -20px 20px -20px', borderTopLeftRadius: '6px', borderTopRightRadius: '6px' }}>
         <Lock size={24} />
-        <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold' }}>EXAMEN DEDICADO: FILTRO DE SEGURIDAD Y PROTOCOLO</h2>
+        <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold' }}>EXAMEN FILTRO DE SEGURIDAD Y PROTOCOLO</h2>
       </div>
 
       <div>

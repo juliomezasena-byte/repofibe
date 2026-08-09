@@ -1,0 +1,92 @@
+{
+  "id": "tipos-de-tarifas-beneficios",
+  "titulo": "Tipos de tarifas Iberia — qué incluye cada familia",
+  "tipo": "referencia",
+  "nota": "Archivo con prefijo _ : es referencia, no un procedimiento con pasos.",
+  "fuente": {
+    "documento": "manual/gama de tarifa/IMG-20260227T174210257.png — tabla \"TIPOS DE TARIFAS IBERIA\"",
+    "tipo": "material-formacion-interno",
+    "fecha": "2026-02-27",
+    "recibido": "2026-08-08",
+    "confianzaGlobal": "verbatim"
+  },
+  "porQueImporta": {
+    "texto": "Esta tabla cierra la cadena de razonamiento más útil del puesto: del billete al derecho del pasajero, sin cotizar nada.",
+    "cadena": [
+      "1. Abre el billete: TWD/TKT o DTR:TN",
+      "2. Lee el FARE BASIS y quédate con su ÚLTIMA LETRA",
+      "3. Esa letra da la familia: B=BASIC · M=OPTIMA · U=COMFORT · S/Y=FLEX",
+      "4. Con la familia, esta tabla te dice si es reembolsable, si el cambio lleva penalidad y qué equipaje y asiento incluye"
+    ],
+    "ejemplo": "Fare basis AON4NQM7 → termina en M → OPTIMA → cambio CON penalidad, reembolso NO PERMITIDO, asiento CON CARGO.",
+    "confianza": "derivado",
+    "nota": "La cadena la deduzco cruzando esta tabla con la regla de gama de tarifas de #3590; ningún manual la escribe junta."
+  },
+  "avisos": [
+    {
+      "nivel": "critico",
+      "texto": "SOLO son reembolsables las familias FLEX: FLEX (turista), PEFLEX (premium) y BUSFLEX (business). TODAS las demás son NO PERMITIDO.",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "critico",
+      "texto": "COMFORT se comporta distinto según el radio: en LARGO RADIO el cambio lleva PENALIDAD, pero en CORTO Y MEDIANO RADIO el PRIMER CAMBIO es SIN PENALIDAD. Lo mismo pasa en BUSCOMFORT. Es la trampa principal de esta tabla.",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "alto",
+      "texto": "BASIC es la única familia de turista donde el equipaje de bodega va CON CARGO. En el resto está incluido.",
+      "confianza": "verbatim"
+    }
+  ],
+  "tabla": {
+    "confianza": "verbatim",
+    "columnas": ["equipajeCabina", "equipajeBodega", "asiento", "cambio", "reembolso"],
+    "familias": [
+      { "cabina": "TURISTA", "tarifa": "BASIC", "equipajeCabina": "10 KG", "equipajeBodega": "23 KG CON CARGO", "asiento": "CON CARGO", "cambio": "PENALIDAD", "reembolso": "NO PERMITIDO" },
+      { "cabina": "TURISTA", "tarifa": "OPTIMA", "equipajeCabina": "10 KG", "equipajeBodega": "23 KG", "asiento": "CON CARGO", "cambio": "PENALIDAD", "reembolso": "NO PERMITIDO" },
+      { "cabina": "TURISTA", "tarifa": "COMFORT LARGO RADIO", "equipajeCabina": "10 KG", "equipajeBodega": "23 KG", "asiento": "incluido", "cambio": "PENALIDAD", "reembolso": "NO PERMITIDO" },
+      { "cabina": "TURISTA", "tarifa": "COMFORT CORTO Y MEDIANO RADIO", "equipajeCabina": "10 KG", "equipajeBodega": "23 KG", "asiento": "incluido", "cambio": "1ER CAMBIO SIN PENALIDAD", "reembolso": "NO PERMITIDO" },
+      { "cabina": "TURISTA", "tarifa": "FLEX", "equipajeCabina": "10 KG", "equipajeBodega": "23 KG", "asiento": "incluido", "cambio": "SIN PENALIDAD", "reembolso": "PERMITIDO" },
+
+      { "cabina": "TURISTA PREMIUM", "tarifa": "PEOPTIMA", "equipajeCabina": "10 KG", "equipajeBodega": "23 KG", "asiento": "CON CARGO", "cambio": "PENALIDAD", "reembolso": "NO PERMITIDO" },
+      { "cabina": "TURISTA PREMIUM", "tarifa": "PECOMFORT", "equipajeCabina": "10 KG", "equipajeBodega": "2 × 23 KG", "asiento": "incluido", "cambio": "1ER CAMBIO SIN PENALIDAD", "reembolso": "NO PERMITIDO" },
+      { "cabina": "TURISTA PREMIUM", "tarifa": "PEFLEX", "equipajeCabina": "10 KG", "equipajeBodega": "2 × 23 KG", "asiento": "incluido", "cambio": "SIN PENALIDAD", "reembolso": "PERMITIDO" },
+
+      { "cabina": "BUSINESS", "tarifa": "BUSOPTIMA", "equipajeCabina": "14 KG", "equipajeBodega": "2 × 23 KG", "asiento": "CON CARGO", "cambio": "PENALIDAD", "reembolso": "NO PERMITIDO" },
+      { "cabina": "BUSINESS", "tarifa": "BUSCOMFORT LARGO RADIO", "equipajeCabina": "14 KG", "equipajeBodega": "2 × 23 KG", "asiento": "incluido", "cambio": "PENALIDAD", "reembolso": "NO PERMITIDO" },
+      { "cabina": "BUSINESS", "tarifa": "BUSCOMFORT CORTO Y MEDIANO RADIO", "equipajeCabina": "14 KG", "equipajeBodega": "2 × 23 KG", "asiento": "incluido", "cambio": "1ER CAMBIO SIN PENALIDAD", "reembolso": "NO PERMITIDO" },
+      { "cabina": "BUSINESS", "tarifa": "BUSFLEX", "equipajeCabina": "14 KG", "equipajeBodega": "2 × 23 KG", "asiento": "incluido", "cambio": "SIN PENALIDAD", "reembolso": "PERMITIDO" }
+    ]
+  },
+  "patronesQueSeVen": {
+    "confianza": "derivado",
+    "nota": "Lecturas de la tabla; el manual no las enuncia.",
+    "lista": [
+      "El equipaje de cabina solo depende de la CABINA: 10 KG en turista y premium, 14 KG en business.",
+      "El equipaje de bodega se DUPLICA (2 × 23 KG) a partir de PECOMFORT y en toda Business.",
+      "OPTIMA es la única familia que existe en las tres cabinas con exactamente el mismo comportamiento (asiento con cargo, cambio con penalidad, sin reembolso).",
+      "Business NO tiene versión BASIC. Turista Premium tampoco.",
+      "Solo las tres FLEX son reembolsables: 3 de 12 familias."
+    ]
+  },
+  "cruceConGamaDeTarifas": {
+    "confianza": "derivado",
+    "nota": "La regla de la última letra viene de #3590; aquí se cruza con los beneficios.",
+    "tabla": [
+      { "ultimaLetraFareBasis": "B", "familia": "BASIC", "reembolsable": false, "cambio": "PENALIDAD" },
+      { "ultimaLetraFareBasis": "M", "familia": "OPTIMA", "reembolsable": false, "cambio": "PENALIDAD" },
+      { "ultimaLetraFareBasis": "U", "familia": "COMFORT", "reembolsable": false, "cambio": "depende del RADIO" },
+      { "ultimaLetraFareBasis": "S o Y", "familia": "FLEX", "reembolsable": true, "cambio": "SIN PENALIDAD" }
+    ],
+    "aviso": "La tabla de #3590 no distingue las variantes PE* ni BUS*, que comparten la letra final con su equivalente de turista. Para saber la CABINA hay que mirar la clase del segmento, no el fare basis."
+  },
+  "huecosConocidos": [
+    "La tabla no dice qué cuenta como 'corto y mediano radio' frente a 'largo radio' en kilómetros u horas.",
+    "No indica el importe del cargo cuando el asiento o el equipaje van CON CARGO.",
+    "No cubre las tarifas de canje con Avios (clases U · P · G · X)."
+  ],
+  "capturas": [
+    "manual/gama de tarifa/IMG-20260227T174210257.png"
+  ]
+}

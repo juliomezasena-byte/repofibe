@@ -1,0 +1,549 @@
+{
+  "id": "cambio-manual-con-segmento-volado",
+  "titulo": "Cambio de vuelo MANUAL — CON segmento volado",
+  "aerolinea": "IB",
+  "categoria": "reemision",
+  "resumen": "Reemisión manual cuando el pasajero YA voló algún tramo. Se cotiza con FQD/FQP (no FXX) y hay que MONTAR el TST a mano en modo cryptic: fare basis, NVB/NVA, equipaje, importes, tasas y fare calculation.",
+  "advertencias": [
+    {
+      "nivel": "critico",
+      "texto": "ANTES DE TODO: verifica el valor del gasto de gestión en IberiaNet → MANUALES EXPRESS → GASTOS DE GESTIÓN.",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "critico",
+      "texto": "Las transacciones FQD y FQP se lanzan DESDE EL BILLETE, no desde el PNR.",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "alto",
+      "texto": "Si hay diferentes tipos de pasajero, al cotizar con FQP hay que añadir al final /R{TIPO DE DESCUENTO}, por ejemplo /RCHADIN.",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "alto",
+      "texto": "Si al colocar el TST en cryptic (TQTC) no abre la lista de opciones, hay que volver a abrir el FQP y reseleccionar con FQQ.",
+      "confianza": "verbatim"
+    }
+  ],
+  "fuente": {
+    "documento": "IberiaNet Lite — #3113 \"2. CON SEGMENTO VOLADO\" (hijo de #3112 CAMBIO MANUAL)",
+    "tipo": "manual-oficial-interno",
+    "recibido": "2026-08-08",
+    "confianzaGlobal": "verbatim",
+    "nota": "Hermano de #3121 (SIN segmento volado). CIERRA el árbol de reemisión: era la última rama que faltaba. Diferencia central: sin segmento volado se cotiza con FXX y el TST se genera solo; con segmento volado se cotiza con FQD/FQP y el TST se MONTA a mano."
+  },
+  "diferenciaConSinSegmentoVolado": {
+    "confianza": "derivado",
+    "nota": "Comparación entre #3113 y #3121; el manual no la enuncia.",
+    "tabla": [
+      {
+        "aspecto": "Cotizar penalidad",
+        "sinVolar": "FXX/S2,3/R,DOI,UP/FF-…",
+        "conVolar": "FQD… o FQP… (desde el billete)"
+      },
+      {
+        "aspecto": "Cotizar diferencia",
+        "sinVolar": "FXX/S2,3/FF-…",
+        "conVolar": "FQP con la ruta completa reconstruida"
+      },
+      {
+        "aspecto": "Seleccionar tarifa",
+        "sinVolar": "—",
+        "conVolar": "FQQ{n}"
+      },
+      {
+        "aspecto": "Crear el TST",
+        "sinVolar": "FXP (automático)",
+        "conVolar": "TTC/S{n} + TQTC y se MONTA a mano con TTI"
+      },
+      {
+        "aspecto": "Pasos",
+        "sinVolar": "29",
+        "conVolar": "34"
+      }
+    ]
+  },
+  "pasos": [
+    {
+      "n": 0,
+      "sistema": "iberianet",
+      "proceso": "Verificar el valor del gasto de gestión",
+      "comando": null,
+      "explicacion": "IberiaNet → MANUALES EXPRESS → GASTOS DE GESTIÓN.",
+      "confianza": "verbatim",
+      "esBloqueante": true
+    },
+    {
+      "n": 1,
+      "sistema": "amadeus",
+      "proceso": "Abrir el TKT y copiar el FAREBASIS, el DOI y el valor total",
+      "comando": "TWD/TKT 075-1422342526",
+      "variantes": [
+        "TWD/L16"
+      ],
+      "plantilla": "TWD/TKT {numeroBillete}",
+      "explicacion": "Del billete se necesitan tres datos: fare basis, DOI (fecha de emisión original) y valor total.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 2,
+      "sistema": "iberianet",
+      "proceso": "[PENALIDAD] Buscar el valor de la penalidad desde iberia.com",
+      "comando": null,
+      "explicacion": "WWW.IBERIA.COM → TUS VUELOS → GESTIONA TU RESERVA → TUS VUELOS.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 2.1,
+      "sistema": "amadeus",
+      "proceso": "[PENALIDAD] Cotizar con FQD (un solo tramo)",
+      "comando": "FQDMADBOG/AIB/CN/D10MAR/R,01DEC23,UP",
+      "plantilla": "FQD{ORG}{DEST}/A{aerolinea}/C{clase}/D{fechaVuelo}/R,{DOI},UP",
+      "explicacion": "MAD = origen · BOG = destino · IB = aerolínea que opera · N = clase del segmento · 10MAR = fecha del vuelo · 01DEC23 = fecha de emisión.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 2.2,
+      "sistema": "amadeus",
+      "proceso": "[PENALIDAD] Cotizar con FQP — roundtrip DIRECTO",
+      "comando": "FQPBOG/AIB/CS/D14FEBMAD-/AIB/CN/D10MARBOG/R,01DEC23,UP/FF-BASIC",
+      "plantilla": "FQP{ORG}/A{aerolinea}/C{claseIda}/D{fechaIda}{DEST}-/A{aerolinea}/C{claseVuelta}/D{fechaVuelta}{DEST}/R,{DOI},UP/FF-{TARIFA}",
+      "explicacion": "El guion (-) separa la ida del regreso. El UP marca que es cotización a histórico para penalidad.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 2.3,
+      "sistema": "amadeus",
+      "proceso": "[PENALIDAD] Cotizar con FQP — roundtrip con ESCALA",
+      "comando": "FQPBOG/AIB/CS/D14FEBMADLHR-/AIB/CN/D10MARMADBOG/R,01DEC23,UP/FF-BASIC",
+      "plantilla": "FQP{ORG}/A{aerolinea}/C{clase}/D{fecha}{ESCALA}{DEST}-/A{aerolinea}/C{clase}/D{fecha}{ESCALA}{DEST}/R,{DOI},UP/FF-{TARIFA}",
+      "explicacion": "La escala va PEGADA entre la fecha y el destino: D14FEB **MAD** LHR.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 2.4,
+      "sistema": "amadeus",
+      "proceso": "[PENALIDAD] Cotizar con FQP — roundtrip SURFACE",
+      "comando": "FQPBOG/AIB/CS/D14FEBMAD---LHR/AIB/CN/D10MARMADBOG/R,01DEC23,UP/FF-BASIC",
+      "plantilla": "FQP{ORG}/A{aerolinea}/C{clase}/D{fecha}{DEST}---{ORG2}/A{aerolinea}/C{clase}/D{fecha}{ESCALA}{DEST}/R,{DOI},UP/FF-{TARIFA}",
+      "explicacion": "Los TRES guiones (---) marcan el tramo por superficie: el pasajero llega a MAD y sale desde LHR por su cuenta.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 2.5,
+      "sistema": "amadeus",
+      "proceso": "[PENALIDAD] PRO TIP — seleccionar una de las tarifas ofertadas",
+      "comando": "FQQ01",
+      "plantilla": "FQQ{numeroOpcion}",
+      "explicacion": "Estas transacciones (FQD y FQP) deben realizarse DESDE EL BILLETE.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 3,
+      "sistema": "amadeus",
+      "proceso": "[PENALIDAD] Verificar penalidad — ADULTO",
+      "comando": "FQN02*PE",
+      "plantilla": "FQN{lineaOfertada}*PE",
+      "explicacion": "02 = número de tarifa ofertada.",
+      "confianza": "verbatim",
+      "comandoSegunManual": "FQN02PE",
+      "nota": "CORREGIDO 08AGO26 por el usuario (agente Iberia en activo): el FQN SIEMPRE lleva asterisco. El manual escribe \"FQN02PE\" sin el, pero es una ERRATA DE TRANSCRIPCION del propio manual — el sistema exige FQN{linea}*PE. Se preserva la grafia del manual en \"comandoSegunManual\" para no perder la trazabilidad."
+    },
+    {
+      "n": 3.1,
+      "sistema": "amadeus",
+      "proceso": "[PENALIDAD] Verificar penalidad — CHILD e INFANTE",
+      "comando": "FQN02CD",
+      "plantilla": "FQN{lineaOfertada}CD",
+      "explicacion": "Muestra el DESCUENTO que aplica a cada tipo de pasajero.",
+      "confianza": "verbatim",
+      "nota": "PENDIENTE: el usuario confirmo que el PE siempre lleva asterisco; falta confirmar si la variante CD (child/infante) tambien lo lleva (FQN02*CD)."
+    },
+    {
+      "n": 3.2,
+      "sistema": "amadeus",
+      "proceso": "[PENALIDAD] Aplicar el descuento con la calculadora",
+      "comando": "DF 150 P 75",
+      "plantilla": "DF {penalidadADT} P {porcentajeDescuento}",
+      "explicacion": "150 = penalidad del ADT · 75 = valor del descuento.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 4,
+      "sistema": "amadeus",
+      "proceso": "[PENALIDAD] Documentar valores a cobrar",
+      "comando": "RM02MAR26 PAX AVDO COSTE PENTY 3279MXN X ADT + 680MXN SF / WP",
+      "explicacion": "PENTY = penalidad · SF = gasto de gestión.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 7,
+      "sistema": "amadeus",
+      "proceso": "[DIFERENCIA] Cotizar la ruta nueva — roundtrip DIRECTO",
+      "comando": "FQPBOG/AIB/CS/D14FEBMAD-/AIB/CN/D31MARBOG/R,01DEC23/FF-BASIC",
+      "plantilla": "FQP{ORG}/A{aerolinea}/C{clase}/D{fecha}{DEST}-/A{nuevaAerolinea}/C{nuevaClase}/D{nuevaFecha}{DEST}/R,{DOI}/FF-{TARIFA}",
+      "explicacion": "Igual que la penalidad pero SIN el UP y con los datos NUEVOS del tramo que cambia.",
+      "confianza": "verbatim",
+      "nota": "La diferencia con el paso 2.2 es sutil y crítica: penalidad lleva ',UP' y diferencia NO."
+    },
+    {
+      "n": 7.1,
+      "sistema": "amadeus",
+      "proceso": "[DIFERENCIA] Cotizar la ruta nueva — con ESCALA",
+      "comando": "FQPBOG/AIB/CS/D14FEBMADLHR-/AIB/CN/D31MARMADBOG/R,01DEC23/FF-BASIC",
+      "plantilla": "FQP{ORG}/…{ESCALA}{DEST}-/…/R,{DOI}/FF-{TARIFA}",
+      "explicacion": "Misma estructura que 2.3 pero sin UP.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 7.2,
+      "sistema": "amadeus",
+      "proceso": "[DIFERENCIA] Cotizar la ruta nueva — SURFACE",
+      "comando": "FQPBOG/AIB/CS/D14FEBMAD---LHR/AIB/CN/D31MARMADBOG/R,01DEC23/FF-BASIC",
+      "plantilla": "FQP{ORG}/…{DEST}---{ORG2}/…/R,{DOI}/FF-{TARIFA}",
+      "explicacion": "Misma estructura que 2.4 pero sin UP.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 7.3,
+      "sistema": "amadeus",
+      "proceso": "[DIFERENCIA] Varios tipos de pasajero",
+      "comando": "FQPBOG/AIB/CS/D14FEBMAD-/AIB/CN/D31MARBOG/RCHADIN,01DEC23/FF-BASIC",
+      "plantilla": "…/R{tiposDescuento},{DOI}/FF-{TARIFA}",
+      "explicacion": "IMPORTANTE: si hay diferentes tipos de pasajero, se añade /R{TIPO} antes del DOI. CH = child · AD = adulto · IN = infante.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 7.4,
+      "sistema": "amadeus",
+      "proceso": "[DIFERENCIA] Error *NO FARES/RBD/CARRIER/PASSENGER TYPE",
+      "comando": "FXR",
+      "explicacion": "La tarifa no está disponible para las clases seleccionadas. Cambia las clases y recotiza reemplazando FXX por FXR.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 8,
+      "sistema": "amadeus",
+      "proceso": "[DIFERENCIA] Seleccionar una de las tarifas ofertadas",
+      "comando": "FQQ01",
+      "plantilla": "FQQ{numeroOpcion}",
+      "explicacion": "Fija la opción con la que se va a trabajar.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 9,
+      "sistema": "amadeus",
+      "proceso": "[DIFERENCIA] Calcular la diferencia de tarifa",
+      "comando": "DF 1890 - 1750",
+      "plantilla": "DF {cotizacionNueva} - {valorTktOriginal}",
+      "explicacion": "Diferencia = valor de cotización nueva − valor del TKT original.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 10,
+      "sistema": "amadeus",
+      "proceso": "[DIFERENCIA] Documentar valores a cobrar",
+      "comando": "RM02MAR26 PAX AVDO COSTE PENTY 3279MXN X ADT + 604 MXN SF + 2853MXN DF/ WP",
+      "variantes": [
+        "RM02MAR26 PAX AVDO COSTE TOTAL CMB 6736MXN/ WP"
+      ],
+      "explicacion": "DF = diferencia de tarifa · CMB = coste total del cambio. Guardar con ER.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 11,
+      "sistema": "amadeus",
+      "proceso": "Eliminar TST",
+      "comando": "TTE/ALL",
+      "variantes": [
+        "TTE/T1"
+      ],
+      "explicacion": "TTE/ALL = todos · TTE/T{n} = uno específico.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 12,
+      "sistema": "amadeus",
+      "proceso": "Eliminar todas las FP",
+      "comando": "XE 22",
+      "plantilla": "XE {lineaFP}",
+      "explicacion": "22 = línea del elemento FP.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 13,
+      "sistema": "amadeus",
+      "proceso": "Crear la máscara del TST",
+      "comando": "TTC/S5",
+      "plantilla": "TTC/S{lineaSegmentos}",
+      "explicacion": "S5 = línea de los segmentos. Aquí empieza el montaje manual del TST.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 14,
+      "sistema": "amadeus",
+      "proceso": "Colocar el TST en modo CRYPTIC",
+      "comando": "TQTC",
+      "explicacion": "PRO TIP: si no abre una lista de opciones, hay que abrir de nuevo el FQP y volver a la opción con FQQ 01.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 15,
+      "sistema": "amadeus",
+      "proceso": "Agregar el FAREBASIS, el NVB-NVA y las piezas de equipaje",
+      "comando": "TTI/T2/L1/B AANNOB2/V 31MAR31MAR/A1PC",
+      "plantilla": "TTI/T{tst}/L{linea}/B {fareBasis}/V {NVB}{NVA}/A{equipaje}",
+      "explicacion": "T2 = nº del TST · L1 = línea que montaremos · AANNOB2 = fare basis · 31MAR31MAR = NVB y NVA · 1PC = piezas de equipaje. Guardar con ER y volver a FQQ 01.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 16,
+      "sistema": "amadeus",
+      "proceso": "Agregar el FARE, el equivalente, las tasas y la diferencia",
+      "comando": "TTI/T2/RUSD1243/EEUR1243/O130YQ/O28.38JD/…/T140",
+      "plantilla": "TTI/T{tst}/R{monedaFare}{importe}/E{monedaEquiv}{importe}/O{tasa}/O{tasa}/…/T{diferencia}",
+      "explicacion": "USD1243 = fare · EUR1243 = equivalente · O130YQ = tasas pagadas · T140 = diferencia de tarifa. Guardar con ER y volver a FQQ 01.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 17,
+      "sistema": "amadeus",
+      "proceso": "Agregar el FARE CALCULATION",
+      "comando": "TTI/T2/C BOG IB X/MAD…",
+      "plantilla": "TTI/T{tst}/C {fareCalculation}",
+      "explicacion": "Se copia la cadena de construcción tarifaria (la línea FC del billete).",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 18,
+      "sistema": "amadeus",
+      "proceso": "Crear el FO para ADT y CHD",
+      "comando": "FOL14/P1",
+      "plantilla": "FOL{lineaTicket}/P{pasajero}",
+      "explicacion": "14 = línea del ticket · P1 = número de pasajero.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 18.1,
+      "sistema": "amadeus",
+      "proceso": "Crear el FO para INFANTE",
+      "comando": "FOINF*L15/P1",
+      "plantilla": "FOINF*L{lineaTicket}/P{pasajero}",
+      "explicacion": "Guardar con ER.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 19,
+      "sistema": "amadeus",
+      "proceso": "Solicitar el TSM (donde vivirá la penalidad)",
+      "comando": "IU IB NN1 PENF BOG/P1",
+      "plantilla": "IU IB NN1 PENF {origenDelCambio}/P{pasajero}",
+      "explicacion": "BOG = origen del cambio · P1 = número de pasajero.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 20,
+      "sistema": "amadeus",
+      "proceso": "Crear el EMD para ADT",
+      "comando": "TMC/L5",
+      "plantilla": "TMC/L{lineaElementoSVC}",
+      "explicacion": "L5 = línea del elemento SVC.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 20.1,
+      "sistema": "amadeus",
+      "proceso": "Crear el EMD para INFANTE",
+      "comando": "TMC/L6/INF",
+      "plantilla": "TMC/L{lineaElementoSVC}/INF",
+      "explicacion": "Igual pero marcando INF.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 21,
+      "sistema": "amadeus",
+      "proceso": "Verificar que se haya creado la máscara TSM",
+      "comando": "TQM",
+      "variantes": [
+        "TQM/M1"
+      ],
+      "explicacion": "TQM si hay un solo tipo de pasajero · TQM/M{n} si hay varios.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 22,
+      "sistema": "amadeus",
+      "proceso": "Ingresar el valor de la penalidad y el cupón value",
+      "comando": "TMI/M1/F3279/CV-3279",
+      "plantilla": "TMI/M{tsm}/F{penalidad}/CV-{penalidad}",
+      "explicacion": "El valor va DOS veces: como importe (F) y como cupón value (CV). Guardar con ER.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 23,
+      "sistema": "amadeus",
+      "proceso": "Incluir el gasto de gestión",
+      "comando": "TTO/ST01/CSF/F604",
+      "variantes": [
+        "TTO/ST01/CSF/F604/T2"
+      ],
+      "plantilla": "TTO/ST01/CSF/F{gastoGestion}",
+      "explicacion": "T2 = número del TST cuando hay varios.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 23.1,
+      "sistema": "amadeus",
+      "proceso": "PRO TIP — comprobar que el gasto quedó agregado",
+      "comando": "TQO",
+      "explicacion": "Consulta si el importe está agregado.",
+      "confianza": "verbatim",
+      "opcional": true
+    },
+    {
+      "n": 23.2,
+      "sistema": "amadeus",
+      "proceso": "Eliminar el gasto de gestión si quedó mal",
+      "comando": "TTO/ST01/T2",
+      "plantilla": "TTO/ST01/T{numeroTST}",
+      "explicacion": "Lo elimina para volver a cargarlo.",
+      "confianza": "verbatim",
+      "opcional": true
+    },
+    {
+      "n": 24,
+      "sistema": "amadeus",
+      "proceso": "Incluir datos del titular de la tarjeta (nuevo Cyber)",
+      "comando": "RMCSY/JUAN:PELAEZ",
+      "plantilla": "RMCSY/{NOMBRE}:{APELLIDO}",
+      "explicacion": "Guardamos con ER.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 25,
+      "sistema": "iberianet",
+      "proceso": "Tomar los datos de tarjeta",
+      "comando": null,
+      "explicacion": "PCI Pal o Travel Pay: EUROPA → FORMAS DE PAGO.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 26,
+      "sistema": "amadeus",
+      "proceso": "Forma de pago del TST (diferencia de tarifa y gasto de gestión)",
+      "comando": "FP O/CCVI+/MS-TT,VI1234567890123456-1023-V1234ABCD",
+      "plantilla": "FP O/CCVI+/{token}",
+      "explicacion": "El token se copia de PCI o Travel Pay.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 27,
+      "sistema": "amadeus",
+      "proceso": "Forma de pago del TSM (penalidad)",
+      "comando": "TMI/M1/FP-MS-TT,VI1234567890123456-1023-V1234ABCD",
+      "plantilla": "TMI/M{tsm}/FP-{token}",
+      "explicacion": "La penalidad se cobra en el TSM, aparte del TST.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 28,
+      "sistema": "amadeus",
+      "proceso": "Cargar el perfil de PCI en Amadeus",
+      "comando": "$$CONFIG:CCTYPE/2",
+      "explicacion": "Configura el perfil de tarjeta antes de cobrar.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 29,
+      "sistema": "amadeus",
+      "proceso": "Realizar el cargo a la tarjeta del cliente",
+      "comando": "$$PAY",
+      "explicacion": "Ejecuta el cobro.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 30,
+      "sistema": "amadeus",
+      "proceso": "Borrar el Cyber para poder emitir",
+      "comando": "XE17",
+      "plantilla": "XE{linea}",
+      "explicacion": "17 = línea donde esté el Cyber.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 31,
+      "sistema": "amadeus",
+      "proceso": "Reconfirmar el itinerario al cliente",
+      "comando": null,
+      "explicacion": "Paso de comunicación, sin transacción.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 32,
+      "sistema": "amadeus",
+      "proceso": "Eliminar las plazas que el cliente NO va a usar",
+      "comando": "XE 14",
+      "plantilla": "XE {lineaSegmentos}",
+      "explicacion": "14 = línea de los segmentos.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 33,
+      "sistema": "amadeus",
+      "proceso": "Emitir penalidad y billete AL TIEMPO",
+      "comando": "TTP1/TTM/T2/M1/ET/RT",
+      "plantilla": "TTP1/TTM/T{tst}/M{tsm}/ET/RT",
+      "explicacion": "T2 = número del TST · M1 = número del TSM.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 33.1,
+      "sistema": "amadeus",
+      "proceso": "Emitir SOLO la penalidad",
+      "comando": "TTM1/M1/RT",
+      "plantilla": "TTM1/M{tsm}/RT",
+      "explicacion": "M1 = número del TSM.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 33.2,
+      "sistema": "amadeus",
+      "proceso": "Emitir SOLO el billete",
+      "comando": "TTP1/ET/RT/T2",
+      "plantilla": "TTP1/ET/RT/T{tst}",
+      "explicacion": "T2 = número del TST.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 34,
+      "sistema": "amadeus",
+      "proceso": "Enviar itinerario y documentos",
+      "comando": "IBP-EMLA/LPSP",
+      "variantes": [
+        "IEPJ-EMLA/LPSP",
+        "ITR-EMLA"
+      ],
+      "explicacion": "IBP = itinerario · IEPJ = itinerario y servicios · ITR = billetes electrónicos.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 34.1,
+      "sistema": "resiber",
+      "proceso": "Enviar documentos desde RESIBER",
+      "comando": "ITP:/RESERVA/EMAIL",
+      "variantes": [
+        "DTR TN 075-1234567890,EML/EMAIL",
+        "DEMR DN 075-1234567890,EML/EMAIL"
+      ],
+      "explicacion": "Itinerario · billetes electrónicos · EMD.",
+      "confianza": "verbatim"
+    }
+  ],
+  "huecosConocidos": [
+    "El manual salta del paso 4 al 7 (no hay pasos 5 ni 6 en la numeración original). Se preserva la numeración del manual.",
+    "El enlace de Google Apps Script del encabezado no se ha abierto ni verificado.",
+    "No explica qué es el elemento SVC cuya línea pide TMC/L5.",
+    "No explica de dónde se copia exactamente el FARE CALCULATION del paso 17."
+  ]
+}

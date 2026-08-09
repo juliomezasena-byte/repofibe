@@ -1,11 +1,12 @@
-/* Atmosfera GDS: estatica, sutil y sin competir con el contenido. */
+/* Atmosfera Workstation Light Theme */
 :root {
-  --background-grid: rgba(148, 163, 184, 0.035);
-  --background-halo: rgba(0, 229, 255, 0.075);
+  --background-grid: rgba(226, 232, 240, 0.6);
+  --background-halo: rgba(2, 132, 199, 0.04);
 }
 
 body {
-  background-color: #060a10;
+  background-color: #F8FAFC;
+  color: #1E293B;
   background-image:
     radial-gradient(circle at 50% -12%, var(--background-halo), transparent 42rem),
     linear-gradient(to right, var(--background-grid) 1px, transparent 1px),
@@ -17,8 +18,8 @@ body {
 
 @media (max-width: 868px) {
   body {
-    --background-grid: rgba(148, 163, 184, 0.022);
-    --background-halo: rgba(0, 229, 255, 0.055);
+    --background-grid: rgba(226, 232, 240, 0.4);
+    --background-halo: rgba(2, 132, 199, 0.03);
     background-size: auto, 64px 64px, 64px 64px;
   }
 }

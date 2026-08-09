@@ -1,0 +1,112 @@
+{
+  "id": "involuntario-matriz-derechos",
+  "titulo": "Cambio involuntario — qué puede pedir el pasajero según la afectación",
+  "tipo": "matriz-de-decision",
+  "nota": "Archivo con prefijo _ : es una matriz de derechos, no un procedimiento con pasos. El procedimiento operativo está en cambio-involuntario-clase-ruta.json (#3638) y en la verificación de histórico de abajo (#3130).",
+  "fuente": {
+    "documento": "IberiaNet Lite — #3129 \"2. INVOLUNTARIO\" (hijo de #3107 \"CAMBIOS DE VUELO\") + #3130 \"PROCEDIMIENTO\"",
+    "tipo": "manual-oficial-interno",
+    "recibido": "2026-08-08",
+    "confianzaGlobal": "verbatim"
+  },
+  "contexto": {
+    "confianza": "verbatim",
+    "texto": "Los cambios involuntarios proceden por afectaciones que pueden surgir por gestiones aeroportuarias, o generados por la aerolínea. Estas modificaciones deben ser cuidadosamente revisadas, puesto que las opciones que el pasajero puede tener para solucionar sus planes de vuelo dependerán del TIPO DE AFECTACIÓN que se tenga en la línea."
+  },
+  "estadosQueDelatanUnInvoluntario": {
+    "confianza": "verbatim",
+    "nota": "Con estos dos estados en las plazas de un billete sabremos si aplica o no un cambio involuntario.",
+    "tabla": [
+      { "estado": "UN", "significado": "Cancelado" },
+      { "estado": "TK", "significado": "Itinerario modificado o Vuelo sugerido" }
+    ]
+  },
+  "comoVerificarElHistorico": {
+    "confianza": "verbatim",
+    "fuente": "#3130 PROCEDIMIENTO",
+    "resiber": {
+      "viaReserva": { "comando": "RTC", "explicacion": "Dentro de la reserva. Permite validar si hay un cambio (TK) o una cancelación (UN). Usa F5 y F6 para cambiar de página." },
+      "viaBillete": [
+        { "paso": 1, "comando": "DTR TN 075-1423456789", "explicacion": "Abrir billete." },
+        { "paso": 2, "comando": "DTR H", "explicacion": "Abrir histórico del billete." }
+      ]
+    },
+    "amadeus": {
+      "comando": "RHA",
+      "explicacion": "Dentro de la reserva. Permite validar si hay un cambio (TK) o una cancelación (UN).",
+      "codigosDelHistorico": [
+        { "codigo": "AS", "significado": "Segmento agregado" },
+        { "codigo": "CS", "significado": "Estatus del segmento cambiado" },
+        { "codigo": "OS", "significado": "Segmento creado al inicio con la reserva" },
+        { "codigo": "XS", "significado": "Segmento eliminado" }
+      ],
+      "nota": "En la mayoría de casos, cuando un vuelo se cancela el sistema agenda automáticamente una opción. Cuando un vuelo solo cambia de horario sin cancelarse, el histórico lo refleja de otra forma."
+    }
+  },
+  "matrizDeDerechos": {
+    "confianza": "verbatim",
+    "leyenda": {
+      "debeAceptar": "El pasajero DEBE aceptar los cambios. Si aun así pide un cambio, va bajo condiciones de tarifa (nota *).",
+      "puedeAceptar": "El pasajero PUEDE aceptar el cambio, o elegir entre las alternativas listadas."
+    },
+    "cambioDeHora": {
+      "estado": "TK",
+      "cortoYMedioRadio": [
+        { "umbral": "Menos de 1 hora", "derecho": "debeAceptar", "opciones": [] },
+        { "umbral": "Entre 1 hora y 5 horas", "derecho": "puedeAceptar", "opciones": ["Cambio de vuelo entre 30 días antes o 30 días después del vuelo original", "Reembolso en bono"] },
+        { "umbral": "Más de 5 horas", "derecho": "puedeAceptar", "opciones": ["Cambio de vuelo entre 30 días antes o 30 días después del vuelo original", "Reembolso en bono", "Reembolso en la misma forma de pago"] }
+      ],
+      "largoRadio": [
+        { "umbral": "Menos de 3 horas", "derecho": "debeAceptar", "opciones": [] },
+        { "umbral": "Entre 3 horas y 5 horas", "derecho": "puedeAceptar", "opciones": ["Cambio de vuelo entre 30 días antes o 30 días después del vuelo original", "Reembolso en bono"] },
+        { "umbral": "Más de 5 horas", "derecho": "puedeAceptar", "opciones": ["Cambio de vuelo entre 30 días antes o 30 días después del vuelo original", "Reembolso en bono", "Reembolso en la misma forma de pago"] }
+      ],
+      "diferenciaClave": "El umbral en el que el pasajero deja de estar obligado a aceptar es 1 HORA en corto/medio radio y 3 HORAS en largo radio."
+    },
+    "cambioNumeroDeVuelo": {
+      "estado": "UN + TK",
+      "cortoYMedioRadio": [
+        { "umbral": "Misma compañía operadora u otra", "derecho": "debeAceptar", "opciones": [] },
+        { "umbral": "Menos de 1 hora", "derecho": "debeAceptar", "opciones": [] },
+        { "umbral": "Igual o más de 1 hora", "derecho": "debeAceptar", "opciones": ["Cambio de vuelo entre 30 días antes o 30 días después del vuelo original", "Reembolso en bono", "Reembolso en la misma forma de pago"] }
+      ],
+      "largoRadio": [
+        { "umbral": "Misma compañía operadora u otra", "derecho": "debeAceptar", "opciones": [] },
+        { "umbral": "Menos de 1 hora", "derecho": "debeAceptar", "opciones": [] },
+        { "umbral": "Igual o más de 1 hora", "derecho": "puedeAceptar", "opciones": ["Cambio de vuelo entre 30 días antes o 30 días después del vuelo original", "Reembolso en bono", "Reembolso en la misma forma de pago"] }
+      ],
+      "diferenciaClave": "⚠️ En 'igual o más de 1 hora' el manual pone DEBE aceptar en corto/medio y PUEDE aceptar en largo radio, pero lista las MISMAS tres alternativas en ambos. Es la única celda de la matriz donde 'debe aceptar' viene acompañada de opciones — puede ser una errata del manual. Confirmar con el instructor.",
+      "confianzaDiferencia": "derivado"
+    },
+    "cancelacionOPerdidaDeConexion": {
+      "estado": "UN",
+      "aplicaATodoRadio": true,
+      "derecho": "puedeAceptar",
+      "opciones": ["Cambio de vuelo entre 30 días antes o 30 días después del vuelo original", "Reembolso en bono", "Reembolso en la misma forma de pago"],
+      "nota": "El manual no distingue radio ni umbrales para este caso: cancelación o pérdida de conexión da siempre las tres opciones."
+    }
+  },
+  "notasAlPie": {
+    "confianza": "verbatim",
+    "asterisco": "Si el pasajero pide un cambio, este es bajo condiciones de tarifa.",
+    "dobleAsterisco": "Los cambios se pueden realizar a MÁS de 30 días aplicando la diferencia de tarifa.",
+    "vigenciaBono": "Los bonos tendrán una vigencia de 12 MESES desde la fecha de emisión del bono."
+  },
+  "comoUsarla": [
+    "1. Verifica el histórico: RTC o DTR H en Resiber · RHA en Amadeus.",
+    "2. Identifica el estado: UN (cancelado) o TK (modificado/sugerido).",
+    "3. Clasifica el tipo: cambio de hora (TK) · cambio de número de vuelo (UN+TK) · cancelación o pérdida de conexión (UN).",
+    "4. Mira el radio del vuelo (corto/medio vs largo) y el desfase horario.",
+    "5. Solo entonces ofrece lo que corresponda. Ofrecer un reembolso donde solo cabe aceptar el cambio es un error caro."
+  ],
+  "hijosPendientes": [
+    { "id": "#3636", "titulo": "VENTANA OPERATIVA <48HRS", "hijos": 3, "tenemos": false },
+    { "id": "#3637", "titulo": "2. VENTANA COMERCIAL >4...", "hijos": null, "tenemos": false, "nota": "El título llegó truncado en la captura." },
+    { "id": "#3727", "titulo": "2. PROYECTO VERIFICACIÓN", "hijos": null, "tenemos": false }
+  ],
+  "huecosConocidos": [
+    "La celda 'igual o más de 1 hora' de corto/medio radio dice DEBE aceptar pero lista tres alternativas — contradicción aparente sin resolver.",
+    "Faltan #3636 (ventana operativa <48h) y #3637 (ventana comercial), que probablemente cambian los umbrales.",
+    "El manual no dice cómo se emite el bono ni con qué transacción."
+  ]
+}

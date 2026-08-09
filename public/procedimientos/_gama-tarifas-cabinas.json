@@ -1,0 +1,207 @@
+{
+  "id": "gama-tarifas-cabinas",
+  "titulo": "Gama de tarifas y mapa de clases por cabina",
+  "tipo": "referencia",
+  "nota": "Archivo con prefijo _ : es referencia, no un procedimiento con pasos.",
+  "fuente": {
+    "documento": "IberiaNet Lite — #3590 \"9.1 GAMA DE TARIFAS\" (hijo de #3086 \"2. PROCESOS GENERALES\") + diagrama de cabinas del mismo manual",
+    "tipo": "manual-oficial-interno",
+    "recibido": "2026-08-08",
+    "confianzaGlobal": "verbatim"
+  },
+  "advertencias": [
+    {
+      "nivel": "critico",
+      "texto": "Para iniciar CUALQUIER proceso de reembolso es OBLIGATORIO verificar las condiciones de tarifa del tiquete (revisar manual de reembolsos).",
+      "confianza": "verbatim"
+    }
+  ],
+  "cabinas": {
+    "confianza": "verbatim",
+    "nota": "Del diagrama de cabinas del manual. Las letras que el diagrama pinta en ROJO se listan en 'enRojo' — el diagrama NO explica qué significa el color.",
+    "mapa": [
+      {
+        "cabina": "BUSINESS",
+        "color": "#FFC000",
+        "clases": [
+          "J",
+          "C",
+          "D",
+          "R",
+          "I",
+          "U"
+        ],
+        "enRojo": [
+          "U"
+        ]
+      },
+      {
+        "cabina": "TURISTA PREMIUM",
+        "color": "#7030A0",
+        "clases": [
+          "W",
+          "E",
+          "T",
+          "P"
+        ],
+        "enRojo": [
+          "P"
+        ]
+      },
+      {
+        "cabina": "TURISTA ECONOMICA",
+        "color": "#C55A11",
+        "clases": [
+          "Y",
+          "B",
+          "H",
+          "K",
+          "M",
+          "L",
+          "V",
+          "S",
+          "N",
+          "Q",
+          "O",
+          "A",
+          "G",
+          "X"
+        ],
+        "enRojo": [
+          "G",
+          "X"
+        ]
+      }
+    ],
+    "segundaFuente": "CONFIRMADO por una segunda fuente independiente (08AGO26): el diagrama de cabinas AGOSTO 2024 de manual/Cambios involutarios/ da EXACTAMENTE el mismo mapa, incluidas las clases en rojo (U · P · G · X) y la ausencia de F y Z. Dos manuales coinciden frente a una pantalla AN que sí muestra F y Z.",
+    "reglaOperativa": "NO RE-UBICAR EN CABINAS DIFERENTES — en una re-acomodacion por cambio involuntario el pasajero se mantiene en su misma cabina.",
+    "clasesAvios": {
+      "confianza": "verbatim",
+      "fuente": "Confirmado por el usuario (agente Iberia en activo) el 08AGO26 sobre el diagrama de #3590.",
+      "clases": {
+        "BUSINESS": [
+          "U"
+        ],
+        "TURISTA PREMIUM": [
+          "P"
+        ],
+        "TURISTA ECONOMICA": [
+          "G",
+          "X"
+        ]
+      },
+      "texto": "Las clases pintadas en ROJO en el diagrama de cabinas son las de AVIOS (canje): U en Business, P en Turista Premium, G y X en Turista Económica.",
+      "nota": "La leyenda del color no aparece en ninguna de las tres capturas que tenemos del diagrama; el dato lo aporta el usuario, que trabaja con ello a diario. HIPOTESIS CONFIRMADA: era exactamente lo que se sospechaba al ver que el examen pregunta por separado por clases de TURISTA y de TURISTA CON AVIOS."
+    }
+  },
+  "gamaTarifas": {
+    "confianza": "verbatim",
+    "nota": "El manual titula las columnas 'TARIFA' y 'FINAL'. 'FINAL' = con qué letra TERMINA el fare basis.",
+    "tabla": [
+      {
+        "tarifa": "BASICA",
+        "final": "B#"
+      },
+      {
+        "tarifa": "OPTIMA",
+        "final": "M#"
+      },
+      {
+        "tarifa": "COMFORT",
+        "final": "U#"
+      },
+      {
+        "tarifa": "FLEXIBLE",
+        "final": "S# o Y#"
+      }
+    ],
+    "verificacionCruzada": {
+      "texto": "CONFIRMADO contra dos capturas reales del terminal de esta misma sesión: el fare basis 'ONLONNB7' salió de una pantalla FXP/FF-BASIC → termina en B, y BASICA=B#. El fare basis 'VDL0NNM6' salió de una cotización FXX/FF-OPTIMA → termina en M, y OPTIMA=M#. Dos de dos. TERCERA confirmación (08AGO26): la captura \"Verificación gama tarifaria\" de manual/gama de tarifa/ muestra un DTR:TN real con el fare basis OWNNAC**B4** señalado en rojo — termina en B, y BASICA=B#.",
+      "confianza": "verbatim",
+      "utilidad": "Permite leer la familia tarifaria de un billete SIN cotizar: basta mirar la última letra del fare basis."
+    },
+    "familiasPorCabina": {
+      "nota": "Del manual #3058 (emisión). Se cruza con la gama de arriba.",
+      "turista": [
+        "FF-BASIC",
+        "FF-OPTIMA",
+        "FF-COMFORT",
+        "FF-FLEX"
+      ],
+      "turistaPremium": [
+        "FF-PEOPTIMA",
+        "FF-PECOMFORT",
+        "FF-PEFLEX"
+      ],
+      "business": [
+        "FF-BUSOPTIMA",
+        "FF-BUSCOMFORT",
+        "FF-BUSFLEX"
+      ],
+      "trampa": "Turista Premium y Business NO tienen versión BASIC — solo OPTIMA, COMFORT y FLEX. Y en corto radio NO hay Turista Premium en absoluto.",
+      "confianza": "verbatim"
+    }
+  },
+  "discrepancias": [
+    {
+      "titulo": "El diagrama de cabinas y la pantalla AN real no listan las mismas clases de turista",
+      "diagrama": [
+        "Y",
+        "B",
+        "H",
+        "K",
+        "M",
+        "L",
+        "V",
+        "S",
+        "N",
+        "Q",
+        "O",
+        "A",
+        "G",
+        "X"
+      ],
+      "pantallaANreal": [
+        "Y",
+        "B",
+        "H",
+        "K",
+        "M",
+        "L",
+        "F",
+        "V",
+        "S",
+        "G",
+        "Z",
+        "N",
+        "Q",
+        "O",
+        "X"
+      ],
+      "soloEnDiagrama": [
+        "A"
+      ],
+      "soloEnPantalla": [
+        "F",
+        "Z"
+      ],
+      "gravedad": "media",
+      "confianza": "verbatim",
+      "nota": "Ambas fuentes son válidas: el diagrama es del manual oficial #3590 y la pantalla es una captura real de MAD905 (MAD-BOG). Puede ser que el diagrama corresponda a otra configuración de avión, o que F/Z/A no siempre se ofrezcan. NO se unifican a ojo — se preservan las dos listas hasta confirmarlo con el instructor. ACTUALIZACION 08AGO26: ahora son DOS manuales oficiales (el #3590 y el diagrama de Cambios Involuntarios de agosto 2024) contra UNA pantalla AN. La balanza se inclina a que F y Z existen en el sistema pero no se enseñan en el material de formacion."
+    }
+  ],
+  "enlacesOficiales": {
+    "confianza": "verbatim",
+    "turista": "https://www.iberia.com/es/turista/",
+    "turistaPremium": "https://www.iberia.com/es/turista-premium/",
+    "business": "https://www.iberia.com/es/business-class/"
+  },
+  "capturas": [
+    "manual/gama de tarifa/IMG-20260227T174210257.png",
+    "manual/gama de tarifa/WhatsApp Image 2026-08-08 at 07.36.45.jpeg",
+    "manual/gama de tarifa/WhatsApp Image 2026-08-08 at 07.37.39.jpeg"
+  ],
+  "huecosConocidos": [
+    "Por qué el diagrama lista 'A' y la pantalla AN real lista 'F' y 'Z'."
+  ]
+}

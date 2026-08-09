@@ -1,4 +1,4 @@
-import { assertValidClaims } from '../src/auth.js';
+import { assertValidClaims, verifyFirebaseIdToken } from '../src/auth.js';
 
 let passed = 0;
 let failed = 0;
@@ -67,6 +67,37 @@ check('rechaza payload sin sub (uid)', (() => {
     return false;
   } catch {
     return true;
+  }
+})());
+
+// Un fallo de credenciales tiene que devolver 401, no 500. El 09AGO26 el
+// sitio mandó "Bearer mock-token"; jose lanzó "Invalid Compact JWS", que no
+// casaba con la lista de palabras del clasificador, y el usuario vio un 500
+// —como si el servidor estuviera roto— en vez de "vuelve a iniciar sesión".
+check('todo error de auth trae status 401', (() => {
+  const casos = [
+    { ...validPayload, iss: 'https://otro.com' },
+    { ...validPayload, aud: 'otro-proyecto' },
+    { ...validPayload, exp: now - 10 },
+    { ...validPayload, sub: undefined }
+  ];
+  return casos.every((p) => {
+    try {
+      assertValidClaims(p, projectId);
+      return false;
+    } catch (err) {
+      return err.status === 401 && err.name === 'ErrorDeAutenticacion';
+    }
+  });
+})());
+
+check('un token que ni siquiera es un JWT da 401, no 500', await (async () => {
+  try {
+    await verifyFirebaseIdToken('mock-token', projectId);
+    return false;
+  } catch (err) {
+    // Lo que importa es el código: el mensaje de jose puede cambiar de versión.
+    return err.status === 401;
   }
 })());
 

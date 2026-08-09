@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { TerminalSquare, BookOpen, Brain, Layout, Volume2, VolumeX, ShieldCheck } from 'lucide-react';
+import { TerminalSquare, BookOpen, Brain, Layout, Volume2, VolumeX, ShieldCheck, Home, Bot } from 'lucide-react';
 import { DslParser } from './engine/DslParser';
 import { PnrStateMachine } from './engine/PnrStateMachine';
 import { ResponseGenerator } from './engine/ResponseGenerator';
 import { EvaluationEngine } from './engine/EvaluationEngine';
 import { AppProvider } from './context/AppContext';
-import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Routes, Route, NavLink, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu } from './pages/Menu';
 import { Simulator } from './pages/Simulator';
 import { Roleplay } from './pages/Roleplay';
+import { Tutor } from './pages/Tutor';
 import { Theory } from './pages/Theory';
 import { IberiaExam } from './pages/IberiaExam';
 import { SecurityExam } from './pages/SecurityExam';
@@ -231,8 +232,16 @@ export function App() {
     const getHintFromEval = () => {
       if (!activeScenario) return null;
       const evalNow = evalEngine.evaluate(activeScenario, pnrFsm.getState());
-      const pending = evalNow.feedback.find(f => f.startsWith('[PENDIENTE]'));
-      return pending ? pending.replace('[PENDIENTE] ', '') : null;
+      const pendings = evalNow.feedback.filter(f => f.startsWith('[PENDIENTE]'));
+      if (!pendings.length) return null;
+
+      const upper = (rawCommand || '').toUpperCase().trim();
+      // Si el usuario intentaba vender plazas (SS) o buscar disponibilidad, buscar la pista de segmentos primero
+      if (upper.startsWith('SS') || upper.startsWith('AN') || upper.startsWith('SN')) {
+        const segHint = pendings.find(f => f.toLowerCase().includes('segmento') || f.toLowerCase().includes('vuelo') || f.toLowerCase().includes('ss'));
+        if (segHint) return segHint.replace('[PENDIENTE] ', '');
+      }
+      return pendings[0].replace('[PENDIENTE] ', '');
     };
 
     if (!parseResult.success) {
@@ -259,6 +268,13 @@ export function App() {
         hint: !processResult.success ? getHintFromEval() : null
       }
     ]);
+
+    // Notificar la ejecución a los componentes suscritos (ej: TutorPanel)
+    try {
+      window.dispatchEvent(new CustomEvent('cryptic-command-executed', {
+        detail: { command: rawCommand, output, isError: !processResult.success }
+      }));
+    } catch {}
   };
 
   // Resultado de la evaluación del progreso del escenario
@@ -349,44 +365,35 @@ export function App() {
     <div className="app-container">
       <header className="app-header">
         <div className="brand-section">
-          <TerminalSquare className="brand-icon" />
-          <h1 className="brand-title">Cryptic Trainer</h1>
-          <span className="brand-tag">GDS AMADEUS PWA</span>
+          <Link to="/" className="brand-title-link" title="Volver al Menú Principal">
+            <TerminalSquare className="brand-icon" />
+            <span className="brand-title">Cryptic Trainer</span>
+          </Link>
+          <span className="brand-tag">PWA SISTEMAS IBERIA</span>
           {streak > 0 && (
-            <span style={{
-              marginLeft: '8px',
-              padding: '2px 8px',
-              borderRadius: '6px',
-              fontSize: '0.85rem',
-              fontWeight: '600',
-              fontFamily: 'var(--font-sans)',
-              backgroundColor: streak > 2 ? 'rgba(255, 152, 0, 0.15)' : 'rgba(100, 116, 139, 0.15)',
-              color: streak > 2 ? '#ff9800' : '#94a3b8',
-              border: `1px solid ${streak > 2 ? 'rgba(255, 152, 0, 0.3)' : 'rgba(100, 116, 139, 0.3)'}`,
-              display: 'inline-flex',
-              alignItems: 'center',
-              whiteSpace: 'nowrap'
-            }}>
+            <span className="brand-streak">
               🔥 {streak} {streak === 1 ? 'Día' : 'Días'}
             </span>
           )}
-          
-          <button 
-            onClick={toggleMute} 
-            className="ghost-btn" 
-            style={{ marginLeft: '1rem', color: isMuted ? '#94a3b8' : '#0284c7' }}
-            title={isMuted ? "Activar Sonido" : "Silenciar"}
-          >
-            {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
-          </button>
-
-          <button onClick={handleLogout} className="ghost-btn" style={{ marginLeft: '1rem' }}>
-            Salir
-          </button>
         </div>
 
         <div className="header-controls">
           <div className="seg-control" role="tablist" aria-label="Modo de la aplicación">
+            <NavLink
+              to="/"
+              end
+              className={({ isActive }) => `seg-btn ${isActive ? 'seg-active' : ''}`}
+            >
+              <Home size={14} /> Inicio
+            </NavLink>
+            {/* El tutor es el camino recomendado, pero solo se llegaba a él
+                desde el hero del menú: si te ibas, desaparecía. */}
+            <NavLink
+              to="/tutor"
+              className={({ isActive }) => `seg-btn ${isActive ? 'seg-active' : ''}`}
+            >
+              <Bot size={14} /> Tutor
+            </NavLink>
             <NavLink
               to="/simulador"
               className={({ isActive }) => `seg-btn ${isActive ? 'seg-active' : ''}`}
@@ -403,14 +410,31 @@ export function App() {
               to="/examen-seguridad"
               className={({ isActive }) => `seg-btn ${isActive ? 'seg-active' : ''}`}
             >
-              <ShieldCheck size={14} /> Examen Filtro Seguridad
+              {/* Mismo rótulo que la tarjeta del menú ("Examen Filtro de
+                  Seguridad"), para que se lean como el mismo destino. */}
+              <ShieldCheck size={14} /> Filtro de Seguridad
             </NavLink>
           </div>
+
           <button
             onClick={() => { navigate('/simulador'); handleExecuteCommand('HE'); }}
             className="ghost-btn"
+            title="Abre el simulador y ejecuta el comando 'HE' (Ayuda Amadeus)"
           >
-            <BookOpen size={14} /> Manual (HE)
+            <BookOpen size={14} /> Ayuda (HE)
+          </button>
+
+          <button 
+            onClick={toggleMute} 
+            className="ghost-btn" 
+            style={{ color: isMuted ? '#94a3b8' : '#0284c7' }}
+            title={isMuted ? "Activar Sonido" : "Silenciar"}
+          >
+            {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+          </button>
+
+          <button onClick={handleLogout} className="ghost-btn">
+            Salir
           </button>
         </div>
       </header>
@@ -427,6 +451,7 @@ export function App() {
           <Route path="/" element={<Menu />} />
           <Route path="/simulador" element={<Simulator />} />
           <Route path="/roleplay" element={<Roleplay />} />
+          <Route path="/tutor" element={<Tutor />} />
           <Route path="/guia" element={<LearningGuide />} />
           <Route path="/teoria" element={<Theory />} />
           <Route path="/examen-iberia" element={<IberiaExam />} />

@@ -1,0 +1,197 @@
+{
+  "id": "mascota-en-cabina-petc",
+  "titulo": "Mascota en Cabina (PETC) — Requisitos, Precios y Comandos (Amadeus y Resiber)",
+  "aerolinea": "IB",
+  "categoria": "servicios",
+  "resumen": "Procedimiento oficial #3116 de IberiaNet Lite para la solicitud de Mascota en Cabina (PETC) en billetes 075. Incluye requisitos de peso/transportín, tabla de precios por trayecto directo/conexión, y comparación de sintaxis exacta entre Amadeus y Resiber.",
+  "advertencias": [
+    {
+      "nivel": "critico",
+      "texto": "ESTO SOLO APLICA PARA BILLETES 075 (IBERIA).",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "critico",
+      "texto": "PESO MÁXIMO: 8 kg incluyendo el transportín. Dimensiones máximas: 45 x 35 x 25 cm (resistente, con ventilación, fondo impermeable y cierre seguro).",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "critico",
+      "texto": "RESTRICCIÓN DE RAZA EN AEROPUERTO: No se aceptan registros como 'cruce', 'mestizo', 'criollo', 'común' o 'mezcla' a secas. Se debe especificar la raza exacta o la combinación de razas (ej: CRUCE CHIHUAHUA CON PINCHER).",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "alto",
+      "texto": "FILA DE EMERGENCIA: No se permiten mascotas en asientos de fila de salida de emergencia. Viajan bajo el asiento delantero sin molestar a los demás.",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "alto",
+      "texto": "GUARDADO EN RESIBER: Se guarda con ÑK y cada vez que se use ÑK se debe volver a ingresar a la reserva. En Amadeus se guarda con ER y se confirma con ERK.",
+      "confianza": "verbatim"
+    }
+  ],
+  "precios": {
+    "directos": {
+      "espana_exc_canarias": "40€ / 50$ / 35£",
+      "canarias_europa_nafrica_omedio": "60€ / 75$ / 55£",
+      "america_asia": "180€ / 215$ / 160£"
+    },
+    "conexion": {
+      "espana_exc_canarias": "60€ / 75$ / 55£",
+      "canarias_europa_nafrica_omedio": "80€ / 95$ / 70£",
+      "america_asia": "200€ / 235$ / 175£"
+    }
+  },
+  "fuente": {
+    "documento": "IberiaNet Lite — #3116 \"1. MASCOTA EN CABINA\"",
+    "tipo": "manual-oficial-interno",
+    "fecha": "2026-07-07",
+    "recibido": "2026-08-08",
+    "confianzaGlobal": "verbatim",
+    "nota": "Transcripción 100% fiel del manual oficial #3116 pegado por el usuario. Contiene sintaxis exacta para Resiber y Amadeus en 4 escenarios de PETC."
+  },
+  "pasos": [
+    {
+      "n": 1,
+      "sistema": "resiber",
+      "proceso": "FASE RESIBER — 1. Verificar disponibilidad",
+      "comando": "BSK/IB6458/17MAR",
+      "plantilla": "BSK/{placaVuelo}/{fecha}",
+      "explicacion": "BSK = comando disponibilidad mascota · IB6458 = vuelo · 17MAR = fecha.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 2,
+      "sistema": "resiber",
+      "proceso": "FASE RESIBER — 2. Documentar la información proporcionada al cliente",
+      "comando": "INT IB PAX AVDO DOCUMENTOS A PRESENTAR EN APTO Y VALOR DEL SERVICIO PETC xxx EUR//AR",
+      "explicacion": "Documenta la información entregada al cliente sobre requisitos y valor del servicio en Resiber.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 3,
+      "sistema": "resiber",
+      "proceso": "FASE RESIBER — 3. Solicitar servicio (1 sola mascota)",
+      "comando": "SSR PETC YY NN1 DOG CHIHUAHUA 8KG 45X35X25/P1/S2",
+      "plantilla": "SSR PETC YY NN1 ESPECIE RAZA PESO DIMENSIONES/P{pasajero}/S{segmento}",
+      "explicacion": "Resiber exige segmento por segmento. YY NN1 = estatus · P1 = pasajero · S2 = segmento.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 3.1,
+      "sistema": "resiber",
+      "proceso": "FASE RESIBER — Solicitar servicio (>1 mascota en el mismo transportín)",
+      "comando": "SSR PETC YY NN1 2DOG CHIHUAHUA 8KG 45X35X25/P1/S2",
+      "plantilla": "SSR PETC YY NN1 2{ESPECIE} RAZA PESO DIMENSIONES/P{pasajero}/S{segmento}",
+      "explicacion": "Indica la cantidad delante de la especie (ej: 2DOG). El peso total sumado no puede superar 8 kg.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 3.2,
+      "sistema": "resiber",
+      "proceso": "FASE RESIBER — Solicitar servicio (Mascota con cruce de razas)",
+      "comando": "SSR PETC YY NN1 1DOG CRUCE CHIHUAHUA CON PINCHER 8KG 45X35X25/P1/S2",
+      "plantilla": "SSR PETC YY NN1 1{ESPECIE} CRUCE {RAZA1} CON {RAZA2} PESO DIMENSIONES/P{pasajero}/S{segmento}",
+      "explicacion": "El aeropuerto rechaza 'cruce' a secas. Debe detallarse la mezcla exacta.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 3.3,
+      "sistema": "resiber",
+      "proceso": "FASE RESIBER — Solicitar servicio (Origen/Destino DUB — Dublín)",
+      "comando": "SSR PETC DOG CHIH TTL 8KG DIM 45X35X25CM/P1/S2",
+      "plantilla": "SSR PETC {ESPECIE} {RAZA_REDUCIDA} TTL {PESO} DIM {DIMENSIONES}CM/P{pasajero}/S{segmento}",
+      "explicacion": "Formato comprimido especial para itinerarios con origen o destino Dublín (DUB).",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 4,
+      "sistema": "resiber",
+      "proceso": "FASE RESIBER — 4. Guardar la reserva",
+      "comando": "ÑK",
+      "explicacion": "En Resiber se guarda con ÑK. Importante: cada vez que usas ÑK debes volver a ingresar a la reserva.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 5,
+      "sistema": "resiber",
+      "proceso": "FASE RESIBER — 5. Enviar documentos desde Resiber",
+      "comando": "ITP:/RESERVA/EMAIL",
+      "variantes": ["DTR TN 075-2534567890,EML/EMAIL", "DEMR DN 075-2534567890,EML/EMAIL"],
+      "explicacion": "ITP para itinerario · DTR TN para e-ticket · DEMR DN para EMD.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 6,
+      "sistema": "amadeus",
+      "proceso": "FASE AMADEUS — 1. Verificar disponibilidad",
+      "comando": "BSK/IB6458/17MAR",
+      "plantilla": "BSK/{placaVuelo}/{fecha}",
+      "explicacion": "Mismo comando de disponibilidad de plaza de mascota BSK en Amadeus.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 7,
+      "sistema": "amadeus",
+      "proceso": "FASE AMADEUS — 2. Documentar la información proporcionada al cliente",
+      "comando": "RM10APR26PAX AVDO DOCUMENTOS A PRESENTAR EN APTO Y VALOR DEL SERVICIO PETC xxx EUR//AR",
+      "explicacion": "Remark tipo RM con fecha, texto del aviso de documentos/precio e iniciales del agente.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 8,
+      "sistema": "amadeus",
+      "proceso": "FASE AMADEUS — 3. Solicitar servicio (1 sola mascota)",
+      "comando": "SR PETC IB NN1 - DOG CHIHUAHUA 8KG 45X35X25/S2-3/P1",
+      "plantilla": "SR PETC IB NN1 - ESPECIE RAZA PESO DIMENSIONES/S{segmentos}/P{pasajero}",
+      "explicacion": "Amadeus permite rango de segmentos con guión (/S2-3/). Lleva el prefijo SR PETC IB NN1 -.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 8.1,
+      "sistema": "amadeus",
+      "proceso": "FASE AMADEUS — Solicitar servicio (>1 mascota en el mismo transportín)",
+      "comando": "SR PETC IB NN1 - 2DOG CHIHUAHUA 8KG 45X35X25/S2-3/P1",
+      "plantilla": "SR PETC IB NN1 - 2{ESPECIE} RAZA PESO DIMENSIONES/S{segmentos}/P{pasajero}",
+      "explicacion": "Sintaxis para varias mascotas en un mismo transportín (máx 8 kg total sumado).",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 8.2,
+      "sistema": "amadeus",
+      "proceso": "FASE AMADEUS — Solicitar servicio (Mascota con cruce de razas)",
+      "comando": "SR PETC IB NN1 - 1DOG CRUCE CHIHUAHUA CON PINCHER 8KG 45X35X25/S2-3/P1",
+      "plantilla": "SR PETC IB NN1 - 1{ESPECIE} CRUCE {RAZA1} CON {RAZA2} PESO DIMENSIONES/S{segmentos}/P{pasajero}",
+      "explicacion": "Especifica el cruce exacto para evitar el rechazo del aeropuerto.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 8.3,
+      "sistema": "amadeus",
+      "proceso": "FASE AMADEUS — Solicitar servicio (Origen/Destino DUB — Dublín)",
+      "comando": "SR PETC-DOG CHIH TTL 8KG DIM 45X35X25CM/S2-3/P1",
+      "plantilla": "SR PETC-{ESPECIE} {RAZA_REDUCIDA} TTL {PESO} DIM {DIMENSIONES}CM/S{segmentos}/P{pasajero}",
+      "explicacion": "Formato comprimido con guión unido PETC-DOG para ruta Dublín.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 9,
+      "sistema": "amadeus",
+      "proceso": "FASE AMADEUS — 4. Guardar y confirmar el servicio",
+      "comando": "ER",
+      "variantes": ["ERK"],
+      "explicacion": "Guardamos con ER y confirmamos el servicio con ERK.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 10,
+      "sistema": "amadeus",
+      "proceso": "FASE AMADEUS — 5. Enviar documentos",
+      "comando": "IBP-EMLA/LPSP",
+      "variantes": ["IEPJ-EMLA/LPSP", "ITR-EMLA"],
+      "explicacion": "IBP = itinerario · IEPJ = itinerario y servicios · ITR = billetes electrónicos.",
+      "confianza": "verbatim"
+    }
+  ]
+}

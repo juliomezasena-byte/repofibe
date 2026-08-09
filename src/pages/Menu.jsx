@@ -1,119 +1,174 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { TerminalSquare, Brain, FileCheck, Phone, ShieldCheck } from 'lucide-react';
+import { 
+  Phone, 
+  Sparkles, 
+  ArrowRight,
+  Bot
+} from 'lucide-react';
+import { useAppContext } from '../context/AppContext';
+import { getProgressSummary } from '../lib/learningPath';
 
 export function Menu() {
+  const context = useAppContext() || {};
+  const scenarios = context.scenarios || [];
+  const learningProgress = context.learningProgress || {};
+
+  // Cálculo de progreso verídico
+  const progressSummary = useMemo(() => {
+    return getProgressSummary(scenarios, learningProgress);
+  }, [scenarios, learningProgress]);
+
+  // Los escenarios se cargan por red. Hasta que llegan, `total` es 0 y el
+  // progreso se leería como "0 / 24 (0%)" — indistinguible de no haber hecho
+  // nada. Mientras no haya catálogo no se afirma un progreso que no sabemos.
+  const catalogoListo = scenarios.length > 0;
+
+  // Persistencia de notas reales de los exámenes
+  const iberiaScore = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem('cryptic-iberia-exam-v1') || 'null');
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const securityScore = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem('cryptic-security-exam-v1') || 'null');
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const quizStats = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem('cryptic-quiz-stats-v1') || '{}');
+    } catch {
+      return {};
+    }
+  }, []);
+
   return (
-    <main className="main-layout" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: '80vh' }}>
-      <h2 style={{ marginBottom: '2.5rem', color: '#f8fafc', fontSize: '2.2rem', fontWeight: 'bold' }}>Elige tu entrenamiento</h2>
-      <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-        <Link to="/guia" style={{ textDecoration: 'none' }}>
-          <div style={{ 
-            background: 'rgba(30, 41, 59, 0.7)', 
-            border: '1px solid rgba(255, 255, 255, 0.1)', 
-            borderRadius: '12px', 
-            padding: '2.5rem', 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'center', 
-            width: '260px',
-            transition: 'transform 0.2s, background 0.2s',
-            backdropFilter: 'blur(10px)'
-          }}
-          onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(51, 65, 85, 0.9)'; e.currentTarget.style.transform = 'translateY(-5px)'; }}
-          onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(30, 41, 59, 0.7)'; e.currentTarget.style.transform = 'translateY(0)'; }}
-          >
-            <TerminalSquare size={72} color="#38bdf8" style={{ marginBottom: '1.5rem' }} />
-            <h3 style={{ color: '#fff', fontSize: '1.4rem', marginBottom: '0.5rem' }}>Ruta PNR guiada</h3>
-            <p style={{ color: '#94a3b8', textAlign: 'center', fontSize: '0.95rem' }}>Avanza por 24 nodos, practica una misión diaria y usa el simulador Amadeus sin bloqueos.</p>
+    <main className="menu-container">
+      {/* Banner Hero Destacado: Tutor IA de Procedimientos */}
+      <section className="menu-hero-card">
+        <div className="menu-hero-badge">
+          <Sparkles size={14} /> TUTOR MULTI-SISTEMA PASO A PASO
+        </div>
+        <div className="menu-hero-content">
+          <div className="menu-hero-info">
+            <div className="menu-hero-header">
+              <div className="menu-hero-icon-wrapper">
+                <Bot size={32} className="menu-hero-icon" />
+              </div>
+              <div>
+                <h2 className="menu-hero-title">Tutor IA de Procedimientos</h2>
+                <p className="menu-hero-subtitle">
+                  Resuelve casos reales guiado paso a paso a través de 5 sistemas de aerolínea: Amadeus, Resiber, Natiba, Salesforce e IberiaNet.
+                </p>
+              </div>
+            </div>
+          </div>
+          <Link to="/tutor" className="menu-hero-cta">
+            <span>Iniciar Tutoría IA</span>
+            <ArrowRight size={18} />
+          </Link>
+        </div>
+      </section>
+
+      {/* Header de la sección de opciones */}
+      <div className="menu-section-header">
+        <h3 className="menu-section-title">Estaciones de Entrenamiento</h3>
+        <p className="menu-section-subtitle">Selecciona una modalidad para poner a prueba tus conocimientos</p>
+      </div>
+
+      {/* Cuadrícula minimalista con Iconos 3D integrados sin cajas oscuras */}
+      <div className="menu-grid-2x2">
+        <Link to="/guia" className="menu-card menu-card-pnr">
+          <div className="menu-card-header">
+            {/* alt="" a propósito: el icono es decorativo y el título va justo
+                al lado. Describirlo ("PNR 3D") solo añade ruido al lector. */}
+            <img src="/images/card_pnr_3d.webp" alt="" className="menu-card-3d-icon" />
+            <span className="menu-card-tag tag-pnr">Simulador PNR</span>
+          </div>
+          <div>
+            <h4 className="menu-card-title">Ruta PNR (Lecciones)</h4>
+            <p className="menu-card-desc">
+              Avanza por 24 lecciones guiadas con el simulador Amadeus, cumple tu misión diaria y desbloquea niveles.
+            </p>
+            <div className="menu-card-progress-bar">
+              <div
+                className="menu-card-progress-fill"
+                style={{ width: catalogoListo ? `${progressSummary.percent}%` : '0%' }}
+              ></div>
+            </div>
+            <span className="menu-card-progress-text">
+              {catalogoListo
+                ? `${progressSummary.completed} / ${progressSummary.total} lecciones (${progressSummary.percent}%)`
+                : 'Cargando tu progreso…'}
+            </span>
           </div>
         </Link>
 
-        <Link to="/teoria" style={{ textDecoration: 'none' }}>
-          <div style={{ 
-            background: 'rgba(30, 41, 59, 0.7)', 
-            border: '1px solid rgba(255, 255, 255, 0.1)', 
-            borderRadius: '12px', 
-            padding: '2.5rem', 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'center', 
-            width: '260px',
-            transition: 'transform 0.2s, background 0.2s',
-            backdropFilter: 'blur(10px)'
-          }}
-          onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(51, 65, 85, 0.9)'; e.currentTarget.style.transform = 'translateY(-5px)'; }}
-          onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(30, 41, 59, 0.7)'; e.currentTarget.style.transform = 'translateY(0)'; }}
-          >
-            <Brain size={72} color="#a855f7" style={{ marginBottom: '1.5rem' }} />
-            <h3 style={{ color: '#fff', fontSize: '1.4rem', marginBottom: '0.5rem' }}>Banco de Teoría</h3>
-            <p style={{ color: '#94a3b8', textAlign: 'center', fontSize: '0.95rem' }}>Exámenes y quizzes sobre normativas y conocimiento de Iberia.</p>
+        <Link to="/teoria" className="menu-card menu-card-teoria">
+          <div className="menu-card-header">
+            <img src="/images/card_theory_3d.webp" alt="" className="menu-card-3d-icon" />
+            <span className="menu-card-tag tag-teoria">Teoría</span>
+          </div>
+          <div>
+            <h4 className="menu-card-title">Banco de Teoría GDS</h4>
+            <p className="menu-card-desc">
+              Quizzes interactivos de memorización de comandos, códigos IATA y conceptos clave de Amadeus.
+            </p>
+            <span className="menu-card-progress-text">Racha activa: {quizStats.streak || 0} Días</span>
           </div>
         </Link>
 
-        <Link to="/examen-iberia" style={{ textDecoration: 'none' }}>
-          <div style={{ 
-            background: 'rgba(30, 41, 59, 0.7)', 
-            border: '1px solid rgba(239, 68, 68, 0.3)', 
-            borderRadius: '12px', 
-            padding: '2.5rem', 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'center', 
-            width: '260px',
-            transition: 'transform 0.2s, background 0.2s',
-            backdropFilter: 'blur(10px)'
-          }}
-          onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)'; e.currentTarget.style.transform = 'translateY(-5px)'; }}
-          onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(30, 41, 59, 0.7)'; e.currentTarget.style.transform = 'translateY(0)'; }}
-          >
-            <FileCheck size={72} color="#ef4444" style={{ marginBottom: '1.5rem' }} />
-            <h3 style={{ color: '#fff', fontSize: '1.4rem', marginBottom: '0.5rem', textAlign: 'center' }}>Examen Oficial Iberia</h3>
-            <p style={{ color: '#94a3b8', textAlign: 'center', fontSize: '0.95rem' }}>Simulación exacta de las 11 preguntas del examen oficial recuperado.</p>
+        <Link to="/examen-iberia" className="menu-card menu-card-iberia">
+          <div className="menu-card-header">
+            <img src="/images/card_iberia_3d.webp" alt="" className="menu-card-3d-icon" />
+            <span className="menu-card-tag tag-iberia">Oficial</span>
+          </div>
+          <div>
+            <h4 className="menu-card-title">Examen Oficial Iberia</h4>
+            <p className="menu-card-desc">
+              Simulacro oficial de las 11 preguntas exactas del examen de certificación Iberia.
+            </p>
+            <span className="menu-card-progress-text">
+              {iberiaScore ? `Puntaje previo: ${iberiaScore.score}/${iberiaScore.total}` : 'Estado: Sin realizar'}
+            </span>
           </div>
         </Link>
 
-        <Link to="/examen-seguridad" style={{ textDecoration: 'none' }}>
-          <div style={{
-            background: 'rgba(30, 41, 59, 0.7)',
-            border: '1px solid rgba(2, 132, 199, 0.3)',
-            borderRadius: '12px',
-            padding: '2.5rem',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            width: '260px',
-            transition: 'transform 0.2s, background 0.2s',
-            backdropFilter: 'blur(10px)'
-          }}
-          onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(2, 132, 199, 0.15)'; e.currentTarget.style.transform = 'translateY(-5px)'; }}
-          onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(30, 41, 59, 0.7)'; e.currentTarget.style.transform = 'translateY(0)'; }}
-          >
-            <ShieldCheck size={72} color="#0284c7" style={{ marginBottom: '1.5rem' }} />
-            <h3 style={{ color: '#fff', fontSize: '1.4rem', marginBottom: '0.5rem', textAlign: 'center' }}>Examen Filtro Seguridad</h3>
-            <p style={{ color: '#94a3b8', textAlign: 'center', fontSize: '0.95rem' }}>Evaluación dedicada sobre autenticación de titulares, PNR, esperas y protocolo de llamada.</p>
+        <Link to="/examen-seguridad" className="menu-card menu-card-seguridad">
+          <div className="menu-card-header">
+            <img src="/images/card_security_3d.webp" alt="" className="menu-card-3d-icon" />
+            <span className="menu-card-tag tag-seguridad">Filtro</span>
+          </div>
+          <div>
+            <h4 className="menu-card-title">Examen Filtro de Seguridad</h4>
+            <p className="menu-card-desc">
+              Evaluación dedicada a autenticación de titulares, PNR, esperas y protocolo obligatorio.
+            </p>
+            <span className="menu-card-progress-text">
+              {securityScore ? `Puntaje previo: ${securityScore.score}/${securityScore.total}` : 'Estado: Sin realizar'}
+            </span>
           </div>
         </Link>
 
-        <Link to="/roleplay" style={{ textDecoration: 'none' }}>
-          <div style={{
-            background: 'rgba(30, 41, 59, 0.7)',
-            border: '1px solid rgba(56, 189, 248, 0.3)',
-            borderRadius: '12px',
-            padding: '2.5rem',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            width: '260px',
-            transition: 'transform 0.2s, background 0.2s',
-            backdropFilter: 'blur(10px)'
-          }}
-          onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(56, 189, 248, 0.15)'; e.currentTarget.style.transform = 'translateY(-5px)'; }}
-          onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(30, 41, 59, 0.7)'; e.currentTarget.style.transform = 'translateY(0)'; }}
-          >
-            <Phone size={72} color="#38bdf8" style={{ marginBottom: '1.5rem' }} />
-            <h3 style={{ color: '#fff', fontSize: '1.4rem', marginBottom: '0.5rem', textAlign: 'center' }}>Llamada de Práctica</h3>
-            <p style={{ color: '#94a3b8', textAlign: 'center', fontSize: '0.95rem' }}>Atiende a un pasajero simulado por IA mientras resuelves su caso en el Terminal.</p>
+        <Link to="/roleplay" className="menu-card menu-card-roleplay menu-card-full">
+          <div className="menu-card-horizontal">
+            <img src="/images/card_roleplay_3d.svg" alt="" className="menu-card-3d-icon" />
+            <div className="menu-card-body">
+              <div className="menu-card-title-row">
+                <h4 className="menu-card-title">Simulación de Llamada (Roleplay)</h4>
+                <span className="menu-card-tag tag-roleplay">Voz IA</span>
+              </div>
+              <p className="menu-card-desc">
+                Atiende a un pasajero simulado por IA en tiempo real mientras resuelves su caso en el Terminal.
+              </p>
+            </div>
           </div>
         </Link>
       </div>

@@ -1,0 +1,57 @@
+{
+  "id": "perro-asistencia-svan",
+  "titulo": "Perro de asistencia (SVAN) — en Resiber y en Amadeus",
+  "aerolinea": "IB",
+  "categoria": "servicios",
+  "resumen": "Solicitud del servicio SVAN (perro de asistencia / lazarillo). A diferencia de AVIH y PETC, el servicio queda CONFIRMADO (HK), no pendiente.",
+  "aplicaSolo": "Billetes 075. SOLO para PERROS – LAZARILLOS.",
+  "advertencias": [
+    { "nivel": "critico", "texto": "El perro debe estar entrenado individualmente para realizar tareas que beneficien a una persona con discapacidad física, sensorial, psíquica o intelectual. Solo se aceptan perros adiestrados como animales de servicio (guía, rescate, etc.).", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "La presentación de la documentación completa NO garantiza el transporte. La decisión final la toma el personal de Iberia en el aeropuerto.", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "Si el cliente no puede presentar la documentación requerida, deberá PAGAR el transporte como \"mascota en cabina\" o \"mascota en bodega\".", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "Solicitar la reserva del transporte al menos 48 HORAS antes de la salida del vuelo.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "Ambos formularios incluyen un apartado para vuelos de MÁS DE 8 HORAS, donde hay que especificar que el perro puede hacer sus necesidades \"de manera higiénica\".", "confianza": "verbatim" },
+    { "nivel": "medio", "texto": "El formulario debe IMPRIMIRSE y presentarse junto con el resto de documentación en el aeropuerto.", "confianza": "verbatim" },
+    { "nivel": "medio", "texto": "El servicio se puede agregar SIN tener billete emitido. El estado del billete debe ser \"OPEN FOR USE\" (O).", "confianza": "verbatim" }
+  ],
+  "fuente": {
+    "documento": "IberiaNet Lite — #3118 \"3. MASCOTA DE ASISTENCIA\" (hijo de #3099 \"4. MASCOTAS\")",
+    "tipo": "manual-oficial-interno",
+    "recibido": "2026-08-08",
+    "confianzaGlobal": "verbatim",
+    "nota": "Segundo manual que documenta el mismo servicio en Resiber y Amadeus lado a lado. Confirma por segunda vez la regla SR/SSR."
+  },
+  "formularios": {
+    "confianza": "verbatim",
+    "destinoUOrigenUSA": "https://www.iberia.com/us/es/perros-de-asistencia/",
+    "restoDeRutas": "http://i2news.iberiaexpress.com/form/svan_form_nousa.pdf",
+    "nota": "Hay DOS formularios distintos según si la ruta toca Estados Unidos o no."
+  },
+  "diferenciasConAvihYPetc": {
+    "confianza": "verbatim",
+    "tabla": [
+      { "aspecto": "Estado tras solicitar", "svan": "HK — CONFIRMADO", "avih": "HN — se confirma en 24 h" },
+      { "aspecto": "Antelación mínima", "svan": "48 horas", "avih": "72 horas" },
+      { "aspecto": "Dimensiones en el comando", "svan": "NO lleva, solo peso", "avih": "SÍ lleva (45X35X25)" },
+      { "aspecto": "Coste", "svan": "Sin coste si la documentación es correcta", "avih": "Tarifa por peso y zona" },
+      { "aspecto": "Guardado en Amadeus", "svan": "ER guarda, ERK CONFIRMA el servicio", "avih": "ER y ERK" }
+    ]
+  },
+  "pasos": [
+    { "n": 0, "sistema": "natiba", "proceso": "Filtro de seguridad", "comando": null, "explicacion": "APELLIDO + PNR. Igual en ambos sistemas.", "confianza": "verbatim", "esBloqueante": true },
+
+    { "n": 1, "sistema": "resiber", "proceso": "[RESIBER] Documentar la información proporcionada al cliente", "comando": "INT IB PAX AVDO DOCUMENTOS A PRESENTAR EN APTO (CERTIFICADO DE ADIESTRAMIENTO, FORMULARIO DE LA WEB, REQUISITOS DE INGRESO AL PAIS DONDE SE DIRIGE)//AR", "explicacion": "Se usa INT (agregar notas) en Resiber.", "confianza": "verbatim" },
+    { "n": 2, "sistema": "resiber", "proceso": "[RESIBER] Solicitar el servicio", "comando": "SSR SVAN YY NN1 DOG CHIHUAHUA 8KG/P1 /S2", "plantilla": "SSR SVAN YY NN1 {ESPECIE} {RAZA} {PESO}/P{pasajero}/S{segmento}", "explicacion": "RECUERDA: debemos tomar SEGMENTO POR SEGMENTO. Sin dimensiones, solo peso.", "confianza": "verbatim", "nota": "⚠️ La plantilla del manual escribe 'PESO//PPASAJERO' con DOS barras, pero el ejemplo usa una sola ('8KG/P1 /S2'). Se toma el ejemplo, que es la columna TRANSACCIÓN." },
+    { "n": 2.1, "sistema": "resiber", "proceso": "[RESIBER] Guardar", "comando": "ÑK", "explicacion": "El servicio queda en HK CONFIRMADO. RECUERDA: cada vez que uses ÑK deberás VOLVER A INGRESAR a la reserva.", "confianza": "verbatim", "validacion": { "tipo": "exacto", "patron": "ÑK" } },
+    { "n": 3, "sistema": "resiber", "proceso": "[RESIBER] Enviar itinerario y documentos", "comando": "ITP:/RESERVA/EMAIL", "variantes": ["DTR TN 075-2534567890,EML/EMAIL", "DEMR DN 075-2534567890,EML/EMAIL"], "explicacion": "Itinerario · billetes electrónicos · EMD.", "confianza": "verbatim" },
+
+    { "n": 4, "sistema": "amadeus", "proceso": "[AMADEUS] Documentar la información proporcionada al cliente", "comando": "RM10APR26PAX AVDO DOCUMENTOS A PRESENTAR EN APTO (CERTIFICADO DE ADIESTRAMIENTO, FORMULARIO DE LA WEB, REQUISITOS DE INGRESO AL PAIS DONDE SE DIRIGE)//AR", "explicacion": "Se usa RM (remark) en Amadeus, frente a INT en Resiber.", "confianza": "verbatim" },
+    { "n": 5, "sistema": "amadeus", "proceso": "[AMADEUS] Solicitar el servicio", "comando": "SR SVAN IB NN1 - DOG CHIHUAHUA 8KG/S2-3/P1", "plantilla": "SR SVAN IB NN1 - {ESPECIE} {RAZA} {PESO}/S{segmentos}/P{pasajero}", "explicacion": "Admite rango de segmentos (/S2-3), a diferencia de Resiber.", "confianza": "verbatim" },
+    { "n": 5.1, "sistema": "amadeus", "proceso": "[AMADEUS] Guardar y confirmar", "comando": "ER", "variantes": ["ERK"], "explicacion": "GUARDAMOS con ER y CONFIRMAMOS el servicio con ERK. Son dos pasos distintos, no sinónimos.", "confianza": "verbatim", "nota": "Este manual distingue lo que el de AVIH decía junto ('ER y ERK'): ER guarda, ERK confirma." },
+    { "n": 6, "sistema": "amadeus", "proceso": "[AMADEUS] Enviar itinerario y documentos", "comando": "IBP-EMLA/LPSP", "variantes": ["IEPJ-EMLA/LPSP", "ITR-EMLA"], "explicacion": "Itinerario · itinerario y servicios · billetes electrónicos.", "confianza": "verbatim" }
+  ],
+  "huecosConocidos": [
+    "El manual no da el procedimiento si el personal del aeropuerto rechaza al animal en el último momento.",
+    "No dice qué hacer si el vuelo supera 8 h y el cliente no puede garantizar el apartado higiénico del formulario."
+  ]
+}

@@ -54,6 +54,9 @@ export const IberiaExamPanel = ({ profileConfig, locationsCatalog, flightsCatalo
       return;
     }
     setMode('done');
+    try {
+      localStorage.setItem('cryptic-iberia-exam-v1', JSON.stringify({ score, total: questions.length, date: Date.now() }));
+    } catch (e) {}
     resetScroll();
   };
 

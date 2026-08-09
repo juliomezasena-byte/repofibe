@@ -117,12 +117,16 @@ export const Terminal = forwardRef(({ onExecuteCommand, history, hideVerbs = fal
         {/* La victoria vive en el CHROME del emulador, nunca en el scroll GDS
             (Ley de Pantalla Limpia). El glow de 2s es puro CSS derivado del
             render — sin efectos ni entradas sinteticas en history. */}
+        {/* Barra de Ventana Estación de Trabajo: Frame metálico con controles de ventana */}
         <div className={`terminal-header ${missionComplete ? 'mission-done' : ''}`}>
-          <div>
+          <div className="terminal-window-controls">
+            <span className="window-dot dot-red"></span>
+            <span className="window-dot dot-yellow"></span>
+            <span className="window-dot dot-green"></span>
             <span className="status-dot"></span>
-            <span>AMADEUS 1A GDS<span className="hide-mobile"> TERMINAL (80 COLS)</span></span>
+            <span className="terminal-title">AMADEUS 1A GDS<span className="hide-mobile"> TERMINAL (80 COLS)</span></span>
           </div>
-          <div>
+          <div className="terminal-status-badge">
             {missionComplete
               ? 'MISION 100% ✓'
               : <>SESSION: ACTIVE<span className="hide-mobile"> (ONLINE)</span></>}
@@ -164,7 +168,12 @@ export const Terminal = forwardRef(({ onExecuteCommand, history, hideVerbs = fal
       </form>
 
       {showTip && lastErrorCmd && (
-        <div className={`terminal-tip ${last?.hint ? 'hint-reactivo' : ''}`} data-testid="reactive-hint">
+        <div 
+          className={`terminal-tip ${last?.hint ? 'hint-reactivo' : ''}`} 
+          data-testid="reactive-hint"
+          aria-live="polite"
+          role="status"
+        >
           {last?.hint ? (
             <>✧ <b>Pista:</b> {last.hint}</>
           ) : (

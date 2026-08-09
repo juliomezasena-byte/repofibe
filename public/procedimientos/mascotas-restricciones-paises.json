@@ -1,0 +1,167 @@
+{
+  "id": "mascotas-restricciones-paises",
+  "titulo": "Restricciones de Mascotas por Países (PETC / AVIH / Carga)",
+  "aerolinea": "IB",
+  "categoria": "servicios",
+  "resumen": "Manual oficial #3119 de IberiaNet Lite con requisitos sanitarios generales, homologación IATA y restricciones de entrada/tránsito por país para transporte de mascotas en cabina (PETC), bodega (AVIH) y carga.",
+  "advertencias": [
+    {
+      "nivel": "critico",
+      "texto": "IRLANDA (MAD-DUB): No se admiten mascotas en bodega (AVIH) en las rutas DUB - MAD. En la ruta MAD - DUB solo se admiten como CARGA.",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "critico",
+      "texto": "ESTADOS UNIDOS: Los animales en bodega (AVIH) NO se pueden enviar en tránsito a destino final (no facturación en tránsito). Las mascotas en cabina (PETC) se deben pagar a cada compañía aérea por separado.",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "critico",
+      "texto": "ESPAÑA / MADRID ADUANAS: Los pasajeros con mascotas procedentes de terceros países fuera de la UE deben pasar obligatoriamente el control de aduanas en Madrid.",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "critico",
+      "texto": "SUDÁFRICA Y CHINA: Sudáfrica solo admite mascotas como CARGA. China solo admite mascotas en BODEGA (no cabina).",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "alto",
+      "texto": "SUECIA: Test de efectividad de la vacuna antirrábica OBLIGATORIO además del pasaporte y microchip. Prohibidos cachorros menores de 3 meses.",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "alto",
+      "texto": "ASU-EZE (Paraguay/Uruguay): No se admiten mascotas en cabina en la ruta Asunción - Ezeiza en vuelos de Aerolíneas Argentinas / Latam Airlines Paraguay.",
+      "confianza": "verbatim"
+    }
+  ],
+  "requisitosGenerales": {
+    "identificacion": "Microchip identificativo obligatorio.",
+    "documentacion": "Pasaporte veterinario válido con vacunación antirrábica vigente.",
+    "certificadoSalud": "Emitido por veterinario en un plazo máximo de 10 días antes del viaje (según destino).",
+    "razasProhibidas": "Ciertas razas de perros están prohibidas en determinados países.",
+    "cabinaIata": "Transportín homologado IATA, solo 1 animal por contenedor (salvo pequeños de misma camada max 8kg).",
+    "bodegaIata": "Contenedor IATA adecuado con ventilación, comida, agua y restricciones de temperatura."
+  },
+  "restriccionesPorPais": [
+    {
+      "pais": "Argentina",
+      "codigo": "AR",
+      "regla": "Certificado zoosanitario y certificado de vacuna antirrábica.",
+      "confianza": "verbatim"
+    },
+    {
+      "pais": "Brasil",
+      "codigo": "BR",
+      "regla": "Autorización previa obligatoria para la entrada del animal.",
+      "confianza": "verbatim"
+    },
+    {
+      "pais": "Chile",
+      "codigo": "CL",
+      "regla": "Lan Chile no acepta mascotas en cabina.",
+      "confianza": "verbatim"
+    },
+    {
+      "pais": "China",
+      "codigo": "CN",
+      "regla": "Solo se admiten mascotas en BODEGA (PETC no permitido).",
+      "confianza": "verbatim"
+    },
+    {
+      "pais": "Colombia",
+      "codigo": "CO",
+      "regla": "Certificado de sanidad y prohibición de entrada de ciertas razas de perros.",
+      "confianza": "verbatim"
+    },
+    {
+      "pais": "Irlanda",
+      "codigo": "IE",
+      "regla": "No se admiten AVIH en ruta DUB-MAD. En ruta MAD-DUB solo se admiten como CARGA.",
+      "confianza": "verbatim"
+    },
+    {
+      "pais": "Unión Europea (excepto UK, IE, SE)",
+      "codigo": "UE",
+      "regla": "Pasaporte veterinario con microchip y vacunación antirrábica.",
+      "confianza": "verbatim"
+    },
+    {
+      "pais": "Panamá",
+      "codigo": "PA",
+      "regla": "Permiso de sanidad del consulado de Panamá en el país de origen.",
+      "confianza": "verbatim"
+    },
+    {
+      "pais": "Paraguay y Uruguay (ASU-EZE)",
+      "codigo": "PY/UY",
+      "regla": "No se admiten mascotas en cabina en la ruta ASU-EZE en Aerolíneas Argentinas / Latam Paraguay.",
+      "confianza": "verbatim"
+    },
+    {
+      "pais": "Reino Unido",
+      "codigo": "GB",
+      "regla": "Pet Travel Scheme (PTS) obligatorio.",
+      "confianza": "verbatim"
+    },
+    {
+      "pais": "Estados Unidos",
+      "codigo": "US",
+      "regla": "AVIH no se puede enviar en tránsito a destino final. PETC se paga a cada aerolínea por separado. AA tiene restricciones propias.",
+      "confianza": "verbatim"
+    },
+    {
+      "pais": "Sudáfrica",
+      "codigo": "ZA",
+      "regla": "Solo se admiten mascotas como CARGA.",
+      "confianza": "verbatim"
+    },
+    {
+      "pais": "Suecia",
+      "codigo": "SE",
+      "regla": "Test de efectividad de vacuna antirrábica obligatorio + pasaporte + microchip. Cachorros <3 meses prohibidos.",
+      "confianza": "verbatim"
+    },
+    {
+      "pais": "España",
+      "codigo": "ES",
+      "regla": "Mascotas procedentes de terceros países fuera de la UE deben pasar el control de aduanas en Madrid.",
+      "confianza": "verbatim"
+    }
+  ],
+  "fuente": {
+    "documento": "IberiaNet Lite — #3119 \"4. RESTRICCIONES POR PAISES\"",
+    "tipo": "manual-oficial-interno",
+    "fecha": "2026-08-08",
+    "recibido": "2026-08-08",
+    "confianzaGlobal": "verbatim",
+    "nota": "Transcripción 100% fiel del manual oficial #3119. Reemplaza las reglas parciales que estaban en _mascotas-restricciones-ruta.json."
+  },
+  "pasos": [
+    {
+      "n": 1,
+      "sistema": "natiba",
+      "proceso": "1. Filtro de seguridad y consulta de ruta",
+      "comando": null,
+      "explicacion": "Verificar el itinerario completo (origen, destino, escalas y aerolíneas operadoras) antes de cotizar o solicitar el servicio PETC/AVIH.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 2,
+      "sistema": "amadeus",
+      "proceso": "2. Verificar restricciones específicas por país de destino y tránsito",
+      "comando": null,
+      "explicacion": "Comprobar si la ruta involucra EE.UU. (no tránsito en bodega), Irlanda (solo carga a DUB), China (solo bodega), Sudáfrica (solo carga), o Suecia (test antirrábico + prohibido <3 meses).",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 3,
+      "sistema": "amadeus",
+      "proceso": "3. Solicitar servicio PETC / AVIH aplicando la sintaxis correspondiente",
+      "comando": "SR PETC IB NN1 - DOG CHIHUAHUA 8KG 45X35X25/S2-3/P1",
+      "explicacion": "Usar el formato estándar de Amadeus o Resiber validado en mascota-en-cabina-petc.json o mascota-en-bodega-avih.json.",
+      "confianza": "verbatim"
+    }
+  ]
+}

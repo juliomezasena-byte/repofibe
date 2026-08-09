@@ -1,0 +1,175 @@
+{
+  "id": "equipaje-adicional-xbag",
+  "titulo": "Equipaje Adicional (XBAG) — Emisión de EMD y Errores de Cotización",
+  "aerolinea": "IB",
+  "categoria": "equipaje",
+  "resumen": "Procedimiento oficial #3097 de IberiaNet Lite para la venta y emisión de EMD de equipaje adicional (XBAG) en vuelos operados por IB, I2, LEVEL y YW. Incluye reglas de peso/dimensiones, conexiones, resolución de errores de revalidación/histórico, y cobro PCI/Travel Pay.",
+  "advertencias": [
+    {
+      "nivel": "critico",
+      "texto": "APLICABILIDAD: Billetes 075 y vuelos operados únicamente por IB, I2, LEVEL y YW.",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "critico",
+      "texto": "PESO Y DIMENSIONES: 1 maleta adicional de máx 23 kg y 158 cm (suma total L+A+A). Si sobrepasa los 23 kg, el pasajero asume costo por exceso en aeropuerto (máximo 32 kg).",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "critico",
+      "texto": "ESTADO DEL BILLETE Y CHECK-IN: El billete debe estar OPEN FOR USE (O). Si el cliente YA REALIZÓ EL CHECK-IN, NO es posible agregar más equipaje por call center.",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "alto",
+      "texto": "CONEXIONES DE 4 HORAS O MÁS: Si el tiempo de conexión es >= 4 horas, el pasajero debe recoger el equipaje en la escala y volver a facturar para el siguiente vuelo.",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "alto",
+      "texto": "AGENCIAS GDS vs NDC: Si la reserva proviene de agencia GDS se le ayuda agregando equipaje. Si es agencia NDC se direcciona a la agencia o a Iberia.com.",
+      "confianza": "verbatim"
+    }
+  ],
+  "fuente": {
+    "documento": "IberiaNet Lite — #3097 \"2. EQUIPAJES\"",
+    "tipo": "manual-oficial-interno",
+    "fecha": "2026-08-08",
+    "recibido": "2026-08-08",
+    "confianzaGlobal": "verbatim",
+    "nota": "Transcripción 100% fiel del manual oficial #3097. Define la secuencia oficial SR XBAG → FXH → FXG → TQM → TMI → $$CONFIG → $$PAY → XE → TTM1/M1/RT."
+  },
+  "pasos": [
+    {
+      "n": 1,
+      "sistema": "amadeus",
+      "proceso": "1. Solicitar el servicio — un solo pasajero",
+      "comando": "SR XBAG/S2,3/P1",
+      "plantilla": "SR XBAG/S{segmentos}/P{pasajero}",
+      "explicacion": "SR XBAG = servicio equipaje · S2,3 = segmentos · P1 = número de pasajero.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 1.1,
+      "sistema": "amadeus",
+      "proceso": "Solicitar el servicio — todos los pasajeros",
+      "comando": "SR XBAG/S2,3",
+      "plantilla": "SR XBAG/S{segmentos}",
+      "explicacion": "Aplica el servicio de equipaje a todos los pasajeros de los segmentos seleccionados.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 2,
+      "sistema": "amadeus",
+      "proceso": "2. Cotizar el equipaje",
+      "comando": "FXH/L14",
+      "plantilla": "FXH/L{lineaSsr}",
+      "explicacion": "FXH = cotizar SSR · L14 = número de línea donde quedó registrado el elemento SSR XBAG.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 3,
+      "sistema": "amadeus",
+      "proceso": "3. Documentar los valores informados al cliente",
+      "comando": "RM05APR26PAX AVDO VALOR XBAG X PAX xxx EUR//AR",
+      "explicacion": "Deja constancia en el PNR de la tarifa de equipaje informada al pasajero.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 3.1,
+      "sistema": "amadeus",
+      "proceso": "Resolución de Error: ET NOT ISSUED FOR SELECTED SEGMENT (S)",
+      "comando": "TTP/ETRV/L14/S2-3/E1-2/RT",
+      "plantilla": "TTP/ETRV/L{linea}/S{segmentos}/E{cupones}/RT",
+      "explicacion": "Si sale este error, debes revalidar el ticket antes de continuar.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 3.2,
+      "sistema": "amadeus",
+      "proceso": "Resolución de Error: ITINERARY PRICING REQUIRED BEFORE SERVICE PRICING",
+      "comando": "FXX/R,02FEB26,UP/L4-BASIC/L5-BASIC",
+      "plantilla": "FXX/R,{DOI},UP/L{segmento1}-{farebasis1}/L{segmento2}-{farebasis2}",
+      "explicacion": "Si sale este error, debes crear la máscara cotizando a histórico con la fecha de emisión original (DOI) y fare basis.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 4,
+      "sistema": "amadeus",
+      "proceso": "4. Guardar la cotización del equipaje (crea la máscara TSM)",
+      "comando": "FXG/L14",
+      "plantilla": "FXG/L{lineaSsr}",
+      "explicacion": "FXG/L14 genera el TSM de equipaje. Verificar con TQM (1 pax) o TQM/M1 (varios). Guardamos con ER y confirmamos con ERK.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 5,
+      "sistema": "amadeus",
+      "proceso": "5. Incluir datos del titular de la tarjeta (nuevo Cyber)",
+      "comando": "RMCSY/JUAN:PELAEZ",
+      "plantilla": "RMCSY/{NOMBRE}:{APELLIDO}",
+      "explicacion": "Nombre y apellido del titular. Guardamos con ER.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 6,
+      "sistema": "iberianet",
+      "proceso": "6. Tomar los datos de tarjeta en PCI Pal o Travel Pay",
+      "comando": null,
+      "explicacion": "EUROPA → FORMAS DE PAGO → PCI PAL o TRAVEL PAY.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 7,
+      "sistema": "amadeus",
+      "proceso": "7. Agregar forma de pago al TSM",
+      "comando": "TMI/M1/FP-MS-TT,VI1234567890123456-1023-V1234ABCD",
+      "plantilla": "TMI/M{numeroTsm}/FP-{TOKEN}",
+      "explicacion": "M1 = número del TSM (TQM) · TOKEN = trama copiada de PCI Pal o Travel Pay.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 8,
+      "sistema": "amadeus",
+      "proceso": "8. Cargar el perfil de PCI en Amadeus",
+      "comando": "$$CONFIG:CCTYPE/2",
+      "explicacion": "Configura el perfil de pago antes del cargo.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 9,
+      "sistema": "amadeus",
+      "proceso": "9. Realizar el cargo a la tarjeta del cliente",
+      "comando": "$$PAY",
+      "explicacion": "Ejecuta el cargo en la pasarela.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 10,
+      "sistema": "amadeus",
+      "proceso": "10. Borrar la línea Cyber para poder emitir",
+      "comando": "XE17",
+      "plantilla": "XE{linea}",
+      "explicacion": "17 = línea donde se encuentra la nota Cyber RMCSY.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 11,
+      "sistema": "amadeus",
+      "proceso": "11. Emitir el EMD de equipaje",
+      "comando": "TTM1/M1/RT",
+      "plantilla": "TTM1/M{numeroTsm}/RT",
+      "explicacion": "Emisión del EMD electrónico de equipaje. M1 = número del TSM.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 12,
+      "sistema": "amadeus",
+      "proceso": "12. Enviar documentos finales",
+      "comando": "IBP-EMLA/LPSP",
+      "variantes": ["IEPJ-EMLA/LPSP", "ITR-EMLA", "ITP:/RESERVA/EMAIL", "DTR TN 075-2534567890,EML/EMAIL", "DEMR DN 075-2534567890,EML/EMAIL"],
+      "explicacion": "Amadeus: IBP (itinerario), IEPJ (servicios), ITR (billetes). Resiber: ITP, DTR TN (e-ticket), DEMR DN (EMD).",
+      "confianza": "verbatim"
+    }
+  ]
+}

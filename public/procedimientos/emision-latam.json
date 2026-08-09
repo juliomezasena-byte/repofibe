@@ -1,0 +1,111 @@
+{
+  "id": "emision-latam",
+  "titulo": "Emisión LATAM General (primera emisión)",
+  "aerolinea": "IB",
+  "categoria": "emision",
+  "resumen": "Flujo completo de primera emisión: disponibilidad → venta → cotización → nombres → contactos → on hold → TST → pago PCI/Travel Pay → emisión → envío de documentos.",
+  "advertencias": [
+    { "nivel": "critico", "texto": "Para TODAS las reservas de primera emisión, solo se realizarán reservas ON HOLD. El pasajero deberá finalizar el pago a través de IBERIA.COM.", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "No podemos emitir reservas con fecha de vuelo dentro de las siguientes 24 horas de la emisión. En ese caso se genera Pre-Reserva para pago en la WEB, teniendo en cuenta el tiempo límite para tomar el vuelo (máx 2 horas antes de la salida).", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "Si el pasajero no puede pagar por la web, se escala con un supervisor para pago durante la llamada con PCI Pal o Travel Pay.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "Preguntar SIEMPRE al pasajero si necesita factura. Si la necesita, ver el manual de FACTURAS para LATAM.", "confianza": "verbatim" },
+    { "nivel": "medio", "texto": "Pago por depósito bancario o transferencia: la información de cuenta y oficinas está en 0.04LATAM/LATAM GENERAL/GENERALIDADES/FORMAS DE PAGO.", "confianza": "verbatim" }
+  ],
+  "fuente": {
+    "documento": "IberiaNet Lite — #3058 \"1. EMISION\" (LATAM GENERAL)",
+    "tipo": "manual-oficial-interno",
+    "recibido": "2026-08-07",
+    "confianzaGlobal": "verbatim",
+    "nota": "Tabla PASO/PROCESO/TRANSACCIÓN/EXPLICACIÓN copiada directamente del manual en IberiaNet. Es la PRIMERA fuente oficial completa que entra al repo (las anteriores eran capturas sueltas o resúmenes de bot)."
+  },
+  "pasos": [
+    { "n": 1, "sistema": "amadeus", "proceso": "Buscar fechas de vuelo — solo ida", "comando": "AN 11MAR MADBOG", "plantilla": "AN {fecha} {origen}{destino}", "explicacion": "11MAR = fecha · MADBOG = ruta de vuelo.", "confianza": "verbatim", "validacion": { "tipo": "regex", "patron": "^AN\\s?\\d{1,2}[A-Z]{3}\\s?[A-Z]{6}$" } },
+    { "n": 1.1, "sistema": "amadeus", "proceso": "Buscar fechas — ida y vuelta", "comando": "AN 11MAR MADBOG * 23OCT", "plantilla": "AN {fecha1} {origen}{destino} * {fecha2}", "explicacion": "11MAR = fecha de ida · MADBOG = ruta · 23OCT = fecha de regreso.", "confianza": "verbatim" },
+    { "n": 1.2, "sistema": "amadeus", "proceso": "Buscar todas las clases ofertadas", "comando": "SN 11MAR MADBOG", "plantilla": "SN {fecha} {origen}{destino}", "explicacion": "Muestra todas las clases ofertadas de la ruta.", "confianza": "verbatim" },
+    { "n": 1.3, "sistema": "amadeus", "proceso": "PRO TIP — cambiar la fecha rápido", "comando": "MY", "variantes": ["MN"], "explicacion": "MY = al día anterior · MN = al día siguiente.", "confianza": "verbatim", "opcional": true },
+    { "n": 2, "sistema": "amadeus", "proceso": "Seleccionar plazas — un solo vuelo", "comando": "SS 2 A 1", "plantilla": "SS {plazas} {clase} {lineaVuelo}", "explicacion": "2 = cantidad de pasajeros · A = clase elegida · 1 = línea del vuelo elegida.", "confianza": "verbatim" },
+    { "n": 2.1, "sistema": "amadeus", "proceso": "Seleccionar plazas — ida y vuelta", "comando": "SS 2 A 1 * S 11", "plantilla": "SS {plazas} {claseIda} {lineaIda} * {claseVuelta} {lineaVuelta}", "explicacion": "2 = pasajeros · A = clase ida · 1 = línea ida · S = clase regreso · 11 = línea vuelta.", "confianza": "verbatim" },
+    { "n": 2.2, "sistema": "amadeus", "proceso": "Seleccionar plazas — clases diferentes por vuelo", "comando": "SS 2 A S 1", "plantilla": "SS {plazas} {claseVuelo1} {claseVuelo2} {lineaVuelo}", "explicacion": "2 = pasajeros · A = clase del vuelo uno · S = clase del vuelo dos · 1 = línea del vuelo elegida.", "confianza": "verbatim" },
+    { "n": 3, "sistema": "amadeus", "proceso": "Cotizar los vuelos — adulto", "comando": "FXX/FF-OPTIMA", "plantilla": "FXX/FF-{TARIFA}", "explicacion": "OPTIMA = tarifa elegida. Familias — Turista: FF-BASIC, FF-OPTIMA, FF-COMFORT, FF-FLEX · Turista Premium: FF-PEOPTIMA, FF-PECOMFORT, FF-PEFLEX · Business: FF-BUSOPTIMA, FF-BUSCOMFORT, FF-BUSFLEX.", "confianza": "verbatim" },
+    { "n": 3.1, "sistema": "amadeus", "proceso": "Cotizar — niño", "comando": "FXX/FF-OPTIMA/RCH", "plantilla": "FXX/FF-{TARIFA}/RCH", "explicacion": "CH = descuento CHILD.", "confianza": "verbatim" },
+    { "n": 3.2, "sistema": "amadeus", "proceso": "Cotizar — infante", "comando": "FXX/FF-OPTIMA/RIN", "plantilla": "FXX/FF-{TARIFA}/RIN", "explicacion": "IN = descuento INFANTE.", "confianza": "verbatim" },
+    { "n": 3.3, "sistema": "amadeus", "proceso": "Cotizar — varios tipos de pasajero a la vez", "comando": "FXX/FF-OPTIMA/RINADCH", "plantilla": "FXX/FF-{TARIFA}/R{tipos}", "explicacion": "IN = infante · AD = adulto · CH = child. El ADT también puede omitirse porque el sistema lo toma por defecto.", "confianza": "verbatim", "nota": "Probado en vivo 07AGO26: FXX/FF-OPTIMA/RINADCH devolvió cotización correcta con 3 ADT + 1 CHD + 1 INF. La variante FXX/FF-OPTIMA/RCHINCH también funcionó. FXX/FF-OPTIMA/RCH/RIN (con barras separadas) da INVALID PASSENGER TYPE CODE." },
+    { "n": 3.4, "sistema": "amadeus", "proceso": "Error *NO FARES/RBD/CARRIER/PASSENGER TYPE", "comando": "FXR/FF-OPTIMA", "explicacion": "El sistema indica que la tarifa no está disponible para las clases seleccionadas. Cambia las clases y recotiza reemplazando FXX por FXR.", "confianza": "verbatim" },
+    { "n": 4, "sistema": "amadeus", "proceso": "Documentar los valores informados al cliente", "comando": "RM05MAR26PAX AVDO VALOR TKT X CHD xxx MXN, X ADT xxx MXN, X INF xxx MXN//AR", "plantilla": "RM{fecha}PAX AVDO VALOR TKT X {tipo} {valor} {moneda}//{iniciales}", "explicacion": "Deja constancia en el PNR de lo que se le informó al pasajero.", "confianza": "verbatim" },
+    { "n": 5, "sistema": "amadeus", "proceso": "Buscar condiciones de tarifa", "comando": "FQN 02 * PE", "plantilla": "FQN {lineaTarifa} * PE", "explicacion": "02 = línea de tarifa elegida · PE = constante.", "confianza": "verbatim", "nota": "RESUELVE la discrepancia anterior: el manual oficial lleva el asterisco (FQN 02 * PE). El 'FQN01PE' sin asterisco que citó el bot EverGPT estaba mal transcrito." },
+    { "n": 6, "sistema": "amadeus", "proceso": "Documentar las condiciones indicadas al cliente", "comando": "RM05MAR26PAX AVDO TKT NO REEMBOLSABLE, CHG PERMITIDOS CON PENTY 150 EUR //AR", "explicacion": "Constancia de las condiciones tarifarias comunicadas.", "confianza": "verbatim" },
+    { "n": 7, "sistema": "amadeus", "proceso": "Agregar nombres — adulto", "comando": "NM1 MARTINEZ/PATROCLO", "plantilla": "NM1 {APELLIDO}/{NOMBRE}", "explicacion": "MARTINEZ = apellido del adulto.", "confianza": "verbatim" },
+    { "n": 7.1, "sistema": "amadeus", "proceso": "Agregar nombres — child", "comando": "NM1 ALMANZA/JUAN(CHD/13FEB16)", "plantilla": "NM1 {APELLIDO}/{NOMBRE}(CHD/{fechaNacimiento})", "explicacion": "13FEB16 = fecha de nacimiento del child.", "confianza": "verbatim" },
+    { "n": 7.2, "sistema": "amadeus", "proceso": "Agregar nombres — adulto con infante", "comando": "NM1 PEREZ/SARA (INFPEREZ/LUCY/01JAN24)", "plantilla": "NM1 {APELLIDO}/{NOMBRE} (INF{APELLIDO}/{NOMBRE}/{fechaNacimiento})", "explicacion": "El infante va asociado al adulto en el mismo NM. SIN barra después de INF.", "confianza": "verbatim", "nota": "Error real observado 07AGO26: un asistente IA sugirió 'NM1 LOPEZ/ANA(INF/LOPEZ/LUIS/10JAN25)' con barra extra tras INF. El manual NO lleva esa barra." },
+    { "n": 7.3, "sistema": "amadeus", "proceso": "Ingresar el número de Iberia Plus", "comando": "FFAIB-12345678", "plantilla": "FFA{aerolinea}-{numeroViajeroFrecuente}", "explicacion": "IB = IATA de la aerolínea del FF · 12345678 = número de viajero frecuente.", "confianza": "verbatim", "opcional": true },
+    { "n": 8, "sistema": "amadeus", "proceso": "Incluir datos de contacto — correo", "comando": "APE- AB@AB.COM", "variantes": ["SR CTCE- AB//AB.COM"], "explicacion": "APE- = correo del cliente. SR CTCE- = el mismo correo reemplazando la @ por //.", "confianza": "verbatim" },
+    { "n": 8.1, "sistema": "amadeus", "proceso": "Incluir datos de contacto — teléfono", "comando": "AP+ 3463232323", "variantes": ["SR CTCM- 3463232323"], "explicacion": "AP+ = número de teléfono. SR CTCM- = el mismo número como SSR de contacto móvil.", "confianza": "verbatim" },
+    { "n": 9, "sistema": "amadeus", "proceso": "Establecer tiempo de emisión — ON HOLD", "comando": "TKXL 11MAR / 2300", "plantilla": "TKXL {fecha} / {horaZulu}", "explicacion": "11MAR = fecha del día siguiente (24 hrs) · 2300 = hora zulú actual.", "confianza": "verbatim" },
+    { "n": 9.1, "sistema": "amadeus", "proceso": "Tiempo de emisión — inmediata", "comando": "TKOK", "explicacion": "El pago se hará de forma inmediata mediante PCI o Travel, autorizado por un coach.", "confianza": "verbatim" },
+    { "n": 9.2, "sistema": "amadeus", "proceso": "Tiempo de emisión — 72 horas", "comando": "TKTL 13MAR/2300", "plantilla": "TKTL {fecha}/{horaZulu}", "explicacion": "Solo bajo autorización de supervisor u otra área. 13MAR = fecha de emisión (48 o 72 hrs) · 2300 = hora zulú actual.", "confianza": "verbatim" },
+    { "n": 10, "sistema": "amadeus", "proceso": "*** SOLO PARA PAGO WEB ***", "comando": "OS YY HBFF", "explicacion": "Guardamos con ER para obtener código de reserva.", "confianza": "verbatim" },
+    { "n": 11, "sistema": "amadeus", "proceso": "Guardar la tarifa cotizada (crea el TST)", "comando": "FXP/FF-OPTIMA", "plantilla": "FXP/FF-{TARIFA}", "explicacion": "Aplica a ADT / CHD / INF. OPTIMA = tarifa elegida.", "confianza": "verbatim" },
+    { "n": 11.1, "sistema": "amadeus", "proceso": "Si al guardar hay lista de opciones — seleccionar una", "comando": "FXT05/P1", "plantilla": "FXT{opcion}/P{pasajero}", "explicacion": "Para varias: FXT05/P1//06/P2.", "confianza": "verbatim" },
+    { "n": 12, "sistema": "amadeus", "proceso": "Verificar que se haya creado la máscara TST", "comando": "TQT", "variantes": ["TQT/T1"], "explicacion": "TQT si hay un solo tipo de pasajero; TQT/T1 si hay varios tipos. Guardamos con ER.", "confianza": "verbatim" },
+    { "n": 13, "sistema": "amadeus", "proceso": "Enviar itinerario", "comando": "IBP-EMLA/LPSP", "variantes": ["IEPJ-EMLA/LPSP"], "explicacion": "IBP = itinerario · IEPJ = itinerario y servicios · SP = idioma del cliente (español). EN CASO DE SER UNA RESERVA ON HOLD, ESTE ES EL ÚLTIMO PASO.", "confianza": "verbatim" },
+    { "n": 14, "sistema": "amadeus", "proceso": "Incluir datos del titular de la tarjeta (nuevo Cyber)", "comando": "RMCSY/JUAN:PELAEZ", "plantilla": "RMCSY/{NOMBRE}:{APELLIDO}", "explicacion": "JUAN = nombre del titular de la tarjeta.", "confianza": "verbatim" },
+    { "n": 15, "sistema": "amadeus", "proceso": "Incluir el gasto de gestión", "comando": "TTO/ST01/CSF/F650", "plantilla": "TTO/ST01/CSF/F{gastoGestion}", "explicacion": "Si hay varios TST: TTO/ST01/CSF/F650/T1, donde T1 = número del TST. Guardamos con ER.", "confianza": "verbatim" },
+    { "n": 16, "sistema": "iberianet", "proceso": "Tomar los datos de tarjeta", "comando": null, "explicacion": "PCI Pal: EUROPA → FORMAS DE PAGO → PCI PAL. Travel Pay: EUROPA → FORMAS DE PAGO → TRAVEL PAY.", "confianza": "verbatim" },
+    { "n": 17, "sistema": "amadeus", "proceso": "Agregar forma de pago", "comando": "FP MS-TT,VI1234567890123456-1023-V1234ABCD", "plantilla": "FP {TOKEN}", "explicacion": "TOKEN = copia la trama de PCI o Travel Pay.", "confianza": "verbatim" },
+    { "n": 18, "sistema": "amadeus", "proceso": "Cargar el perfil de PCI en Amadeus", "comando": "$$CONFIG:CCTYPE/2", "explicacion": "Configura el perfil de tarjeta antes de cobrar.", "confianza": "verbatim" },
+    { "n": 19, "sistema": "amadeus", "proceso": "Realizar el cargo a la tarjeta del cliente", "comando": "$$PAY", "explicacion": "Ejecuta el cobro.", "confianza": "verbatim" },
+    { "n": 20, "sistema": "amadeus", "proceso": "Borrar el Cyber para poder emitir", "comando": "XE17", "plantilla": "XE{linea}", "explicacion": "17 = línea donde esté el Cyber.", "confianza": "verbatim" },
+    { "n": 21, "sistema": "amadeus", "proceso": "Emitir el billete", "comando": "TTP1/ET/RT", "explicacion": "Emisión final del billete electrónico.", "confianza": "verbatim", "validacion": { "tipo": "exacto", "patron": "TTP1/ET/RT" } },
+    { "n": 22, "sistema": "amadeus", "proceso": "Enviar documentos — billetes electrónicos (Amadeus)", "comando": "ITR-EMLA", "explicacion": "Itinerario: IBP-EMLA/LPSP · Itinerario y servicios: IEPJ-EMLA/LPSP · Billetes electrónicos: ITR-EMLA.", "confianza": "verbatim" },
+    { "n": 22.1, "sistema": "resiber", "proceso": "Enviar itinerario desde RESIBER", "comando": "ITP:/RESERVA/EMAIL", "plantilla": "ITP:/{reserva}/{email}", "explicacion": "Variante si la reserva está abierta.", "confianza": "verbatim", "nota": "PRIMERA sintaxis de Resiber confirmada VERBATIM en un manual oficial (antes solo la teníamos por resumen de bot)." },
+    { "n": 22.2, "sistema": "resiber", "proceso": "Enviar billetes electrónicos desde RESIBER", "comando": "DTR TN 075-1234567890,EML/EMAIL", "plantilla": "DTR TN {numeroBillete},EML/{email}", "explicacion": "Envía el billete electrónico por correo desde Resiber.", "confianza": "verbatim", "nota": "CONFIRMA el 'DTR TN' que el bot EverGPT había citado para IBEX. La sintaxis del bot era correcta." },
+    { "n": 22.3, "sistema": "resiber", "proceso": "Enviar EMD electrónicos desde RESIBER", "comando": "DEMR DN 075-1234567890,EML/EMAIL", "plantilla": "DEMR DN {numeroEMD},EML/{email}", "explicacion": "Envía el EMD por correo desde Resiber.", "confianza": "verbatim" }
+  ],
+  "erroresComunes": [
+    {
+      "sintoma": "UNABLE TO PROCESS/SERVICES EXCEED NAMES",
+      "causa": "Se venden más plazas de las que corresponden, o se añaden SSR sin asociar a pasajero. El INFANTE NO ocupa plaza: 2 ADT + 1 CHD + 1 INF = 3 plazas, no 4.",
+      "gravedad": "alta",
+      "confianza": "derivado",
+      "nota": "Observado en vivo 07AGO26. Un asistente IA indicó SS4 y luego SS5 cuando lo correcto era SS3; el usuario detectó el error. No está listado como error en el manual."
+    },
+    {
+      "sintoma": "INVALID PASSENGER TYPE CODE al cotizar",
+      "causa": "Separar los tipos de pasajero con barras (FXX/FF-OPTIMA/RCH/RIN) en vez de concatenarlos (FXX/FF-OPTIMA/RINADCH).",
+      "gravedad": "media",
+      "confianza": "derivado",
+      "nota": "Observado en vivo 07AGO26 contra el sistema real."
+    },
+    {
+      "sintoma": "WARNING - INFANT AGE MAY EXCEED FOR SOME SEGMENTS",
+      "causa": "Validación de edad del infante contra la fecha de viaje.",
+      "gravedad": "baja",
+      "confianza": "derivado",
+      "nota": "Es advertencia, no error: permite continuar si la fecha de nacimiento es válida. Observado en vivo, no documentado en el manual."
+    }
+  ],
+  "contaminacionBot": {
+    "titulo": "EverGPT añade asteriscos que el manual NO tiene",
+    "descripcion": "El bot corporativo generó una versión HTML de ESTE MISMO manual. Comparando su salida contra el texto crudo del manual aparecen tres comandos alterados. Es evidencia directa de por qué el tutor no puede aprender de un resumen de bot.",
+    "casos": [
+      { "manualCrudo": "RM05MAR26PAX AVDO VALOR TKT...", "versionBot": "RM*05MAR26*PAX AVDO VALOR TKT...", "diferencia": "El bot añadió dos asteriscos" },
+      { "manualCrudo": "RMCSY/JUAN:PELAEZ", "versionBot": "RM*CSY/JUAN:PELAEZ", "diferencia": "El bot añadió un asterisco" },
+      { "manualCrudo": "FXX/FF-OPTIMA/RINADCH", "versionBot": "FXX/FF-OPTIMA/RIN*AD*CH", "diferencia": "El bot separó los tipos con asteriscos. AMBIGÜEDAD REAL: el manual pone el comando sin asteriscos en la columna TRANSACCIÓN pero la sintaxis 'FXX/FF-TARIFA/RIN * AD * CH' en la columna EXPLICACIÓN. La prueba en vivo del 07AGO26 confirmó que RINADCH (sin asteriscos) funciona." }
+    ],
+    "consecuencia": "Se conserva SIEMPRE la columna TRANSACCIÓN del manual crudo. La versión del bot se descarta como fuente.",
+    "confianza": "verbatim"
+  },
+  "sinVerificar": {
+    "nota": "La versión HTML de EverGPT incluye contenido que NO aparece en el texto crudo del manual #3058. Puede venir de una imagen del manual o puede ser invención del bot. NO usar hasta confirmar.",
+    "elementos": [
+      "Banner 'NATIBA — nuestra primera opción' para la creación de reservas.",
+      "Las 6 'Preguntas Clave al Cliente' (A-F: fechas, ruta, nº pasajeros, cabina, equipaje, cambios/reembolsos)."
+    ]
+  },
+  "huecosConocidos": [
+    "Falta el manual de FACTURAS para LATAM (referenciado en las advertencias).",
+    "Falta el manual de NATIBA (el bot lo referencia como primera opción de creación de reservas).",
+    "Falta 0.04LATAM/LATAM GENERAL/GENERALIDADES/FORMAS DE PAGO (datos de depósito/transferencia).",
+    "Faltan los submanuales hermanos: ON HOLD 72 HRS (#3063), DESCUENTOS PANAMA (#3064), DESCUENTOS ECUADOR (#3065), ASOCIAR CHILD (#3066), ASOCIAR INFANTE (#3067), RESERVAS Y GASTO GESTION COLOMBIA (#3133), COMUNICACIONES CORTADAS LATAM (#3134)."
+  ]
+}

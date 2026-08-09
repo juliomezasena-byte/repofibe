@@ -16,6 +16,20 @@ export function LearningGuide() {
     handleSelectScenario
   } = useAppContext();
   const [selectedId, setSelectedId] = useState(null);
+  const [tutorMode, setTutorModeState] = useState(() => {
+    try {
+      return localStorage.getItem('cryptic-tutor-mode-v1') || 'ciegas';
+    } catch {
+      return 'ciegas';
+    }
+  });
+
+  const setTutorMode = (mode) => {
+    setTutorModeState(mode);
+    try {
+      localStorage.setItem('cryptic-tutor-mode-v1', mode);
+    } catch {}
+  };
 
   const scenarioMap = useMemo(() => new Map(scenarios.map((scenario) => [scenario.id, scenario])), [scenarios]);
   const nodeMap = useMemo(() => getNodeMap(curriculum), [curriculum]);
@@ -77,6 +91,49 @@ export function LearningGuide() {
           </div>
 
           <div className="lesson-hint"><Lightbulb size={16} /><span><strong>Ayuda</strong>{lesson.hint}</span></div>
+
+          {/* Selector de Modo de Aprendizaje (A Ciegas vs Guiado) */}
+          <div className="guide-mode-selector" style={{ margin: '15px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#475569' }}>Modo de Estudio:</span>
+            <div style={{ display: 'inline-flex', background: '#f1f5f9', padding: '3px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+              <button
+                type="button"
+                className={`guide-mode-btn ${tutorMode === 'ciegas' ? 'active' : ''}`}
+                onClick={() => setTutorMode('ciegas')}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  fontSize: '12px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  background: tutorMode === 'ciegas' ? '#0284c7' : 'transparent',
+                  color: tutorMode === 'ciegas' ? '#ffffff' : '#64748b',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                🧠 A Ciegas (Recordar)
+              </button>
+              <button
+                type="button"
+                className={`guide-mode-btn ${tutorMode === 'guiado' ? 'active' : ''}`}
+                onClick={() => setTutorMode('guiado')}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  fontSize: '12px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  background: tutorMode === 'guiado' ? '#0284c7' : 'transparent',
+                  color: tutorMode === 'guiado' ? '#ffffff' : '#64748b',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                📖 Guiado (Asistido)
+              </button>
+            </div>
+          </div>
 
           <button className="guide-primary-action" type="button" onClick={startLesson}>
             Comenzar lección <ArrowRight size={17} />

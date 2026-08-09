@@ -1,19 +1,49 @@
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  --bg-dark: #05080c;
-  --bg-card: #0b1017;
-  --bg-terminal: #070c12;
-  --border-color: #1a2636;
-  --crt-green: #00ff66;
-  --crt-green-glow: rgba(0, 255, 102, 0.25);
-  --crt-cyan: #00e5ff;
-  --crt-amber: #ffb700;
-  --crt-red: #ff3366;
-  --text-muted: #64748b;
-  --text-light: #e2e8f0;
-  --font-mono: 'Fira Code', monospace;
-  --font-sans: 'Inter', sans-serif;
+  /* =========================================================
+     DISEÑO AAA MAESTRO 7.0 (FINAL BOSS EDITION)
+     ========================================================= */
+  
+  /* 1. PALETA B2B PREMIUM Y ERGONOMÍA WCAG (Reemplazo old vars) */
+  --bg-dark: #111111; /* Oscuro ergonómico contra halación */
+  --bg-card: #151515; /* Paneles/Tutor */
+  --bg-terminal: #0A0A0A; /* Negro profundo para realismo */
+  
+  --text-light: #EDEDED; /* Blanco suave */
+  --text-muted: #A1A1A1; /* Gris legible WCAG AAA */
+  
+  --border-color: rgba(255, 255, 255, 0.1);
+  --border-light-top: 1px solid #333333; /* Iluminación direccional */
+  
+  /* Estados (Fricción Constructiva vs Gamificación) */
+  --crt-green: #17C964; /* Verde esmeralda seco */
+  --crt-green-glow: transparent; /* ELIMINADO para performance FPS */
+  
+  --crt-red: #F31260; /* Carmesí (No rojo puro) */
+  --bg-error-wash: rgba(243, 18, 96, 0.06);
+  --border-error: rgba(243, 18, 96, 0.3);
+  
+  --crt-cyan: #00E5FF;
+  --crt-amber: #F5A524; /* Ámbar suave (Notas) */
+  
+  --color-tutor: #818CF8; /* Índigo empático para el tutor IA */
+  
+  /* 2. ARQUITECTURA GEOMÉTRICA */
+  --radius-lg: 12px;
+  --radius-md: 8px;
+  --radius-sm: 6px;
+  
+  /* 3. FÍSICA Y MICRO-UX */
+  --ease-snappy: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-deliberate: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --transition-fast: all 70ms linear;
+  --transition-layout: all 250ms var(--ease-snappy);
+  --transition-tutor: all 300ms var(--ease-deliberate);
+  
+  /* 4. FUENTES SISTEMA (Performance Budget - 0MB) */
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 * {
@@ -44,6 +74,35 @@ body {
   gap: 12px;
 }
 
+/* =========================================================
+   CAPA 3: ACCESIBILIDAD COGNITIVA (MODO ENFOQUE ZERO-RENDER)
+   ========================================================= */
+/* Cuando el usuario tipea en el terminal, el panel del Tutor se desvanece
+   para reducir la carga cognitiva (TDAH). Si navega con teclado (Tab) hacia
+   el Tutor, el terminal pierde el foco y el panel vuelve a aparecer, evitando
+   Trampas de Teclado (Keyboard Traps). ¡Cero re-renders en React! */
+.app-container:has(.cmd-input:focus) .sidebar-panel {
+  opacity: 0.25;
+  filter: grayscale(80%);
+}
+
+/* =========================================================
+   CAPA 4: ARQUITECTURA IDIOT-PROOF (CLASES UTILITARIAS)
+   ========================================================= */
+.interactive-surface {
+  transition: var(--transition-fast);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+@media (hover: hover) {
+  .interactive-surface:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+}
+.interactive-surface:active {
+  transform: scale(0.96);
+}
+
 /* Header & Barra Superior */
 .app-header {
   display: flex;
@@ -51,19 +110,31 @@ body {
   justify-content: space-between;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  padding: 12px 16px;
+  padding: 10px 16px;
   border-radius: 8px;
   gap: 12px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
 }
 
 .brand-section {
   display: flex;
   align-items: center;
   gap: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.brand-title-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: inherit;
+  white-space: nowrap;
 }
 
 .brand-icon {
-  color: var(--crt-green);
+  color: #0284c7;
   width: 24px;
   height: 24px;
 }
@@ -71,18 +142,33 @@ body {
 .brand-title {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #fff;
+  color: #1e293b;
   letter-spacing: -0.02em;
+  white-space: nowrap;
 }
 
 .brand-tag {
   font-size: 0.75rem;
   padding: 2px 8px;
-  background: rgba(0, 255, 102, 0.1);
-  color: var(--crt-green);
-  border: 1px solid rgba(0, 255, 102, 0.3);
+  background: rgba(2, 132, 199, 0.08);
+  color: #0284c7;
+  border: 1px solid rgba(2, 132, 199, 0.25);
   border-radius: 4px;
   font-family: var(--font-mono);
+  white-space: nowrap;
+}
+
+.brand-streak {
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  background-color: rgba(255, 152, 0, 0.15);
+  color: #ff9800;
+  border: 1px solid rgba(255, 152, 0, 0.3);
+  display: inline-flex;
+  align-items: center;
   white-space: nowrap;
 }
 
@@ -90,15 +176,15 @@ body {
 .header-controls {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-end;
   min-width: 0;
 }
 
 .seg-control {
   display: flex;
-  background: #0e1724;
+  background: #f1f5f9;
   border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 3px;
@@ -114,7 +200,7 @@ body {
   min-height: 34px;
   padding: 6px 14px;
   background: transparent;
-  color: var(--text-muted);
+  color: #475569;
   border: none;
   border-radius: 6px;
   font-family: var(--font-sans);
@@ -126,12 +212,12 @@ body {
 }
 
 .seg-btn:hover {
-  color: var(--text-light);
+  color: #1e293b;
 }
 
 .seg-btn.seg-active {
-  background: var(--crt-cyan);
-  color: #000;
+  background: #0284c7;
+  color: #ffffff;
 }
 
 .ghost-btn {
@@ -141,9 +227,9 @@ body {
   gap: 6px;
   min-height: 34px;
   padding: 6px 12px;
-  background: transparent;
-  color: var(--crt-cyan);
-  border: 1px solid #1e2d42;
+  background: #ffffff;
+  color: #0284c7;
+  border: 1px solid #cbd5e1;
   border-radius: 6px;
   font-family: var(--font-sans);
   font-size: 0.85rem;
@@ -155,8 +241,9 @@ body {
 
 .ghost-btn:active,
 .ghost-btn:hover {
-  border-color: var(--crt-cyan);
-  color: var(--crt-cyan);
+  border-color: #0284c7;
+  color: #0284c7;
+  background: #f8fafc;
 }
 
 /* Grid Principal Terminal & Panel Escenarios */
@@ -181,14 +268,31 @@ body {
 
   /* La terminal ocupa la mayor parte de la pantalla; input y keypad quedan a la mano */
   .terminal-wrapper {
-    min-height: 68dvh;
-  }
+  display: flex;
+  flex-direction: column;
+  background: #000000 !important;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 0 40px rgba(0, 255, 102, 0.03);
+  overflow: hidden;
+  position: relative;
+}
 
   /* Fuente mono más compacta para que quepan más columnas del formato Amadeus */
   .terminal-screen {
-    font-size: 0.78rem;
-    padding: 12px;
-  }
+  flex: 1;
+  min-height: 200px;
+  padding: 16px;
+  font-family: var(--font-mono);
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: #00FF66 !important;
+  overflow-y: auto;
+  overflow-x: auto;
+  white-space: pre;
+  background-color: #000000 !important;
+  background-image: radial-gradient(circle at center, rgba(0, 255, 102, 0.02) 0%, transparent 80%);
+}
 
   /* Header compacto: título en una línea, botones con wrap */
   .app-header {
@@ -274,14 +378,14 @@ body {
   .terminal-screen { background-image: none; }
 }
 
-/* Pantalla CRT Terminal */
+/* Pantalla CRT Terminal — Estación de Trabajo */
 .terminal-wrapper {
   display: flex;
   flex-direction: column;
   background: var(--bg-terminal);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), inset 0 0 40px rgba(0, 255, 102, 0.03);
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.15), 0 10px 15px -5px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   position: relative;
 }
@@ -290,12 +394,53 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #0d1520;
-  padding: 8px 14px;
-  border-bottom: 1px solid var(--border-color);
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  padding: 10px 16px;
+  border-bottom: 1px solid #334155;
   font-family: var(--font-mono);
   font-size: 0.8rem;
-  color: var(--text-muted);
+  color: #94a3b8;
+  letter-spacing: 0.03em;
+}
+
+.terminal-window-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.window-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot-red {
+  background-color: #ef4444;
+  box-shadow: 0 0 4px rgba(239, 68, 68, 0.4);
+}
+
+.dot-yellow {
+  background-color: #f59e0b;
+  box-shadow: 0 0 4px rgba(245, 158, 11, 0.4);
+}
+
+.dot-green {
+  background-color: #10b981;
+  box-shadow: 0 0 4px rgba(16, 185, 129, 0.4);
+}
+
+.terminal-title {
+  margin-left: 6px;
+  color: #e2e8f0;
+  font-weight: 600;
+}
+
+.terminal-status-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #38bdf8;
 }
 
 .status-dot {
@@ -306,6 +451,7 @@ body {
   box-shadow: 0 0 8px var(--crt-green);
   display: inline-block;
   margin-right: 6px;
+  margin-left: 8px;
 }
 
 /* Victoria en el chrome: el header se pone ambar con un glow que corre UNA
@@ -421,8 +567,8 @@ body {
 .terminal-prompt-bar {
   display: flex;
   align-items: flex-start;
-  background: #090e15;
-  border-top: 1px solid var(--border-color);
+  background: #050505 !important;
+  border-top: 1px solid #1e293b;
   padding: 10px 14px;
   gap: 10px;
   position: relative;
@@ -474,13 +620,12 @@ body {
   background: transparent;
   border: none;
   outline: none;
-  color: #fff;
+  color: #FFFFFF !important;
   font-family: var(--font-mono);
   font-size: 1rem;
   line-height: 1.5;
   text-transform: uppercase;
-  caret-color: var(--crt-green);
-  /* textarea multilínea: sin agarradera de resize, crece por JS hasta 140px */
+  caret-color: #00FF66;
   resize: none;
   overflow-y: auto;
   max-height: 140px;
@@ -624,10 +769,13 @@ body {
   flex-direction: column;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   padding: 16px;
   gap: 16px;
   overflow-y: auto;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5); /* Sombra profunda AAA */
+  border-top: var(--border-light-top);
+  transition: var(--transition-tutor); /* Para el Modo Enfoque */
 }
 
 .sidebar-panel > * {
@@ -654,7 +802,7 @@ body {
 .panel-title {
   font-size: 1rem;
   font-weight: 700;
-  color: #fff;
+  color: #1e293b;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -662,8 +810,8 @@ body {
 
 .scenario-select {
   width: 100%;
-  background: #141f2e;
-  color: var(--text-light);
+  background: #f8fafc;
+  color: #1e293b;
   border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 8px 12px;
@@ -674,7 +822,7 @@ body {
 }
 
 .progress-card {
-  background: #0e1724;
+  background: #f8fafc;
   border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 12px;
@@ -727,7 +875,7 @@ body {
 
 /* ── Secciones desplegables del panel (menos abrumador, Juan Pablo) ── */
 .progress-top {
-  background: #0e1724;
+  background: #f8fafc;
   border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 10px 12px;
@@ -749,9 +897,9 @@ body {
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
-  background: #0e1724;
+  background: #f8fafc;
   border: none;
-  color: var(--text-light);
+  color: #1e293b;
   font-family: var(--font-sans);
   font-size: 0.82rem;
   font-weight: 700;
@@ -1297,4 +1445,999 @@ body {
   }
 }
 
+
+
+/* ==========================================
+   WORKSTATION LIGHT THEME - MENU STYLES
+   ========================================== */
+
+.menu-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100%;
+  justify-content: flex-start;
+  gap: 0.85rem;
+  padding: 0.25rem 0.25rem 2rem 0.25rem;
+  overflow-y: auto; /* Scroll vertical fluido para que nunca se corten las tarjetas */
+  box-sizing: border-box;
+}
+
+.menu-hero-card {
+  background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+  border: 1px solid #334155;
+  border-radius: 14px;
+  padding: 1.1rem 1.4rem;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.25), 0 4px 10px -2px rgba(15, 23, 42, 0.15);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.menu-hero-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px -5px rgba(15, 23, 42, 0.3), 0 6px 12px -2px rgba(15, 23, 42, 0.2);
+}
+
+.menu-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38BDF8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 0.6rem;
+}
+
+.menu-hero-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.menu-hero-info {
+  flex: 1;
+}
+
+.menu-hero-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.menu-hero-icon-wrapper {
+  background: rgba(2, 132, 199, 0.2);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  color: #38BDF8;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.menu-hero-title {
+  color: #FFFFFF;
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin: 0 0 0.2rem 0;
+  letter-spacing: -0.01em;
+}
+
+.menu-hero-subtitle {
+  color: #94A3B8;
+  font-size: 0.88rem;
+  margin: 0;
+  line-height: 1.35;
+  max-width: 680px;
+}
+
+.menu-hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #0284C7;
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 0.92rem;
+  padding: 0.75rem 1.4rem;
+  border-radius: 10px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+  flex-shrink: 0;
+}
+
+.menu-hero-cta:hover {
+  background: #0369A1;
+  transform: translateX(2px);
+}
+
+.menu-section-header {
+  margin-top: 0.2rem;
+  margin-bottom: 0.1rem;
+}
+
+.menu-section-title {
+  color: #1E293B;
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin: 0 0 0.1rem 0;
+  letter-spacing: -0.01em;
+}
+
+.menu-section-subtitle {
+  color: #475569;
+  font-size: 0.82rem;
+  margin: 0;
+}
+
+/* Iconos 3D integrados en tarjetas */
+.menu-card-3d-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  object-fit: cover;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.menu-card:hover .menu-card-3d-icon {
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
+}
+
+/* Progreso y detalles de las tarjetas del menú */
+.menu-card-progress-bar {
+  height: 4px;
+  background: #e2e8f0;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 8px;
+  margin-bottom: 4px;
+}
+
+.menu-card-progress-fill {
+  height: 100%;
+  background: #0284c7;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.menu-card-progress-text {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  display: block;
+  margin-top: 4px;
+}
+
+.menu-grid-2x2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  flex: 1;
+  min-height: 0;
+}
+
+.menu-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 0.95rem 1.1rem;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+  transition: var(--transition-layout);
+}
+
+.menu-card:hover {
+  transform: translateY(-2px);
+  background-color: var(--bg-dark);
+  border-color: var(--color-tutor);
+  box-shadow: 0 8px 25px -4px rgba(0, 0, 0, 0.6);
+}
+
+.menu-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.menu-card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-pnr { color: var(--crt-cyan); }
+.icon-teoria { color: #A78BFA; }
+.icon-iberia { color: var(--crt-red); }
+.icon-seguridad { color: var(--crt-cyan); }
+.icon-roleplay { color: var(--crt-green); }
+
+.menu-card-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+}
+
+/* En el nuevo diseño unificamos los tags para evitar ruido arcoíris */
+.tag-pnr { color: var(--crt-cyan); }
+.tag-teoria { color: #A78BFA; }
+.tag-iberia { color: var(--crt-red); }
+.tag-seguridad { color: var(--crt-cyan); }
+.tag-roleplay { color: var(--crt-green); }
+
+.menu-card-title {
+  color: var(--text-light);
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem 0;
+}
+
+.menu-card-desc {
+  color: var(--text-muted);
+  font-size: 0.83rem;
+  line-height: 1.38;
+  margin: 0;
+}
+
+.menu-card-full {
+  grid-column: span 2;
+  padding: 0.85rem 1.1rem;
+}
+
+.menu-card-horizontal {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.menu-card-body {
+  flex: 1;
+}
+
+.menu-card-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.15rem;
+}
+
+.menu-card-pnr:hover { border-color: var(--crt-cyan); }
+.menu-card-teoria:hover { border-color: #A78BFA; }
+.menu-card-iberia:hover { border-color: var(--crt-red); }
+.menu-card-seguridad:hover { border-color: var(--crt-cyan); }
+.menu-card-roleplay:hover { border-color: var(--crt-green); }
+
+@media (max-width: 768px) {
+  .menu-container {
+    overflow-y: auto;
+    height: auto;
+  }
+  .menu-hero-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .menu-hero-cta {
+    width: 100%;
+    justify-content: center;
+  }
+  .menu-grid-2x2 {
+    grid-template-columns: 1fr;
+  }
+  .menu-card-full {
+    grid-column: span 1;
+  }
+}
+
+/* ── TUTOR ─────────────────────────────────────────────────────
+   Reutiliza .sidebar-panel, .panel-title y .quiz-big-btn del
+   selector de escenarios. Solo se añade lo que no existía. */
+
+.tutor-panel { gap: 0.75rem; }
+
+.tut-cabecera {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 0.5rem; flex-wrap: wrap;
+}
+.tut-procedimiento { font-weight: 700; font-size: 0.9rem; }
+.tut-reiniciar {
+  background: none; border: none; padding: 0;
+  color: var(--text-muted, #475569); font-size: 0.75rem;
+  text-decoration: underline; cursor: pointer;
+}
+
+/* El camino: cómo hemos llegado a este procedimiento */
+.tut-camino { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.3rem; }
+.tut-camino li {
+  display: grid; gap: 0.1rem;
+  border-left: 2px solid rgba(148, 163, 184, 0.35);
+  padding-left: 0.6rem; font-size: 0.78rem;
+}
+.tut-camino-preg { color: var(--text-muted, #475569); }
+.tut-camino strong { font-weight: 700; }
+.tut-camino em { font-style: normal; color: var(--text-muted, #475569); font-size: 0.72rem; }
+
+/* Preguntas del árbol */
+.tut-pregunta { display: grid; gap: 0.5rem; }
+.tut-pregunta-texto { font-weight: 600; margin: 0; }
+.tut-pregunta-porque { margin: 0; font-size: 0.76rem; color: var(--text-muted, #475569); }
+.tut-opciones { display: grid; gap: 0.4rem; }
+.tut-opciones .quiz-big-btn { text-align: left; font-size: 0.82rem; }
+
+/* Pegar una pantalla real */
+.tut-pegar { display: grid; gap: 0.4rem; }
+.tut-pegar label { font-size: 0.78rem; font-weight: 600; }
+.tut-pegar textarea {
+  width: 100%; font-family: ui-monospace, monospace; font-size: 0.72rem;
+  padding: 0.5rem; border-radius: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.55);
+  /* Fondo claro: el panel es claro y el texto que escribe el alumno es
+     oscuro. Con el rgba(0,0,0,.35) de antes escribía casi a ciegas. */
+  background: #fff; color: var(--text-light, #1e293b); resize: vertical;
+}
+
+/* Abrir la caja de pegar: discreto pero siempre a mano */
+.tut-pegar-abrir {
+  display: flex; align-items: center; justify-content: center; gap: 0.35rem;
+  width: 100%; padding: 0.4rem; font-size: 0.76rem;
+  border: 1px dashed rgba(148, 163, 184, 0.45); border-radius: 6px;
+  background: transparent; color: var(--text-muted, #475569); cursor: pointer;
+}
+.tut-pegar-abrir:hover { border-color: rgba(148, 163, 184, 0.8); color: inherit; }
+
+/* Acuse de recibo de lo leído: confirma que pegar SÍ hizo algo */
+.tut-leido {
+  display: flex; gap: 0.4rem; align-items: flex-start;
+  font-size: 0.76rem; line-height: 1.45;
+  padding: 0.45rem 0.55rem; border-radius: 6px;
+  border: 1px solid rgba(22, 163, 74, 0.35);
+  background: rgba(22, 163, 74, 0.08);
+  color: #15803d;
+}
+.tut-leido strong { color: #14532d; }
+
+/* El paso */
+.tut-paso {
+  display: grid; gap: 0.45rem;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 8px; padding: 0.7rem;
+}
+.tut-paso-badges { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+.tut-badge {
+  font-size: 0.65rem; font-weight: 700; letter-spacing: 0.03em;
+  text-transform: uppercase; padding: 0.15rem 0.45rem; border-radius: 4px;
+}
+.tut-sis-amadeus    { background: #4b4bf9; color: #fff; }
+.tut-sis-resiber    { background: #8bf0bb; color: #09092d; }
+.tut-sis-natiba     { background: #ff8d96; color: #09092d; }
+.tut-sis-salesforce { background: #bfa1ff; color: #09092d; }
+.tut-sis-iberianet  { background: #f9ef77; color: #09092d; }
+/* Los distintivos van sobre el panel CLARO: el texto tiene que ser oscuro.
+   Con los tonos pastel originales (pensados para fondo negro) el badge se
+   leía como una mancha de color sin letras. */
+.tut-conf-verbatim  { background: rgba(22, 163, 74, 0.15);  color: #15803d; }
+.tut-conf-derivado  { background: rgba(217, 119, 6, 0.15);  color: #92400e; }
+.tut-conf-hueco     { background: rgba(220, 38, 38, 0.15);  color: #b91c1c; }
+.tut-bloqueante     { background: #b91c1c; color: #fff; }
+
+.tut-paso-proceso { margin: 0; font-size: 0.86rem; line-height: 1.4; }
+.tut-paso-n { color: var(--text-muted, #475569); font-weight: 700; margin-right: 0.3rem; }
+
+.tut-comando {
+  display: block; font-family: ui-monospace, monospace; font-size: 0.9rem;
+  font-weight: 700; padding: 0.45rem 0.6rem; border-radius: 6px;
+  background: #000; color: #00ff66; overflow-x: auto; white-space: pre;
+}
+.tut-sin-comando, .tut-nota, .tut-explicacion {
+  margin: 0; font-size: 0.78rem; line-height: 1.45;
+}
+/* Estos colores estaban pensados para un panel oscuro (rojo y amarillo
+   pálidos, gris muy claro). Sobre el fondo claro de la app no se leían: la
+   explicación del tutor era casi invisible. Ahora son tonos oscuros con
+   contraste suficiente. */
+.tut-sin-comando { color: #b91c1c; font-weight: 600; }
+.tut-nota {
+  color: #92400e; display: flex; gap: 0.3rem; align-items: flex-start;
+}
+.tut-explicacion { color: var(--text-light, #1e293b); }
+
+/* Veredicto */
+.tut-veredicto {
+  display: grid; gap: 0.25rem; padding: 0.5rem 0.65rem;
+  border-radius: 6px; font-size: 0.8rem; font-weight: 600;
+}
+.tut-ok  { background: rgba(22, 163, 74, 0.12);  color: #15803d; }
+.tut-parcial { background: rgba(217, 119, 6, 0.14); color: #b45309; border: 1px solid rgba(217, 119, 6, 0.3); }
+.tut-mal { background: rgba(220, 38, 38, 0.12);  color: #b91c1c; }
+.tut-pista { font-weight: 400; font-size: 0.74rem; opacity: 0.9; }
+
+.tut-advertencia, .tut-aviso {
+  margin: 0; font-size: 0.76rem; line-height: 1.45;
+  display: flex; gap: 0.3rem; align-items: flex-start;
+}
+.tut-advertencia { color: #b91c1c; font-weight: 600; }
+.tut-aviso { color: var(--text-muted, #475569); }
+
+/* Escribir el comando */
+.tut-form { display: grid; gap: 0.4rem; }
+.tut-form input {
+  width: 100%; font-family: ui-monospace, monospace; font-size: 0.85rem;
+  padding: 0.5rem 0.6rem; border-radius: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.55);
+  background: #fff; color: var(--text-light, #1e293b); text-transform: uppercase;
+}
+/* El comando se teclea en mayúsculas y en mono: que se vea al escribirlo. */
+.tut-form input::placeholder { color: #94a3b8; text-transform: none; }
+
+.tut-ayuda {
+  display: flex; align-items: center; justify-content: center; gap: 0.35rem;
+  width: 100%; padding: 0.5rem; border-radius: 6px; cursor: pointer;
+  border: 1px dashed rgba(148, 163, 184, 0.5);
+  background: none; color: inherit; font-size: 0.8rem; font-weight: 600;
+}
+.tut-ayuda:hover:not(:disabled) { background: rgba(148, 163, 184, 0.12); }
+
+.tut-terminado { color: #15803d; font-weight: 700; display: flex; gap: 0.35rem; align-items: center; }
+.tut-cargando { color: var(--text-muted, #475569); font-size: 0.78rem; display: flex; gap: 0.35rem; align-items: center; }
+/* El paso ya está en pantalla; esto solo avisa de que la IA está ampliando. */
+.tut-redactando {
+  margin: 0; font-size: 0.72rem; font-style: italic;
+  color: var(--text-muted, #475569);
+  display: flex; gap: 0.3rem; align-items: center;
+}
+.tut-error { color: #b91c1c; font-size: 0.78rem; font-weight: 600; }
+.tut-salto {
+  display: flex; gap: 0.4rem; align-items: center;
+  background: rgba(75, 75, 249, 0.15); border-left: 3px solid #4b4bf9;
+  padding: 0.45rem 0.6rem; border-radius: 0 6px 6px 0; font-size: 0.78rem;
+}
+
+.tut-girando { animation: tut-giro 1s linear infinite; }
+@keyframes tut-giro { to { transform: rotate(360deg); } }
+
+/* ==========================================
+   VISUAL MODULE: E-TICKET & SEATMAP STYLES
+   ========================================== */
+
+.simulator-side-panel-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  flex: 1;
+  gap: 0.5rem;
+}
+
+.side-panel-switcher {
+  display: flex;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 3px;
+  gap: 3px;
+}
+
+.switcher-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #94a3b8;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.switcher-btn:hover {
+  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.switcher-btn.active {
+  background: #0284c7;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.4);
+}
+
+/* Visual Ticket Container */
+.visual-ticket-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 1rem;
+  color: #f8fafc;
+  overflow-y: auto;
+  max-height: 100%;
+}
+
+.visual-ticket-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.ticket-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  color: #94a3b8;
+  cursor: pointer;
+}
+
+.ticket-tab.active {
+  background: rgba(2, 132, 199, 0.2);
+  border-color: #0284c7;
+  color: #38bdf8;
+}
+
+/* Boarding Pass Card */
+.boarding-pass-card {
+  background-size: cover;
+  background-position: center;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 1.2rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pass-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.pass-airline {
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  color: #ef4444;
+  display: block;
+}
+
+.pass-subtitle {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  letter-spacing: 0.05em;
+}
+
+.pass-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.pass-status.issued {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.4);
+}
+
+.pass-status.draft {
+  background: rgba(234, 179, 8, 0.2);
+  color: #facc15;
+  border: 1px solid rgba(234, 179, 8, 0.4);
+}
+
+.pass-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.pass-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.pass-label {
+  font-size: 0.65rem;
+  color: #94a3b8;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.pass-value {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.pass-value.highlight {
+  color: #38bdf8;
+}
+
+.pass-value.pnr-code {
+  font-family: ui-monospace, monospace;
+  color: #f43f5e;
+  font-size: 1.1rem;
+}
+
+.pass-value.mono {
+  font-family: ui-monospace, monospace;
+  font-size: 0.85rem;
+}
+
+.pass-divider {
+  height: 1px;
+  background: dashed rgba(255, 255, 255, 0.15);
+  margin: 0.5rem 0;
+}
+
+.flight-row {
+  align-items: center;
+}
+
+.pass-route {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.airport {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.airport .iata {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+.airport .city {
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+
+.route-arrow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.plane-icon {
+  color: #38bdf8;
+}
+
+.flight-num {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #94a3b8;
+}
+
+.pass-flight-details {
+  display: flex;
+  gap: 1rem;
+}
+
+.seat-badge {
+  background: #0284c7;
+  color: #ffffff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: ui-monospace, monospace;
+}
+
+.pass-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 0.75rem;
+}
+
+.qr-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.qr-code {
+  color: #ffffff;
+  background: #ffffff;
+  padding: 4px;
+  border-radius: 6px;
+  fill: #0f172a;
+}
+
+.qr-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.qr-text {
+  font-family: ui-monospace, monospace;
+  font-size: 0.65rem;
+  color: #94a3b8;
+}
+
+.qr-hint {
+  font-size: 0.68rem;
+  color: #4ade80;
+  font-weight: 700;
+}
+
+.security-badge {
+  font-size: 0.72rem;
+  color: #38bdf8;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+}
+
+/* EMD Receipt */
+.emd-receipt-card {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.emd-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #334155;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.emd-header h4 {
+  margin: 0;
+  font-size: 0.92rem;
+  color: #f8fafc;
+}
+
+.emd-status {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #38bdf8;
+}
+
+.emd-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.emd-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #0f172a;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #334155;
+}
+
+.emd-item strong {
+  display: block;
+  font-size: 0.85rem;
+  color: #f8fafc;
+}
+
+.emd-item p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.emd-code {
+  margin-left: auto;
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+  color: #4ade80;
+  font-weight: 700;
+}
+
+/* SeatMap Styles */
+.seatmap-container {
+  background-size: cover;
+  background-position: center;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 1rem;
+  color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  overflow-y: auto;
+  max-height: 100%;
+}
+
+.seatmap-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.seatmap-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.seatmap-title h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #ffffff;
+}
+
+.seatmap-title p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.active-seat-badge {
+  background: rgba(2, 132, 199, 0.2);
+  border: 1px solid #0284c7;
+  color: #38bdf8;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.seatmap-legend {
+  display: flex;
+  gap: 12px;
+  font-size: 0.72rem;
+  color: #94a3b8;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.8);
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.legend-item .box {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.legend-item.business .box { background: #7c3aed; }
+.legend-item.premium .box { background: #0284c7; }
+.legend-item.selected { color: #4ade80; }
+
+.seatmap-grid-wrapper {
+  overflow-y: auto;
+  max-height: 400px;
+}
+
+.seatmap-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.seatmap-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.row-num {
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  width: 20px;
+  text-align: center;
+}
+
+.seat-group {
+  display: flex;
+  gap: 4px;
+}
+
+.aisle {
+  font-size: 0.6rem;
+  color: #64748b;
+  letter-spacing: 0.1em;
+  padding: 0 8px;
+}
+
+.seat-btn {
+  width: 34px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid #334155;
+  background: #1e293b;
+  color: #cbd5e1;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-family: ui-monospace, monospace;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.seat-btn.business {
+  border-color: rgba(124, 58, 237, 0.5);
+  background: rgba(124, 58, 237, 0.15);
+  color: #c4b5fd;
+}
+
+.seat-btn.premium {
+  border-color: rgba(2, 132, 199, 0.5);
+  background: rgba(2, 132, 199, 0.15);
+  color: #7dd3fc;
+}
+
+.seat-btn.selected {
+  background: #22c55e !important;
+  color: #ffffff !important;
+  border-color: #4ade80 !important;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.6);
+}
+
+.seat-btn:hover:not(.selected) {
+  background: #334155;
+  color: #ffffff;
+}
 

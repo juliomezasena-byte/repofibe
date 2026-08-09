@@ -1,0 +1,288 @@
+{
+  "id": "gastos-gestion-latam",
+  "titulo": "Gastos de gestión y oficinas de emisión — LATAM",
+  "aerolinea": "IB",
+  "categoria": "generalidades",
+  "resumen": "Tabla de gastos de gestión por país (emisión / cambio / reembolso) y oficina de emisión + moneda con la que se cotiza en cada mercado LATAM.",
+  "aplicaSolo": "Mercado LATAM. NO aplica Brasil.",
+  "advertencias": [
+    {
+      "nivel": "alto",
+      "texto": "Todos los gastos de gestión se encuentran publicados a través de nuestra página web.",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "critico",
+      "texto": "En AMADEUS, todos los países de LATAM se gestionan en diferentes oficinas. Entrar al PID correcto ANTES de cotizar, o se cotiza en la moneda equivocada.",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "critico",
+      "texto": "COLOMBIA calcula distinto: si el itinerario NO origina en Colombia se suma tarifa base (FARE) + impuesto YQ. Si SÍ origina en Colombia, solo la tarifa base (FARE) sin impuestos.",
+      "confianza": "verbatim"
+    }
+  ],
+  "fuente": {
+    "documento": "IberiaNet Lite — #3043 \"0.2 LATAM\" (raíz del árbol LATAM)",
+    "tipo": "manual-oficial-interno",
+    "recibido": "2026-08-08",
+    "confianzaGlobal": "verbatim",
+    "nota": "Tablas copiadas del manual. La versión HTML que generó EverGPT del mismo manual añadió banderas y etiquetas 'Gratuito' que el original no formatea así, pero los VALORES coinciden."
+  },
+  "pasos": [
+    {
+      "n": 1,
+      "sistema": "amadeus",
+      "proceso": "Entrar al PID / oficina de emisión del país correcto",
+      "comando": null,
+      "explicacion": "Cada país LATAM se gestiona en una oficina distinta y cotiza en su moneda. Ver la tabla 'oficinasEmision'.",
+      "confianza": "verbatim",
+      "esBloqueante": true,
+      "nota": "El manual no da el comando de cambio de PID/oficina. Pendiente de confirmar con el instructor."
+    },
+    {
+      "n": 2,
+      "sistema": "iberianet",
+      "proceso": "Consultar el gasto de gestión que aplica",
+      "comando": null,
+      "explicacion": "Buscar el país en la tabla 'gastosGestion'. En Colombia el importe depende del valor de la tarifa (ver 'reglaColombia').",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 3,
+      "sistema": "amadeus",
+      "proceso": "Aplicar el gasto de gestión en la emisión",
+      "comando": "TTO/ST01/CSF/F650",
+      "plantilla": "TTO/ST01/CSF/F{gastoGestion}",
+      "explicacion": "Si hay varios TST: TTO/ST01/CSF/F650/T1. Guardar con ER.",
+      "confianza": "verbatim",
+      "nota": "El comando viene del manual #3058 paso 15 (emisión); aquí se referencia porque es donde se usa el valor de esta tabla."
+    }
+  ],
+  "gastosGestion": {
+    "moneda": "USD",
+    "columnas": [
+      "emision",
+      "cambio",
+      "reembolso"
+    ],
+    "paises": [
+      {
+        "pais": "Argentina",
+        "emision": 90,
+        "cambio": 90,
+        "reembolso": 90
+      },
+      {
+        "pais": "Chile",
+        "emision": 60,
+        "cambio": 60,
+        "reembolso": 60
+      },
+      {
+        "pais": "Colombia",
+        "emision": "escalonado",
+        "cambio": "Gratuito",
+        "reembolso": "Gratuito",
+        "nota": "Ver reglaColombia"
+      },
+      {
+        "pais": "Costa Rica",
+        "emision": 35,
+        "cambio": 35,
+        "reembolso": 35
+      },
+      {
+        "pais": "Guatemala",
+        "emision": 35,
+        "cambio": 35,
+        "reembolso": 35
+      },
+      {
+        "pais": "Mexico",
+        "emision": 35,
+        "cambio": 35,
+        "reembolso": 35
+      },
+      {
+        "pais": "Ecuador",
+        "emision": 80,
+        "cambio": 80,
+        "reembolso": 80
+      },
+      {
+        "pais": "El Salvador",
+        "emision": 35,
+        "cambio": 35,
+        "reembolso": 35
+      },
+      {
+        "pais": "Honduras",
+        "emision": 26.75,
+        "cambio": 42.8,
+        "reembolso": 42.8,
+        "nota": "ÚNICO país donde emisión y cambio/reembolso difieren"
+      },
+      {
+        "pais": "Nicaragua",
+        "emision": 25,
+        "cambio": 25,
+        "reembolso": 25
+      },
+      {
+        "pais": "Panama",
+        "emision": 35,
+        "cambio": 35,
+        "reembolso": 35
+      },
+      {
+        "pais": "Peru",
+        "emision": 35,
+        "cambio": 35,
+        "reembolso": 35
+      },
+      {
+        "pais": "Rep. Dominicana",
+        "emision": 35,
+        "cambio": 35,
+        "reembolso": 35
+      },
+      {
+        "pais": "Uruguay",
+        "emision": 35,
+        "cambio": 35,
+        "reembolso": 35
+      },
+      {
+        "pais": "Venezuela",
+        "emision": 35,
+        "cambio": 35,
+        "reembolso": 35
+      }
+    ],
+    "confianza": "verbatim"
+  },
+  "reglaColombia": {
+    "confianza": "verbatim",
+    "escalaEmision": [
+      {
+        "hasta": 354,
+        "gastoUSD": 17.85
+      },
+      {
+        "hasta": 590,
+        "gastoUSD": 32.32
+      },
+      {
+        "hasta": 944,
+        "gastoUSD": 54.74
+      },
+      {
+        "desde": 944,
+        "gastoUSD": 113.05
+      }
+    ],
+    "cambio": "Gratuito",
+    "reembolso": "Gratuito",
+    "baseDeCalculo": [
+      "Si el itinerario NO origina en Colombia: tarifa base (FARE) + impuesto YQ.",
+      "Si el itinerario SÍ origina en Colombia: solo tarifa base (FARE), sin impuestos."
+    ],
+    "avisoDiscrepancia": "⚠️ La tabla PÚBLICA de iberia.com da otras cifras para Colombia: 15 / 28 / 46 / 95 USD. Las de aquí (17,85 / 32,32 / 54,74 / 113,05) parecen ser esas MÁS el IVA del 19% — cuadra exacto en 3 de 4 tramos. Ver _gastos-gestion-mundial.json → discrepanciaColombia. NO usar ninguna de las dos como definitiva sin preguntar al instructor."
+  },
+  "oficinasEmision": {
+    "confianza": "verbatim",
+    "nota": "Varios países comparten oficina. El manual no indica moneda para los que comparten PTY001, LIM001, SDQ001, MVD001 ni MIA001.",
+    "paises": [
+      {
+        "pais": "Argentina",
+        "oficina": "BUE001",
+        "moneda": "ARS",
+        "monedaNombre": "Pesos Argentinos"
+      },
+      {
+        "pais": "Chile",
+        "oficina": "SCL001",
+        "moneda": "CLP",
+        "monedaNombre": "Pesos Chilenos"
+      },
+      {
+        "pais": "Colombia",
+        "oficina": "BOG001",
+        "moneda": "COP",
+        "monedaNombre": "Pesos Colombianos"
+      },
+      {
+        "pais": "Costa Rica",
+        "oficina": "SJO001",
+        "moneda": "CRC",
+        "monedaNombre": "Colones Costarricenses"
+      },
+      {
+        "pais": "Guatemala",
+        "oficina": "GUA001",
+        "moneda": "GTQ",
+        "monedaNombre": "Quetzales"
+      },
+      {
+        "pais": "Mexico",
+        "oficina": "MEX001",
+        "moneda": "MXN",
+        "monedaNombre": "Pesos Mexicanos"
+      },
+      {
+        "pais": "Ecuador",
+        "oficina": "UIO001",
+        "moneda": "USD",
+        "monedaNombre": "Dolares Americanos"
+      },
+      {
+        "pais": "El Salvador",
+        "oficina": "PTY001"
+      },
+      {
+        "pais": "Honduras",
+        "oficina": "PTY001"
+      },
+      {
+        "pais": "Nicaragua",
+        "oficina": "PTY001"
+      },
+      {
+        "pais": "Panama",
+        "oficina": "PTY001"
+      },
+      {
+        "pais": "Peru",
+        "oficina": "LIM001"
+      },
+      {
+        "pais": "Rep. Dominicana",
+        "oficina": "SDQ001"
+      },
+      {
+        "pais": "Uruguay",
+        "oficina": "MVD001"
+      },
+      {
+        "pais": "Venezuela",
+        "oficina": "PTY001"
+      },
+      {
+        "pais": "Estados Unidos",
+        "oficina": "MIA001"
+      },
+      {
+        "pais": "Puerto Rico",
+        "oficina": "MIA001"
+      }
+    ]
+  },
+  "huecosConocidos": [
+    "Falta el comando para cambiar de PID / oficina de emisión en Amadeus.",
+    "El manual no indica moneda para los países que comparten oficina (PTY001, LIM001, SDQ001, MVD001, MIA001).",
+    "La escala de Colombia usa '<=' en el manual; el tramo >944 se lee como 'mayor que 944'.",
+    "Discrepancia de cifras de Colombia contra la tabla pública de iberia.com (posible IVA del 19% incluido).",
+    "Honduras y Nicaragua figuran aquí pero NO en la tabla pública, que dice que un país no listado tiene gasto 0."
+  ]
+}

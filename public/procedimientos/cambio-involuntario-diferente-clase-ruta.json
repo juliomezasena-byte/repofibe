@@ -1,0 +1,56 @@
+{
+  "id": "cambio-involuntario-diferente-clase-ruta",
+  "titulo": "Cambio involuntario — DIFERENTE clase y/o ruta",
+  "aerolinea": "IB",
+  "categoria": "reemision",
+  "resumen": "Reemisión por cambio involuntario cuando cambia la clase y/o la ruta. Usa FXI (con /SC según la ventana de 48 h) y emite solo el cambio.",
+  "aplicaSolo": "Solo se puede realizar siempre y cuando cambie la ruta y/o la clase. Si se conservan ambas, aplica el hermano #3639 (cambio-involuntario-misma-clase-ruta).",
+  "advertencias": [
+    { "nivel": "critico", "texto": "En caso de cambio de ruta, se permite un MÁXIMO DE 250 MILLAS entre la ciudad original y la nueva.", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "ANTES DE INICIAR: realiza el filtro de seguridad — APELLIDO + PNR.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "La elección entre FXI y FXI/SC depende de si el nuevo vuelo asignado está a MENOS o MÁS de 48 horas de la llamada. Equivocarse cambia el cálculo del cambio.", "confianza": "verbatim" }
+  ],
+  "fuente": {
+    "documento": "IberiaNet Lite — #3638 \"1. DIFERENTE CLASE Y/O RUTA\" (hermano de #3639)",
+    "tipo": "manual-oficial-interno",
+    "recibido": "2026-08-08",
+    "confianzaGlobal": "verbatim",
+    "nota": "RESTAURADO el 08AGO26: este manual había sido sobrescrito por error por el #3639 dentro de cambio-involuntario-clase-ruta.json. El usuario lo volvió a enviar y ahora cada uno tiene su archivo."
+  },
+  "pasos": [
+    { "n": 0, "sistema": "natiba", "proceso": "Filtro de seguridad", "comando": null, "explicacion": "APELLIDO + PNR.", "confianza": "verbatim", "esBloqueante": true },
+    { "n": 0.1, "sistema": "amadeus", "proceso": "Calcular las millas entre ciudad original y nueva", "comando": "FQM MAD BCN", "plantilla": "FQM {origen} {destino}", "explicacion": "MAD = origen · BCN = destino. Valida el máximo de 250 millas permitido en cambio de ruta.", "confianza": "verbatim", "validacion": { "tipo": "regex", "patron": "^FQM\\s[A-Z]{3}\\s[A-Z]{3}$" } },
+    { "n": 1, "sistema": "amadeus", "proceso": "Colocar el TKT del ADT/CHD en FHE", "comando": "FHE 075-1422342526/P1", "plantilla": "FHE {numeroBillete}/P{pasajero}", "explicacion": "075-142… = ticket del ADT o CHD · P1 = número del pax.", "confianza": "verbatim" },
+    { "n": 1.1, "sistema": "amadeus", "proceso": "Colocar el TKT del INF en FHE", "comando": "FHE INF 075-1422342526/P1", "plantilla": "FHE INF {numeroBillete}/P{pasajero}", "explicacion": "P1 = número del ADT que va con el infante.", "confianza": "verbatim" },
+    { "n": 2, "sistema": "amadeus", "proceso": "Eliminar el TKT en FA (solo si aplica)", "comando": "XE 14", "plantilla": "XE {lineaFA}", "explicacion": "14 = línea del elemento FA del adulto.", "confianza": "verbatim", "opcional": true },
+    { "n": 3, "sistema": "amadeus", "proceso": "Buscar fechas de vuelo", "comando": "AN 11MAR MADBOG", "variantes": ["AN 11MAR MADBOG * 23OCT", "SN 11MAR MADBOG"], "explicacion": "PRO TIP: MY = día anterior · MN = día siguiente.", "confianza": "verbatim" },
+    { "n": 4, "sistema": "amadeus", "proceso": "Seleccionar plazas", "comando": "SS 2 A 1", "variantes": ["SS 2 A 1 * S 11", "SS 2 A S 1"], "explicacion": "Ida y vuelta con *. Clases diferentes por vuelo: SS 2 A S 1.", "confianza": "verbatim" },
+    { "n": 5, "sistema": "amadeus", "proceso": "Eliminar TODAS las FP", "comando": "XE 22", "plantilla": "XE {lineaFP}", "explicacion": "22 = línea del elemento FP.", "confianza": "verbatim" },
+    { "n": 6, "sistema": "amadeus", "proceso": "Eliminar TST", "comando": "TTE/ALL", "variantes": ["TTE/T1"], "explicacion": "TTE/ALL = todos los TST · TTE/T{n} = uno específico.", "confianza": "verbatim" },
+    { "n": 7, "sistema": "amadeus", "proceso": "Eliminar el TKT en FO (solo si aplica)", "comando": "XE 14", "plantilla": "XE {lineaFO}", "explicacion": "14 = línea del elemento FO.", "confianza": "verbatim", "opcional": true },
+    { "n": 8, "sistema": "amadeus", "proceso": "Cargar el cambio involuntario — nº de billete, vuelo a MENOS de 48 h", "comando": "FXI/TKT 075-142456789/S2,4/P1", "plantilla": "FXI/TKT {numeroBillete}/S{segmentos}/P{pasajero}", "explicacion": "Cuando el nuevo vuelo asignado está a MENOS de 48 horas de la llamada. Los segmentos son los que el cliente va a volar.", "confianza": "verbatim" },
+    { "n": 8.1, "sistema": "amadeus", "proceso": "Cargar el cambio involuntario — nº de billete, vuelo a MÁS de 48 h", "comando": "FXI/SC/TKT 075-142456789/S2,4/P1", "plantilla": "FXI/SC/TKT {numeroBillete}/S{segmentos}/P{pasajero}", "explicacion": "El /SC se añade cuando el nuevo vuelo asignado está a MÁS de 48 horas de la llamada.", "confianza": "verbatim" },
+    { "n": 8.2, "sistema": "amadeus", "proceso": "Cargar el cambio involuntario — línea de billete, MENOS de 48 h", "comando": "FXI/T 16/S2,4/P1", "plantilla": "FXI/T {lineaBillete}/S{segmentos}/P{pasajero}", "explicacion": "Variante usando la línea del billete en vez del número completo.", "confianza": "verbatim" },
+    { "n": 8.3, "sistema": "amadeus", "proceso": "Cargar el cambio involuntario — línea de billete, MÁS de 48 h", "comando": "FXI/SC/T16/S2,4/P1", "plantilla": "FXI/SC/T{lineaBillete}/S{segmentos}/P{pasajero}", "explicacion": "Variante con /SC usando la línea del billete.", "confianza": "verbatim", "nota": "⚠️ El manual escribe 'FXI/T 16' (con espacio) en la variante de menos de 48 h y 'FXI/SC/T16' (sin espacio) en esta. Se preserva tal cual; confirmar si el espacio es significativo." },
+    { "n": 9, "sistema": "amadeus", "proceso": "Reconfirmar el itinerario al cliente", "comando": null, "explicacion": "Paso de comunicación, sin transacción.", "confianza": "verbatim" },
+    { "n": 10, "sistema": "amadeus", "proceso": "Eliminar las plazas que el cliente NO va a usar", "comando": "XE 14", "plantilla": "XE {lineaSegmentos}", "explicacion": "14 = línea de los segmentos.", "confianza": "verbatim" },
+    { "n": 11, "sistema": "amadeus", "proceso": "Emitir SOLO el cambio", "comando": "TTP1/ET/RT/T2/F", "plantilla": "TTP1/{opciones}/T{numeroTST}/F", "explicacion": "T2 = número del TST.", "confianza": "verbatim", "nota": "El manual muestra 'TTP1/ET/RT/T2/F' en la columna TRANSACCIÓN y 'TTP1/T2/ET/RT/F' en la EXPLICACIÓN. Se preserva la columna TRANSACCIÓN." },
+    { "n": 12, "sistema": "amadeus", "proceso": "Enviar itinerario y documentos", "comando": "IBP-EMLA/LPSP", "variantes": ["IEPJ-EMLA/LPSP", "ITR-EMLA"], "explicacion": "IBP = itinerario · IEPJ = itinerario y servicios · ITR = billetes electrónicos.", "confianza": "verbatim" },
+    { "n": 12.1, "sistema": "resiber", "proceso": "Enviar documentos desde RESIBER", "comando": "ITP:/RESERVA/EMAIL", "variantes": ["DTR TN 075-1234567890,EML/EMAIL", "DEMR DN 075-1234567890,EML/EMAIL"], "explicacion": "Itinerario · billetes electrónicos · EMD.", "confianza": "verbatim" }
+  ],
+  "recuperacionDeError": {
+    "titulo": "EN CASO DE QUE AL EMITIR DÉ UN ERROR",
+    "confianza": "verbatim",
+    "pasos": [
+      { "n": 1, "sistema": "amadeus", "proceso": "Eliminar el FP (solo si aplica, si no deja emitir)", "comando": "XE 14", "plantilla": "XE {lineaFP}" },
+      { "n": 2, "sistema": "amadeus", "proceso": "Incluir de nuevo la forma de pago", "comando": "FPO/CCVI+/SFCA,/0" },
+      { "n": 3, "sistema": "amadeus", "proceso": "Volver al paso 11 (emitir)", "comando": "TTP1/ET/RT/T2/F" }
+    ],
+    "nota": "El manual oficial escribe 'FPO/CCVI+/SFCA,/0'. El 'FPO/CCSVI+' con S extra del bot EverGPT queda descartado — es la quinta confirmación independiente."
+  },
+  "huecosConocidos": [
+    "No se especifica de dónde se obtiene la confirmación de si el nuevo vuelo está a más o menos de 48 horas.",
+    "Ambigüedad de espacio en FXI/T 16 vs FXI/SC/T16.",
+    "Orden de los parámetros de TTP1 distinto entre las columnas TRANSACCIÓN y EXPLICACIÓN del propio manual."
+  ]
+}

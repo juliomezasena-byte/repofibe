@@ -59,3 +59,38 @@ export async function generateEvaluation(apiKey, model, evaluationPrompt) {
   }
   return JSON.parse(text);
 }
+
+/**
+ * Redacción del tutor.
+ *
+ * El responseSchema restringe la salida a DOS campos de texto. El modelo no
+ * puede devolver un comando aunque quiera: no hay dónde ponerlo.
+ */
+export async function generateTutorText(apiKey, model, prompt) {
+  const res = await fetch(`${API_BASE}/${model}:generateContent?key=${apiKey}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: 'OBJECT',
+          properties: {
+            explicacion: { type: 'STRING' },
+            diagnostico: { type: 'STRING' }
+          },
+          required: ['explicacion', 'diagnostico']
+        }
+      }
+    })
+  });
+
+  if (!res.ok) {
+    throw new Error(`Gemini respondió ${res.status}: ${await res.text()}`);
+  }
+  const data = await res.json();
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error('Gemini no devolvió JSON en la respuesta');
+  return JSON.parse(text);
+}

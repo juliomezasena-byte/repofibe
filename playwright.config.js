@@ -25,9 +25,11 @@ export default defineConfig({
     // scripts/e2e-server.js fuerza VITE_E2E_MOCK_AUTH vía child_process.spawn
     // (env real de Node, no sintaxis de shell) — webServer.env de Playwright
     // no propagaba de forma confiable a través del "&&" en este entorno.
-    // Un despliegue de producción normal (`npm run build` directo) nunca
-    // pasa por este script, así que el bypass de auth no es alcanzable
-    // desde DevTools en el sitio real.
+    //
+    // Ese build compila a dist-e2e/, NO a dist/. Es lo que impide que el
+    // bypass de auth llegue a producción: `firebase deploy` sube dist/, y los
+    // tests ya no pueden escribir ahí. Antes sí podían, y un deploy hecho
+    // justo después de los tests publicó el build con el login desactivado.
     command: 'node scripts/e2e-server.js',
     url: 'http://localhost:4173',
     reuseExistingServer: true,

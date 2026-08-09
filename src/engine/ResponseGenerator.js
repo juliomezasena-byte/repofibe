@@ -24,10 +24,16 @@ export class ResponseGenerator {
     const hasBusiness = true;
     const hasPremium = cabins === 3;
 
-    // Mismo orden que en PnrStateMachine (pedido por David)
+    // Orden REAL de la escalera de Iberia, verificado contra una captura de
+    // AN del terminal MAD905 (docs/fuentes/an/mad-bog-15mar.txt):
+    //   J C D R I U | W E T P | Y B H K M L F V S G Z N Q O X
+    // El orden anterior de economy (…M N L V G S Q O X A Z F) no coincidía
+    // con ninguna pantalla real: colocaba N, F y Z fuera de sitio.
+    // 'A' no aparece en la escalera de IB; se deja al final porque el
+    // generador dinámico la usa para otras aerolíneas.
     const businessKeys = ['J', 'C', 'D', 'R', 'I', 'U'];
     const premiumKeys = ['W', 'E', 'T', 'P'];
-    const economyKeys = ['Y', 'B', 'H', 'K', 'M', 'N', 'L', 'V', 'G', 'S', 'Q', 'O', 'X', 'A', 'Z', 'F'];
+    const economyKeys = ['Y', 'B', 'H', 'K', 'M', 'L', 'F', 'V', 'S', 'G', 'Z', 'N', 'Q', 'O', 'X', 'A'];
 
     let out = [];
     if (hasBusiness) {
@@ -148,6 +154,55 @@ export class ResponseGenerator {
       return `${result.message}\nRM: ${result.data.text}`;
     }
 
+    if (result.type === 'PRICE_LOWEST_INFORMATIVE') {
+      return `LAST LOWEST FARE QUOTE - FXI\nLOWEST FARE AVAILABLE FOR ITINERARY: 267.19 USD\nSTATUS: ALREADY BOOKED BEST FARE`;
+    }
+
+    if (result.type === 'PRICE_FARE_FAMILY') {
+      return `** AMADEUS FARE FAMILY PRICING - FXF **\nFARES AVAILABLE:\n  BASIC     : 180.00 USD (1 BAG 23K, NO CHANGES)\n  OPTIMA    : 240.00 USD (1 BAG 23K, SEAT SELECTION)\n  FLEX      : 310.00 USD (2 BAGS 23K, FREE CHANGES)\n  BUSFLEX   : 650.00 USD (BUSINESS CABIN, PREMIUM MEAL)`;
+    }
+
+    if (result.type === 'PRICE_BEST_BUY_ET') {
+      return `BEST BUY E-TICKET FARE - FXE\nTOTAL FARE: 267.19 USD + TAX 45.00 USD = 312.19 USD\nELIGIBLE FOR ELECTRONIC TICKETING`;
+    }
+
+    if (result.type === 'PRICE_AND_STORE_EXCHANGE') {
+      const t = result.data.tst;
+      return `** TST ${t.id} STORED - EXCHANGE RECORD (FXQ) **\nFARE BASIS: ${t.fareBasis}\nNEW FARE  : ${t.base} USD + TAX ${t.tax} USD = ${t.total} USD\nPENALTY CP: ${t.penalty} USD\nTST ${t.id} CREATED FOR REISSUE EMISSION`;
+    }
+
+    if (result.type === 'PRICE_OPTIMAL_OPTIONS') {
+      return `OPTIMAL FARE OPTIONS SEARCH - FXO\nOPTION 1: IB781 MAD-BER (SAME DAY - SAVE 45 USD)\nOPTION 2: IB785 MAD-BER (+1 DAY - SAVE 70 USD)`;
+    }
+
+    if (result.type === 'HOTEL_ELEMENT') {
+      return `HOTEL AVAILABILITY SEARCH - FHE ${result.data.cityCode}\n01 NH MADRID ZURBANO  MAD  120 EUR/NIGHT  AVAIL\n02 HOTEL IBERIA CENTRAL MAD  150 EUR/NIGHT  AVAIL`;
+    }
+
+    if (result.type === 'SHOW_RESIBER_TICKET_DETAIL') {
+      const d = result.data;
+      return [
+        `** RESIBER / AMADEUS TICKET DISPLAY - DTR **`,
+        `TICKET: ${d.ticketNumber}   DOI: 30JUL26`,
+        `PASSENGER: DA SILVA/RONALDO (CHD)`,
+        `CPN 1  MAD IB 781  11MAR  OPEN FOR USE`,
+        `CPN 2  BER IB 788  11APR  OPEN FOR USE`,
+        d.email ? `E-MAIL CONFIRMATION SENT TO: ${d.email}` : `TICKET STATUS: OK FOR ISSUANCE / EXCHANGE`
+      ].join('\n');
+    }
+
+    if (result.type === 'SPLIT_PNR') {
+      return result.data.message;
+    }
+
+    if (result.type === 'END_AND_FILE_SPLIT') {
+      return result.data.message;
+    }
+
+    if (result.type === 'SHOW_FARE_QUOTE_DETAILS') {
+      return `** FARE CALCULATION DETAIL - FQQ **\nBOG IB MAD M250.00NUC250.00END ROE 1.00\nTAX: CO 35.00 YQ 120.00 TOTAL: 405.00 USD`;
+    }
+
     // Ver TST (TQT / TQT/T1)
     if (result.type === 'TST_VIEW') {
       const t = result.data.tst;
@@ -181,17 +236,48 @@ export class ResponseGenerator {
         `PARA EMITIR: TTM/M1/RT`
       ].join('\n');
     }
-    // Módulo de Cambio Voluntario Manual (reemisión con penalidad)
+    // Módulo de Detalle del Billete Electrónico (TWD / TKT) - Formato 80 Colamnas Amadeus Nativo
     if (result.type === 'TICKET_DETAIL') {
       const t = result.data.ticket;
+      const paxName = t.paxName || 'GARCIA/MIGUEL MR';
+      const cur = t.currency || 'USD';
+      const segments = (t.segments && t.segments.length > 0)
+        ? t.segments
+        : [
+            { flight: 'IB6588', from: 'MAD', to: 'BCN', date: '10APR', class: 'Y', departure: '0900' },
+            { flight: 'IB6589', from: 'BCN', to: 'MAD', date: '17APR', class: 'Y', departure: '1430' }
+          ];
+
       const lines = [
-        `** TWD - DETALLE DEL BILLETE **`,
-        `TKT: ${t.number}${t.loc ? ' LOC: ' + t.loc : ''}`,
-        `DOI: ${t.doi}`
+        `RP/MAD1A0980/MAD1A0980            IB/GS  ${t.doi || '15MAR26'}/1420Z   2A4Z9`,
+        `TWD/TKT ${t.number}`,
+        ` 1.${paxName.padEnd(30)}`,
+        ` TKT: ${t.number.padEnd(20)} NAME: ${paxName}`,
+        ` ISSUED: ${t.doi || '15MAR26'}         IATA: ${t.iata || '78200112'}        FOID: PP123456`
       ];
-      if (t.fareBasisOut) lines.push(`FARE BASIS IDA   : ${t.fareBasisOut}`);
-      if (t.fareBasisIn) lines.push(`FARE BASIS VUELTA: ${t.fareBasisIn}`);
-      lines.push(`TOTAL: ${t.currency} ${t.total}`);
+
+      segments.forEach((seg, idx) => {
+        const cpnNum = idx + 1;
+        const flt = seg.flight || 'IB6588';
+        const cls = seg.class || 'Y';
+        const dt = seg.date || '10APR';
+        const dep = (seg.departure || '09:00').replace(':', '');
+        const fb = idx === 0 ? (t.fareBasisOut || 'YFLEX') : (t.fareBasisIn || t.fareBasisOut || 'YFLEX');
+        const from = seg.from || (seg.route ? seg.route.split('-')[0] : 'MAD');
+        const to = seg.to || (seg.route ? seg.route.split('-')[1] : 'BCN');
+        lines.push(` CPN ${cpnNum}  ${from} ${flt} ${cls} ${dt} ${dep}  OK  ${fb.padEnd(8)}  O (OPEN)`);
+      });
+
+      const base = t.baseFare ? `${cur} ${t.baseFare}` : `${cur} ${t.total ? (t.total * 0.85).toFixed(2) : '267.19'}`;
+      const taxes = t.taxAmount ? `${cur} ${t.taxAmount}` : `${cur} ${t.total ? (t.total * 0.15).toFixed(2) : '45.00'}`;
+      const tot = t.total ? `${cur} ${t.total}` : `${cur} 312.19`;
+
+      lines.push(` FARE  : ${base}`);
+      lines.push(` TAXES : ${taxes} CO`);
+      lines.push(` TOTAL : ${tot}`);
+      lines.push(` FOP   : ${t.fop || 'CC VI 4111XXXXXX1111'}`);
+      lines.push(` FC: ${segments[0]?.from || segments[0]?.route?.split('-')[0] || 'MAD'} IB ${segments[0]?.to || segments[0]?.route?.split('-')[1] || 'BCN'} ${base}END`);
+
       return lines.join('\n');
     }
     if (result.type === 'TICKET_TAX') {

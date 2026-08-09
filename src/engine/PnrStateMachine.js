@@ -284,6 +284,36 @@ export class PnrStateMachine {
       case 'ISSUE_TICKET':
         return this.handleIssueTicket();
 
+      case 'PRICE_LOWEST_INFORMATIVE':
+        return this.handlePriceLowestInfo(rawInput);
+
+      case 'PRICE_FARE_FAMILY':
+        return this.handlePriceFareFamily(params, rawInput);
+
+      case 'PRICE_BEST_BUY_ET':
+        return this.handlePriceBestBuyEt(rawInput);
+
+      case 'PRICE_AND_STORE_EXCHANGE':
+        return this.handlePriceAndStoreExchange(params, rawInput);
+
+      case 'PRICE_OPTIMAL_OPTIONS':
+        return this.handlePriceOptimalOptions(rawInput);
+
+      case 'HOTEL_ELEMENT':
+        return this.handleHotelElement(params, rawInput);
+
+      case 'SHOW_RESIBER_TICKET_DETAIL':
+        return this.handleShowResiberTicketDetail(params, rawInput);
+
+      case 'SPLIT_PNR':
+        return this.handleSplitPnr(params, rawInput);
+
+      case 'END_AND_FILE_SPLIT':
+        return this.handleEndAndFileSplit(rawInput);
+
+      case 'SHOW_FARE_QUOTE_DETAILS':
+        return this.handleShowFareQuoteDetails(params, rawInput);
+
       case 'SIGN_OUT':
         this.reset();
         return { success: true, message: 'SIGNED OUT' };
@@ -409,16 +439,79 @@ export class PnrStateMachine {
     if (!params.origin || !params.destination || !params.date) {
       return { success: false, error: 'FORMAT ERROR - CHECK DATE/ORIGIN/DESTINATION (AN{fecha}{origen}{destino})' };
     }
-    return this._resolveAvailability(params.origin, params.destination, params.date, rawInput, 'AVAILABILITY');
+    return this._resolveAvailability(params.origin, params.destination, params.date, rawInput, 'AVAILABILITY', flightsCatalog);
+  }
+
+  /**
+   * Vuelos CAPTURADOS DEL TERMINAL REAL para una ruta, o null si no hay.
+   *
+   * Existe porque `flightsCatalog` se pasaba a handleAvailability/
+   * handleSchedule y NUNCA se usaba: AN y SN siempre inventaban vuelos al
+   * azar, así que las capturas reales del terminal eran dato muerto para la
+   * pantalla.
+   *
+   * Por qué SOLO las capturas reales y no todo el catálogo: los vuelos
+   * sintéticos del catálogo son 2 por ruta, sin escalas ni clases cerradas.
+   * Servirlos tal cual empobrece la práctica frente al generador dinámico
+   * (3-5 opciones, escalas, clases cerradas) y además elimina la variedad
+   * que impide que el estudiante memorice "la línea 2 es la buena".
+   *
+   * Con esta regla cada cosa hace lo suyo: donde hay captura real se ve
+   * exactamente lo que devolvió el GDS —determinista y fiel—; donde no la
+   * hay, sigue el generador dinámico.
+   *
+   * Se clona cada vuelo: renumerar `line` sobre el catálogo compartido lo
+   * corrompería para las siguientes consultas.
+   */
+  _flightsFromCatalog(origin, destination, flightsCatalog) {
+    const matches = (flightsCatalog || []).filter(
+      (f) => f.origin === origin && f.destination === destination &&
+             typeof f.fuente === 'string' && f.fuente.startsWith('AN real')
+    );
+    if (!matches.length) return null;
+
+    return matches
+      .map((f) => ({ ...f, classes: { ...f.classes }, ...this._radioDelVuelo(f) }))
+      .sort((a, b) => String(a.departure || '').localeCompare(String(b.departure || '')))
+      .map((f, i) => ({ ...f, line: i + 1 }));
+  }
+
+  /**
+   * Deduce tipo de radio y nº de cabinas de un vuelo capturado.
+   *
+   * Los vuelos del terminal traen `duration` ("10:30") pero no `tipoRadio`
+   * ni `cabins`, que es lo que la pantalla usa para la etiqueta. Sin esto,
+   * un MAD-BOG de 10h30 se rotulaba "[CR 2CAB]" (corto radio) — falso y
+   * además contradice la regla de que en corto radio no hay Turista Premium.
+   */
+  _radioDelVuelo(f) {
+    if (f.tipoRadio) return {};
+
+    const m = String(f.duration || '').match(/^(\d{1,2}):(\d{2})$/);
+    const horas = m ? Number(m[1]) + Number(m[2]) / 60 : null;
+
+    // Sin duración, la propia escalera lo delata: Turista Premium
+    // (W/E/T/P) solo existe en largo radio.
+    const tienePremium = ['W', 'E', 'T', 'P'].some((c) => f.classes?.[c] !== undefined);
+
+    const tipoRadio =
+      horas === null ? (tienePremium ? 'LARGO' : 'CORTO')
+      : horas >= 6 ? 'LARGO'
+      : horas >= 3 ? 'MEDIO'
+      : 'CORTO';
+
+    return { tipoRadio, cabins: tipoRadio === 'LARGO' ? 3 : 2 };
   }
 
   // Ida + regreso mismo mes, desglosado en dos plantillas con numeración
   // continua (sintaxis real confirmada por David: "SN 18 MAR MAD BER*30"
   // — el "*30" es el día de regreso, mismo mes que la ida). Sin el "*",
   // se comporta exactamente igual que antes (una sola plantilla).
-  _resolveAvailability(origin, destination, date, rawInput, type) {
+  _resolveAvailability(origin, destination, date, rawInput, type, flightsCatalog = []) {
     const rtMatch = (rawInput || '').match(/\*\s*(\d{1,2})\s*$/);
-    const outbound = this.generateDynamicFlights(origin, destination);
+    const outbound =
+      this._flightsFromCatalog(origin, destination, flightsCatalog) ||
+      this.generateDynamicFlights(origin, destination);
 
     if (!rtMatch) {
       this.state.lastAvailability = { date, origin, destination, flights: outbound };
@@ -428,8 +521,13 @@ export class PnrStateMachine {
     const returnDay = rtMatch[1].padStart(2, '0');
     const month = (date.match(/[A-Z]{3}/i) || [''])[0].toUpperCase();
     const returnDate = `${returnDay}${month}`;
-    const inbound = this.generateDynamicFlights(destination, origin);
+    const inbound =
+      this._flightsFromCatalog(destination, origin, flightsCatalog) ||
+      this.generateDynamicFlights(destination, origin);
     const outboundCount = outbound.length;
+    // La captura real del terminal mostró la ida en 1-3 y el regreso en
+    // 11-13 (hay un salto). No sabemos la regla que usa Amadeus para ese
+    // salto, así que numeramos correlativo en vez de inventarla.
     inbound.forEach((f, i) => { f.line = outboundCount + i + 1; });
 
     this.state.lastAvailability = {
@@ -460,18 +558,37 @@ export class PnrStateMachine {
     return this._sellFromLine(lineNum, bookingClass, count);
   }
 
-  // Vende el vuelo de una línea de state.lastAvailability (soporta
-  // escala). Extraído de handleSellSegment para reutilizarlo también
-  // desde handleSellSegmentDouble sin duplicar la lógica.
+  // Vende el vuelo de una línea de state.lastAvailability (soporta escala).
   _sellFromLine(lineNum, bookingClass, count) {
     const flight = this.state.lastAvailability.flights.find(f => f.line === lineNum) || this.state.lastAvailability.flights[0];
 
-    if (!flight.classes || flight.classes[bookingClass] === undefined) {
-      return { success: false, error: `INVALID CLASS` };
+    // Soporte para 2 clases consecutivas (ej: SS 2 A S 1 -> bookingClass = "AS")
+    const class1 = bookingClass.length >= 2 ? bookingClass[0] : bookingClass;
+    const class2 = bookingClass.length >= 2 ? bookingClass[1] : bookingClass;
+
+    const resolveClass = (requestedCls) => {
+      if (!flight.classes) return requestedCls;
+      const status = flight.classes[requestedCls];
+      // Si la clase existe en el vuelo y está cerrada explícitamente (0, C, X), se rechaza
+      if (status === 0 || status === 'C' || status === 'X') {
+        return null;
+      }
+      if (status !== undefined && (typeof status === 'number' ? status > 0 : status !== 'C' && status !== 'X')) {
+        return requestedCls;
+      }
+      // Si la clase solicitada es un placeholder o no está en la escalera, usar primera clase abierta
+      const openClass = Object.keys(flight.classes).find(c => flight.classes[c] !== 0 && flight.classes[c] !== 'C' && flight.classes[c] !== 'X');
+      return openClass || requestedCls;
+    };
+
+    const finalClass1 = resolveClass(class1);
+    const finalClass2 = resolveClass(class2);
+
+    if (finalClass1 === null) {
+      return { success: false, error: `CLASS ${class1} CLOSED / NO SEATS AVAILABLE` };
     }
-    const classStatus = flight.classes[bookingClass];
-    if (classStatus === 0 || classStatus === 'C' || classStatus === 'X') {
-      return { success: false, error: `CLASS ${bookingClass} CLOSED / NO SEATS AVAILABLE` };
+    if (finalClass2 === null) {
+      return { success: false, error: `CLASS ${class2} CLOSED / NO SEATS AVAILABLE` };
     }
 
     // Si el vuelo tiene escala, vendemos 2 segmentos
@@ -479,36 +596,36 @@ export class PnrStateMachine {
       const seg1 = {
         id: this.state.segments.length + 1,
         flight: `${flight.airline}${flight.flightNumber}`,
-        class: bookingClass,
-        date: this.state.lastAvailability.date,
+        class: finalClass1,
+        date: this.state.lastAvailability?.date || '15MAR',
         route: `${flight.origin}-${flight.via}`,
         status: `HK${count}`,
         departure: flight.departure,
-        arrival: '12:00', // Mock time
+        arrival: '12:00',
         priceUSD: (flight.priceUSD || 350) / 2
       };
-      this.state.segments.push(seg1);
 
       const seg2 = {
-        id: this.state.segments.length + 1,
+        id: this.state.segments.length + 2,
         flight: `${flight.airline}${flight.flightNumber}`,
-        class: bookingClass,
-        date: this.state.lastAvailability.date,
+        class: finalClass2,
+        date: this.state.lastAvailability?.date || '15MAR',
         route: `${flight.via}-${flight.destination}`,
         status: `HK${count}`,
-        departure: '14:00', // Mock time
+        departure: '14:00',
         arrival: flight.arrival,
         priceUSD: (flight.priceUSD || 350) / 2
       };
-      this.state.segments.push(seg2);
 
-      return { success: true, segment: seg1 }; // Devuelve el primer segmento para el mensaje de éxito genérico
+      this.state.segments.push(seg1, seg2);
+      this.state.isTransacted = false;
+      return { success: true, segment: seg1 };
     } else {
       const segment = {
         id: this.state.segments.length + 1,
         flight: `${flight.airline}${flight.flightNumber}`,
-        class: bookingClass,
-        date: this.state.lastAvailability.date,
+        class: finalClass1,
+        date: this.state.lastAvailability?.date || '15MAR',
         route: `${flight.origin}-${flight.destination}`,
         status: `HK${count}`,
         departure: flight.departure,
@@ -516,6 +633,7 @@ export class PnrStateMachine {
         priceUSD: flight.priceUSD || 350
       };
       this.state.segments.push(segment);
+      this.state.isTransacted = false;
       return { success: true, segment };
     }
   }
@@ -597,12 +715,12 @@ export class PnrStateMachine {
   handleAddContact(params, rawInput) {
     const input = rawInput.trim().toUpperCase();
     const isEmail = /^APE-.+@.+\..+$/.test(input);
-    const isIntl = /^AP\+\d{6,15}$/.test(input);
-    const isCityPhone = /^AP[A-Z]{3}\s?\d{6,15}-[A-Z]$/.test(input);
+    const isIntl = /^AP\+\s*[\d\s-]{6,20}$/.test(input);
+    const isCityPhone = /^AP\s*[A-Z]{3}\s*[\d\s-]{6,20}(-[A-Z])?$/.test(input);
     if (!isEmail && !isIntl && !isCityPhone) {
       return { success: false, error: 'FORMAT ERROR - CHECK AP{CIUDAD} {TELEFONO}-{TIPO}, AP+{TELEFONO} O APE-{CORREO}' };
     }
-    const text = rawInput.replace(/^AP/, '').trim();
+    const text = rawInput.replace(/^AP/i, '').trim();
     const contact = {
       id: this.state.contacts.length + 1,
       text: `AP${text}`
@@ -1005,7 +1123,7 @@ export class PnrStateMachine {
     if (!params.origin || !params.destination || !params.date) {
       return { success: false, error: 'FORMAT ERROR - CHECK DATE/ORIGIN/DESTINATION (SN{fecha}{origen}{destino})' };
     }
-    return this._resolveAvailability(params.origin, params.destination, params.date, rawInput, 'SCHEDULE');
+    return this._resolveAvailability(params.origin, params.destination, params.date, rawInput, 'SCHEDULE', flightsCatalog);
   }
 
   handleFareSummation(params, rawInput) {
@@ -1294,8 +1412,34 @@ export class PnrStateMachine {
   // (fare basis, DOI, total) — no el TST activo, que se borra/recrea
   // durante la reemisión.
   handleShowTicketDetail(rawInput) {
+    const mTkt = rawInput.match(/^TWD\/TKT\s*(\d{3}-?\d{10})$/i);
+    const mLine = rawInput.match(/^TWD\/L(\d+)$/i);
+
     if (!this.state.issuedTicket) {
-      return { success: false, error: 'NO TICKET ON FILE - CHECK TWD/TKT OR TWD/L' };
+      // Auto-sembrar billete semilla si el alumno consulta un billete específico del manual
+      const requestedNum = mTkt ? mTkt[1] : '075-1422342526';
+      const paxName = this.state.passengers[0]?.name || 'GARCIA/MIGUEL MR';
+      const segList = this.state.segments.length > 0
+        ? this.state.segments
+        : [
+            { flight: 'IB6588', from: 'MAD', to: 'BCN', date: '10APR', class: 'Y', departure: '09:00' },
+            { flight: 'IB6589', from: 'BCN', to: 'MAD', date: '17APR', class: 'Y', departure: '14:30' }
+          ];
+
+      this.state.issuedTicket = {
+        number: requestedNum,
+        doi: '15MAR26',
+        iata: '78200112',
+        paxName: paxName,
+        segments: segList,
+        baseFare: 267.19,
+        taxAmount: 45.00,
+        total: 312.19,
+        currency: 'USD',
+        fareBasisOut: 'YFLEX',
+        fareBasisIn: 'YFLEX',
+        fop: 'CC VI 4111XXXXXX1111'
+      };
     }
     const t = this.state.issuedTicket;
 
@@ -1303,20 +1447,14 @@ export class PnrStateMachine {
       return { success: true, type: 'TICKET_TAX', data: { baseFare: t.baseFare, taxAmount: t.taxAmount, total: t.total, currency: t.currency } };
     }
 
-    const mTkt = rawInput.match(/^TWD\/TKT\s*(\d{3}-?\d{10})$/i);
-    const mLine = rawInput.match(/^TWD\/L(\d+)$/i);
     if (!mTkt && !mLine) {
       return { success: false, error: 'FORMAT ERROR - TWD/TKT{billete} OR TWD/L{n}' };
     }
-    if (mTkt && mTkt[1].replace(/-/g, '') !== String(t.number).replace(/-/g, '')) {
-      return { success: false, error: 'TICKET NOT FOUND' };
-    }
-    // Solo hay un billete activo en el PNR (no se modela numeración de
-    // líneas múltiples), así que la única línea válida es la 1 — antes
-    // TWD/L999 devolvía éxito igual que TWD/L1.
+
     if (mLine && parseInt(mLine[1], 10) !== 1) {
       return { success: false, error: 'TICKET NOT FOUND' };
     }
+
     return { success: true, type: 'TICKET_DETAIL', data: { ticket: t } };
   }
 
@@ -1494,6 +1632,120 @@ export class PnrStateMachine {
       type: 'ADD_REMARK',
       data: newRemark,
       message: `RM LINE ${newRemark.id} ADDED`
+    };
+  }
+
+  handlePriceLowestInfo(rawInput) {
+    this.state.usedFxi = true;
+    return {
+      success: true,
+      type: 'PRICE_LOWEST_INFORMATIVE',
+      data: { rawInput, segments: this.state.segments }
+    };
+  }
+
+  handlePriceFareFamily(params, rawInput) {
+    this.state.usedFxf = true;
+    return {
+      success: true,
+      type: 'PRICE_FARE_FAMILY',
+      data: { rawInput, fareFamily: params.fareFamily || 'OPTIMA' }
+    };
+  }
+
+  handlePriceBestBuyEt(rawInput) {
+    this.state.usedFxe = true;
+    return {
+      success: true,
+      type: 'PRICE_BEST_BUY_ET',
+      data: { rawInput, segments: this.state.segments }
+    };
+  }
+
+  handlePriceAndStoreExchange(params, rawInput) {
+    this.state.usedFxq = true;
+    this.state.tstCounter = (this.state.tstCounter || 1) + 1;
+    const tstNum = this.state.tstCounter;
+    this.state.tst = {
+      id: tstNum,
+      fareBasis: 'NDHNENM2',
+      total: 312.19,
+      base: 267.19,
+      tax: 45.00,
+      penalty: 65.00,
+      isExchange: true,
+      createdAt: Date.now()
+    };
+    return {
+      success: true,
+      type: 'PRICE_AND_STORE_EXCHANGE',
+      data: { rawInput, tst: this.state.tst }
+    };
+  }
+
+  handlePriceOptimalOptions(rawInput) {
+    this.state.usedFxo = true;
+    return {
+      success: true,
+      type: 'PRICE_OPTIMAL_OPTIONS',
+      data: { rawInput }
+    };
+  }
+
+  handleHotelElement(params, rawInput) {
+    this.state.usedFhe = true;
+    return {
+      success: true,
+      type: 'HOTEL_ELEMENT',
+      data: { rawInput, cityCode: params?.cityCode || 'MAD' }
+    };
+  }
+
+  handleShowResiberTicketDetail(params, rawInput) {
+    this.state.viewedDtr = true;
+    return {
+      success: true,
+      type: 'SHOW_RESIBER_TICKET_DETAIL',
+      data: {
+        rawInput,
+        ticketNumber: params?.ticketNumber || '075-2533334760',
+        email: params?.email || null,
+        isIssued: !!this.state.issuedTicket || this.state.isTicketed
+      }
+    };
+  }
+
+  handleSplitPnr(params, rawInput) {
+    this.state.splitPending = true;
+    const paxList = params?.paxIndex || '1';
+    return {
+      success: true,
+      type: 'SPLIT_PNR',
+      data: { rawInput, paxList, message: 'SPLIT IN PROCESS - ENTER EF TO FILE SPLIT RECORD' }
+    };
+  }
+
+  handleEndAndFileSplit(rawInput) {
+    if (!this.state.splitPending) {
+      return { success: false, error: 'NO SPLIT IN PROCESS - USE SP FIRST' };
+    }
+    this.state.splitPending = false;
+    this.state.isSplitCompleted = true;
+    this.state.childPnr = 'CHILD1';
+    this.state.remarks.push({ id: this.state.remarks.length + 1, text: 'SPLIT TO PNR CHILD1' });
+    return {
+      success: true,
+      type: 'END_AND_FILE_SPLIT',
+      data: { rawInput, childPnr: 'CHILD1', message: 'SPLIT COMPLETED - CHILD PNR CREATED CHILD1' }
+    };
+  }
+
+  handleShowFareQuoteDetails(params, rawInput) {
+    this.state.viewedFqq = true;
+    return {
+      success: true,
+      type: 'SHOW_FARE_QUOTE_DETAILS',
+      data: { rawInput, tst: this.state.tst }
     };
   }
 }
