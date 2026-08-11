@@ -45,7 +45,7 @@ console.log('\n--- SIN DATOS: PREGUNTA, NO ADIVINA ---');
 const r0 = queProcedimiento({});
 comprobar('no decide nada', r0.procedimientoId, null);
 comprobar('pregunta la intención', r0.siguientePregunta.id, 'intencion');
-comprobar('ofrece las 4 ramas', r0.siguientePregunta.opciones.length, 4);
+comprobar('ofrece las 6 ramas', r0.siguientePregunta.opciones.length, 6);
 
 const r1 = queProcedimiento({ intencion: 'cambio' });
 comprobar('cambio sin billete → pregunta si voló', r1.siguientePregunta.id, 'volado');

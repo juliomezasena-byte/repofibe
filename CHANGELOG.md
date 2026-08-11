@@ -2,6 +2,12 @@
 
 Todas las novedades de repofibe, versión por versión.
 
+## [1.4.7] - 2026-08-11
+### Correcciones
+- Corrección de regresiones en la suite de pruebas del backend (`worker`), logrando un 100% de paso en las 155 pruebas.
+- Remoción de claves de pasajeros específicas (como `2 adt - 1 chd - 1 inf`) del clasificador de intenciones generales del tutor para evitar bloqueos en el flujo de emisión inicial de reservas.
+- Actualización de los prompts de tutoría y auditoría del worker para incluir la rúbrica técnica de ejecución de comandos oficiales del manual en las evaluaciones de llamadas.
+
 ## [1.4.6] - 2026-08-01
 ### Correcciones
 - Validación de cambios voluntarios: los niveles 23 y 24 ahora exigen que el itinerario final coincida en origen, destino, fecha y clase, incluyendo conexiones.

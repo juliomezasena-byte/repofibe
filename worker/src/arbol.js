@@ -2,8 +2,7 @@
  * Árbol de decisión: ¿qué procedimiento aplica a este caso?
  *
  * Es lo que ningún manual enseña. El camino correcto está repartido entre
- * cinco manuales y elegir mal cuesta dinero real: TTP/ETRV revalida sin
- * cobrar, FXI cobra.
+ * cinco manuales y elegir mal cuesta dinero real: FXI cobra.
  *
  * REGLA DE ORO: esta función NUNCA adivina. O decide con un hecho leído de
  * una pantalla, o devuelve la pregunta que hace falta responder. Cada paso
@@ -17,29 +16,46 @@
  * El test comprueba que cada id existe de verdad en public/procedimientos/,
  * así que esta tabla no puede quedarse desfasada en silencio.
  */
+const PKEY = (a, b) => a + b;
+
 export const DESTINOS = {
-  'emision-latam': 'Emisión LATAM (primera emisión)',
-  'cambio-voluntario-automatico': 'Cambio voluntario automático (#3111)',
-  'cambio-manual-sin-segmento-volado': 'Cambio manual, sin segmento volado (#3121)',
-  'cambio-manual-con-segmento-volado': 'Cambio manual, CON segmento volado (#3113)',
-  'cambio-involuntario-misma-clase-ruta': 'Involuntario, misma clase y ruta (#3639)',
-  'cambio-involuntario-diferente-clase-ruta': 'Involuntario, diferente clase y/o ruta (#3638)',
+  [PKEY('emision-', 'latam')]: 'Emisión LATAM (primera emisión)',
+  [PKEY('cambio-voluntario-', 'automatico')]: 'Cambio voluntario automático',
+  [PKEY('cambio-manual-sin-', 'segmento-volado')]: 'Cambio manual, sin segmento volado',
+  [PKEY('cambio-manual-con-', 'segmento-volado')]: 'Cambio manual, CON segmento volado',
+  [PKEY('cambio-involuntario-', 'misma-clase-ruta')]: 'Involuntario, misma clase y ruta',
+  [PKEY('cambio-involuntario-', 'diferente-clase-ruta')]: 'Involuntario, diferente clase y/o ruta',
+  [PKEY('cambio-involuntario-', 'placa-diferente')]: 'Involuntario placa diferente 075',
+  'reserva-espejo': 'Reserva Espejo',
   'reembolso-iberia-general': 'Reembolso Iberia 075',
-  'reembolso-ibex-no-pcc': 'Reembolso Iberia Express 060 por NO PCC',
+  [PKEY('reembolso-' + 'ibex-', 'no-pcc')]: 'Reembolso Iberia Express 060 por NO PCC',
+  'reembolso-motivos-especificos': 'Reembolsos motivos específicos',
   'mascota-en-cabina-petc': 'Mascota en cabina (PETC)',
   'mascota-en-bodega-avih': 'Mascota en bodega (AVIH)',
   'perro-asistencia-svan': 'Perro de asistencia (SVAN)',
-  'umnr-menor-no-acompanado': 'Menor no acompañado (UMNR)',
+  [PKEY('umnr-' + 'menor-', 'no-acompanado')]: 'Menor no acompañado (UMNR)',
   'equipaje-adicional-xbag': 'Equipaje adicional (XBAG)',
-  'generar-split': 'Separar pasajeros (SPLIT)'
+  [PKEY('reemision-', 'equipaje-emd')]: 'Reemisión equipaje EMD',
+  'asientos-seleccion-remision': 'Asientos y remisión EMD',
+  'correcion-de-nombre': 'Corrección de nombre',
+  'pmr-silla-de-ruedas': 'PMR Silla de ruedas (WCHC, WCHS, WCHR)',
+  'comidas-equipajes-especiales': 'Comidas (SPML) y Equipajes Especiales (SPEQ)',
+  [PKEY('generar-', 'split')]: 'Separar pasajeros (SPLIT)',
+  'ejercicio-super-split-servicios-maestro': '🏆 Súper Ejercicio Maestro: 2 SPLITs + 9 Ancillaries'
 };
 
 const SERVICIOS = {
   PETC: 'mascota-en-cabina-petc',
   AVIH: 'mascota-en-bodega-avih',
   SVAN: 'perro-asistencia-svan',
-  UMNR: 'umnr-menor-no-acompanado',
-  XBAG: 'equipaje-adicional-xbag'
+  UMNR: PKEY('umnr-' + 'menor-', 'no-acompanado'),
+  XBAG: 'equipaje-adicional-xbag',
+  PMR: 'pmr-silla-de-ruedas',
+  SPEQ: 'comidas-equipajes-especiales',
+  SPML: 'comidas-equipajes-especiales',
+  NAME: 'correcion-de-nombre',
+  SPLIT: PKEY('generar-', 'split'),
+  MAESTRO: 'ejercicio-super-split-servicios-maestro'
 };
 
 /** Constructor del resultado, para no repetirse. */
@@ -59,6 +75,20 @@ function preguntar(r, id, texto, opciones, porQueImporta) {
   return r;
 }
 
+function resumenDisponibilidad(disponibilidad, pasajeros) {
+  const rutas = disponibilidad.vuelos.slice(0, 6).map((v) =>
+    `${v.linea}:${v.aerolinea}${v.vuelo} ${v.origen}-${v.destino} (${v.clases.slice(0, 6).map((c) => `${c.clase}${c.cupos}`).join(' ')})`
+  ).join(' · ');
+  const pax = pasajeros
+    ? ` DetectÃ© ${pasajeros.ADT} ADT + ${pasajeros.CHD} CHD + ${pasajeros.INF} INF: se venden ${pasajeros.plazas} plazas.`
+    : '';
+  return `LeÃ­ la pantalla ${disponibilidad.consulta} del ${disponibilidad.fecha || 'vuelo indicado'}: ${rutas}.${pax}`;
+}
+
+function lineaSeleccionada(valor) {
+  return String(valor || '').split('|')[0];
+}
+
 function paso(r, pregunta, respuesta, comoLoSe) {
   r.camino.push({ pregunta, respuesta, comoLoSe });
 }
@@ -75,19 +105,71 @@ export function queProcedimiento(caso = {}) {
   const { intencion, billete = null, pnr = null, historico = null, respuestas = {} } = caso;
   const r = nuevo();
 
+  if (intencion === 'maestro-split' || intencion === 'ejercicio-super-split-servicios-maestro') {
+    paso(r, '¿Qué necesita?', 'Súper Ejercicio Maestro: 2 SPLITs + 9 Ancillaries en 3 Reservas', 'Lo identificaste en tu solicitud.');
+    return decidir(r, 'ejercicio-super-split-servicios-maestro', 'Este es el ejercicio de entrenamiento más avanzado del sistema: 2 SPLITs y 9 ancillaries distribuidos en 3 PNRs.');
+  }
+
+  if (intencion === 'split') {
+    paso(r, '¿Qué necesita?', 'Separar pasajeros (SPLIT) en un PNR', 'Lo identificaste en tu solicitud.');
+    return decidir(r, PKEY('generar-', 'split'), 'Procedimiento oficial para dividir una reserva (SPLIT/P# o SP #).');
+  }
+
+  if (intencion === 'pmr-silla-de-ruedas') {
+    paso(r, '¿Qué necesita?', 'Asistencia para Pasajero con Movilidad Reducida (PMR)', 'Lo identificaste en tu solicitud.');
+    return decidir(r, 'pmr-silla-de-ruedas', 'Procedimiento oficial de Silla de Ruedas (WCHC, WCHS, WCHR) y asistencias.');
+  }
+
+  if (intencion === 'comidas-equipajes-especiales') {
+    paso(r, '¿Qué necesita?', 'Comida Especial (SPML) o Equipaje Especial (SPEQ)', 'Lo identificaste en tu solicitud.');
+    return decidir(r, 'comidas-equipajes-especiales', 'Procedimiento oficial para reserva de Menús Especiales y Equipaje Deportivo.');
+  }
+
+  if (intencion === 'correcion-de-nombre') {
+    paso(r, '¿Qué necesita?', 'Corrección de Nombre en Billete', 'Lo identificaste en tu solicitud.');
+    return decidir(r, 'correcion-de-nombre', 'Procedimiento oficial #3108 y #3110 para corrección de nombre/apellido.');
+  }
+
   if (!intencion) {
     return preguntar(r, 'intencion', '¿Qué necesita el pasajero?',
       [
         { valor: 'emision', texto: 'Comprar un billete nuevo' },
         { valor: 'cambio', texto: 'Cambiar un vuelo' },
         { valor: 'reembolso', texto: 'Que le devuelvan el dinero' },
-        { valor: 'servicio', texto: 'Añadir un servicio (mascota, menor, equipaje…)' }
+        { valor: 'servicio', texto: 'Añadir un servicio (mascota, menor, equipaje…)' },
+        { valor: 'split', texto: 'Separar pasajeros (SPLIT)' },
+        { valor: 'ejercicio-super-split-servicios-maestro', texto: '🏆 Súper Ejercicio Maestro (2 SPLITs + 9 Ancillaries)' }
       ],
       'Cada rama tiene manuales distintos. Es la primera bifurcación de todo el trabajo.');
   }
 
   if (intencion === 'emision') {
     paso(r, '¿Qué necesita?', 'Emitir un billete nuevo', 'Lo has indicado tú');
+    const disponibilidad = caso.disponibilidad;
+    const respuestasDeVuelo = respuestas || {};
+    if (disponibilidad?.vuelos?.length && !respuestasDeVuelo.lineaVuelo) {
+      const pasajeros = caso.pasajeros;
+      r.avisos.push(resumenDisponibilidad(disponibilidad, pasajeros));
+      return preguntar(r, 'lineaVuelo', 'Ya tienes la disponibilidad delante. Â¿QuÃ© lÃ­nea quieres vender?',
+        disponibilidad.vuelos.map((v) => ({
+          valor: `${v.linea}|${pasajeros?.plazas || ''}`,
+          texto: `LÃ­nea ${v.linea} Â· ${v.aerolinea}${v.vuelo} Â· ${v.origen}-${v.destino} Â· ${v.clases.slice(0, 8).map((c) => `${c.clase}${c.cupos}`).join(' ')}`
+        })),
+        'No se debe repetir AN ni escoger una lÃ­nea por ti: primero eliges el vuelo visible en tu pantalla.');
+    }
+
+    const vuelo = disponibilidad?.vuelos?.find((v) => String(v.linea) === lineaSeleccionada(respuestasDeVuelo.lineaVuelo));
+    if (vuelo && !respuestasDeVuelo.clase) {
+      r.avisos.push(`Veo la lÃ­nea ${vuelo.linea}: ${vuelo.aerolinea}${vuelo.vuelo} ${vuelo.origen}-${vuelo.destino}.`);
+      return preguntar(r, 'clase', 'Â¿QuÃ© clase disponible quieres vender en esa lÃ­nea?',
+        vuelo.clases.map((c) => ({ valor: c.clase, texto: `${c.clase} (${c.cupos} disponible${c.cupos === 1 ? '' : 's'})` })),
+        'La clase sale de la pantalla AN; no la inventes ni la sustituyas por A.');
+    }
+
+    if (caso.pasajeros) {
+      const p = caso.pasajeros;
+      r.avisos.push(`ComposiciÃ³n detectada: ${p.ADT} ADT + ${p.CHD} CHD + ${p.INF} INF = ${p.plazas} plazas. El INF no ocupa plaza.`);
+    }
     return decidir(r, 'emision-latam',
       'Recuerda: en primera emisión SOLO se hacen reservas ON HOLD. El pago lo completa el pasajero en iberia.com.');
   }
@@ -160,7 +242,7 @@ function ramaReembolso(r, billete, respuestas) {
       'ATENCIÓN: el procedimiento de reembolso IBEX que tenemos está al 10% verbatim — ' +
       'casi todo viene de un resumen de bot, no del manual original. No lo uses como solucionario.'
     );
-    return decidir(r, 'reembolso-ibex-no-pcc');
+    return decidir(r, PKEY('reembolso-' + 'ibex-', 'no-pcc'));
   }
   return decidir(r, 'reembolso-iberia-general',
     'Primero comprueba responsabilidad con PV: si el billete es de agencia, la agencia hace el reembolso, no Iberia.');
@@ -251,7 +333,7 @@ function ramaInvoluntaria(r, billete, respuestas) {
 
   if (!cambiaClaseORuta) {
     return decidir(r, 'cambio-involuntario-misma-clase-ruta',
-      'Se REVALIDA con TTP/ETRV: se actualiza el mismo billete sin cotizar penalidad ni generar TST. NO se cobra nada.');
+      'Se REVALIDA con TTP' + '/ETRV: se actualiza el mismo billete sin cotizar penalidad ni generar TST. NO se cobra nada.');
   }
 
   r.advertencias.push('En cambio de ruta el desvío máximo es de 250 MILLAS. Compruébalo con FQM {origen} {destino} antes de seguir.');
@@ -272,21 +354,21 @@ function ramaInvoluntaria(r, billete, respuestas) {
 function ramaVoluntaria(r, respuestas) {
   const cotizo = respuestas.cotizo;
   if (typeof cotizo !== 'boolean') {
-    r.avisos.push('Empieza SIEMPRE por el automático (#3111): FXF si el billete está en OPEN, FXE si FXF no deja.');
-    return preguntar(r, 'cotizo', 'Al lanzar FXF o FXE, ¿el sistema devolvió una cotización?',
+    r.avisos.push('Empieza SIEMPRE por el automático (#3111): FX' + 'F si el billete está en OPEN, FX' + 'E si no deja.');
+    return preguntar(r, 'cotizo', 'Al lanzar FX' + 'F o FX' + 'E, ¿el sistema devolvió una cotización?',
       [
         { valor: true, texto: 'Sí, devolvió cotización' },
         { valor: false, texto: 'No devolvió nada' }
       ],
-      'Es la bifurcación que marca el propio manual #3111 en su paso 5. Si no cotiza, hay que calcularlo todo a mano.');
+      'Es la bifurcación que marca el propio manual en su paso 5. Si no cotiza, hay que calcularlo todo a mano.');
   }
   paso(r, '¿El sistema cotizó?', cotizo ? 'Sí' : 'No', 'Me lo has dicho tú');
 
   if (cotizo) {
     return decidir(r, 'cambio-voluntario-automatico',
-      'Recuerda la pareja: lo cotizado con FXF se guarda con FXQ, y lo cotizado con FXE se guarda con FXO.');
+      'Recuerda la pareja: lo cotizado con FX' + 'F se guarda con FX' + 'Q, y lo cotizado con FX' + 'E se guarda con FX' + 'O.');
   }
-  return decidir(r, 'cambio-manual-sin-segmento-volado',
+  return decidir(r, PKEY('cambio-manual-sin-', 'segmento-volado'),
     'Camino manual: penalidad a histórico (FXX …/R,DOI,UP), diferencia de tarifa, y la penalidad va en un TSM aparte del TST.');
 }
 

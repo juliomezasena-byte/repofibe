@@ -1,7 +1,7 @@
 {
   "name": "cryptic-trainer-pwa",
   "private": true,
-  "version": "1.4.6",
+  "version": "1.4.7",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,6 +10,9 @@
     "test:parser": "node scripts/test-parser.js",
     "test:regression": "node scripts/test-regression.js",
     "test:learning": "node scripts/test-learning-path.js",
+    "test:seed": "node scripts/test-seed-pnr.js",
+    "bot:build": "node scripts/construir-bot-hyntibia.mjs",
+    "bot:test": "node scripts/construir-bot-hyntibia.mjs && node scripts/test-bot-hyntibia.js && node scripts/test-bot-navegador.mjs",
     "test:e2e": "playwright test"
   },
   "dependencies": {
