@@ -1,4 +1,4 @@
-import { useCallback, useRef, useEffect } from 'react';
+import { useCallback } from 'react';
 import { useLocalStorage } from './useLocalStorage';
 
 // Singleton para el AudioContext para no crear múltiples (y reusar si el navegador lo permite)

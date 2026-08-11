@@ -1,0 +1,39 @@
+{
+  "id": "comidas-equipajes-especiales",
+  "titulo": "Comidas Especiales (SPML) y Equipajes Especiales (SPEQ / GOLF / BIKE / WEAP)",
+  "aerolinea": "IB",
+  "categoria": "servicios",
+  "resumen": "Procedimiento operativo para la reserva de Menús Especiales (SPML) y Equipajes Especiales o Deportivos (SPEQ) en Resiber y Amadeus/SARA.",
+  "aplicaSolo": "Billetes 075 en vuelos de largo radio / Business para SPML. Vuelos operados por Grupo Iberia para SPEQ.",
+  "advertencias": [
+    { "nivel": "critico", "texto": "ANTELACIÓN SPML: Las comidas especiales deben solicitarse con al menos 24 a 48 HORAS de antelación al vuelo.", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "EQUIPAJES ESPECIALES: El pago de equipo deportivo (Golf, Bicicletas, Esquí) se emite como EMD de servicios adicionales o se cobra en mostrador según tarifa.", "confianza": "verbatim" }
+  ],
+  "fuente": {
+    "documento": "IberiaNet Lite — Comidas y Equipajes Especiales",
+    "tipo": "manual-oficial-interno",
+    "recibido": "2026-08-11",
+    "confianzaGlobal": "verbatim"
+  },
+  "codigosSpml": [
+    { "codigo": "VGML", "descripcion": "Vegetariana Estricta / Vegana" },
+    { "codigo": "VLML", "descripcion": "Vegetariana Lacto-Ovo" },
+    { "codigo": "KSML", "descripcion": "Comida Kosher" },
+    { "codigo": "MOML", "descripcion": "Comida Musulmana (Halal)" },
+    { "codigo": "GFML", "descripcion": "Comida Sin Gluten" },
+    { "codigo": "DBML", "descripcion": "Comida para Diabéticos" }
+  ],
+  "codigosSpeq": [
+    { "codigo": "GOLF", "descripcion": "Equipo de Golf (bolsa + zapatos)" },
+    { "codigo": "BIKE", "descripcion": "Bicicleta no motorizada empaquetada" },
+    { "codigo": "SPEQ", "descripcion": "Equipaje Especial Genérico / Deporte acuático / Esquí" },
+    { "codigo": "WEAP", "descripcion": "Armas de caza o deportivas (requiere trámite Guardia Civil)" }
+  ],
+  "pasos": [
+    { "n": 0, "sistema": "natiba", "proceso": "Filtro de seguridad", "comando": null, "explicacion": "APELLIDO + PNR.", "confianza": "verbatim", "esBloqueante": true },
+    { "n": 1, "sistema": "resiber", "proceso": "[RESIBER] Solicitar comida especial (ej. VGML)", "comando": "SSR VGML YY NN1 /P1/S2", "explicacion": "Resiber segmento a segmento. Guardar con ÑK.", "confianza": "verbatim" },
+    { "n": 2, "sistema": "amadeus", "proceso": "[AMADEUS] Solicitar comida especial (ej. VGML)", "comando": "SR VGML IB NN1/S2-3/P1", "explicacion": "Amadeus admite rango. Guardar con ER -> ERK.", "confianza": "verbatim" },
+    { "n": 3, "sistema": "resiber", "proceso": "[RESIBER] Solicitar equipo de golf (GOLF)", "comando": "SSR GOLF YY NN1 1BAG 15KG 120X40X30/P1/S2", "explicacion": "Registrar peso y dimensiones.", "confianza": "verbatim" },
+    { "n": 4, "sistema": "amadeus", "proceso": "[AMADEUS] Solicitar equipo de golf (GOLF)", "comando": "SR GOLF IB NN1 - 1BAG 15KG 120X40X30/S2-3/P1", "explicacion": "Registrar peso y dimensiones en Amadeus.", "confianza": "verbatim" }
+  ]
+}

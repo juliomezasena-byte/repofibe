@@ -1,0 +1,101 @@
+{
+  "id": "ejercicio-super-split-servicios-maestro",
+  "titulo": "Súper Ejercicio Maestro — División Múltiple (2 SPLITs) y Gestión Avanzada de 9 Ancillaries en 3 Reservas",
+  "aerolinea": "IB",
+  "categoria": "ejercicios-maestros",
+  "resumen": "Ejercicio de evaluación avanzada end-to-end: creación de PNR inicial (2 ADT + 1 CHD + 1 INF), ejecución de 2 SPLITs consecutivos para generar 3 reservas independientes, y asignación combinada de UMNR, PMR, SPEQ, XBAG, PETC, SPML, BSCT, Corrección de Nombre y AVIH.",
+  "aplicaSolo": "Entrenamiento de Alto Rendimiento en Amadeus y Resiber para Agentes Senior de Iberia.",
+  "pasos": [],
+  "advertencias": [
+    { "nivel": "critico", "texto": "SECUENCIA OBLIGATORIA: Los SPLITs deben realizarse ANTES de solicitar los servicios específicos en cada PNR hijo para evitar la propagación indeseada de ancillaries a todos los pasajeros.", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "RESERVA CHD SOLA (PNR 2): Al quedar el menor de 12 años solo en la reserva dividida, es OBLIGATORIO agregar el SSR UMNR con los datos OSI CTCT de tutores en origen y destino.", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "RESERVA ADT + INF (PNR 1): Para la mascota en bodega (AVIH), verificar estrictamente que el animal NO sea braquicéfalo ni raza peligrosa. Asiento cuna (BSCT) requiere bebé < 8 meses y < 11 kg.", "confianza": "verbatim" }
+  ],
+  "fases": [
+    {
+      "fase": 1,
+      "nombre": "Reserva Inicial y Primer SPLIT (Separar al CHD)",
+      "descripcion": "PNR Original con 2 ADT (P1, P2), 1 CHD (P3), 1 INF (asociado a P1). Dividir al CHD (P3).",
+      "comandosAmadeus": [
+        "SP 1 (dividir pasajero 3)",
+        "EF (guardar PNR hijo para CHD -> PNR 2)",
+        "ET (finalizar PNR hijo)"
+      ],
+      "comandosResiber": [
+        "SPLIT/P3",
+        "ÑK (guardar PNR hijo -> PNR 2)"
+      ]
+    },
+    {
+      "fase": 2,
+      "nombre": "Segundo SPLIT (Separar al ADT 2 solo)",
+      "descripcion": "En el PNR principal de adultos, dividir al ADT 2 (quien no lleva al bebé).",
+      "comandosAmadeus": [
+        "RT [PNR_PADRE]",
+        "SP 1 (dividir al adulto sin infante)",
+        "EF (guardar PNR hijo para ADT2 -> PNR 3)",
+        "ET (finalizar PNR hijo)"
+      ],
+      "comandosResiber": [
+        "RT [PNR_PADRE]",
+        "SPLIT/P2",
+        "ÑK (guardar PNR hijo -> PNR 3)"
+      ]
+    },
+    {
+      "fase": 3,
+      "nombre": "Configuración de Servicios en PNR 2 (1 CHD)",
+      "servicios": ["UMNR (Menor No Acompañado)", "PMR WCHC (Silla de Ruedas)", "SPEQ GOLF (Equipo de Golf)"],
+      "comandosAmadeus": [
+        "SR UMNR- 08 YEARS/S2,3/P1",
+        "OS IB UMCT MAD 34123456/PADRE/CALLE 123",
+        "OS IB UMCT BOG 57123456/MADRE/CALLE 456",
+        "SR WCHC IB NN1/S2-3/P1",
+        "SR GOLF IB NN1 - 1BAG 15KG 120X40X30/S2-3/P1",
+        "ER -> ERK"
+      ],
+      "comandosResiber": [
+        "SSR UMNR IB NN1 MADBOG 6587 Q 10AUG 08 YEARS/P1",
+        "OSI IB CTC MAD PADRE PH 34123456 DNI 12345678",
+        "OSI IB CTC BOG MADRE PH 57123456 DNI 87654321",
+        "SSR WCHC YY NN1 /P1/S2",
+        "SSR GOLF YY NN1 1BAG 15KG 120X40X30/P1/S2",
+        "ÑK"
+      ]
+    },
+    {
+      "fase": 4,
+      "nombre": "Configuración de Servicios en PNR 3 (1 ADT)",
+      "servicios": ["XBAG (Equipaje Adicional)", "PETC (Mascota en Cabina)", "SPML VGML (Comida Vegana)"],
+      "comandosAmadeus": [
+        "SR XBAG IB NN1/S2-3/P1",
+        "SR PETC IB NN1 - DOG CHIHUAHUA 8KG 45X35X25/S2-3/P1",
+        "SR VGML IB NN1/S2-3/P1",
+        "ER -> ERK"
+      ],
+      "comandosResiber": [
+        "SSR XBAG YY NN1 /P1/S2",
+        "SSR PETC YY NN1 DOG CHIHUAHUA 8KG 45X35X25/P1/S2",
+        "SSR VGML YY NN1 /P1/S2",
+        "ÑK"
+      ]
+    },
+    {
+      "fase": 5,
+      "nombre": "Configuración de Servicios y Edición en PNR 1 (1 ADT + 1 INF)",
+      "servicios": ["BSCT (Asiento Cuna Bebé)", "NU1 (Corrección de Nombre)", "AVIH (Mascota en Bodega)"],
+      "comandosAmadeus": [
+        "SR BSCT/P1/S2-3",
+        "NU1 MARTINEZ CORTES/PATROCLO",
+        "SR AVIH IB NN1 - DOG CHIHUAHUA 15KG 60X50X40/S2-3/P1",
+        "ER -> ERK"
+      ],
+      "comandosResiber": [
+        "SR BSCT/P1/S2-3",
+        "NU1 MARTINEZ CORTES/PATROCLO",
+        "SSR AVIH YY NN1 DOG CHIHUAHUA 15KG 60X50X40/P1/S2",
+        "ÑK"
+      ]
+    }
+  ]
+}

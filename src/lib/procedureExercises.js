@@ -10,10 +10,34 @@ export const PROCEDURE_CATEGORIES = {
   EMD_SERVICIOS: { id: 'emd_servicios', nombre: '🧳 Servicios EMD y Equipaje', color: '#16a34a' },
   TICKETING: { id: 'ticketing', nombre: '🎫 Emisión y Tarifas', color: '#8b5cf6' },
   ESPECIALES: { id: 'especiales', nombre: '🐾 Pasajeros Especiales (UMNR/Mascotas)', color: '#ea580c' },
-  INVOLUNTARIOS: { id: 'involuntarios', nombre: '⚠️ Cambios Involuntarios y Reembolsos', color: '#dc2626' }
+  INVOLUNTARIOS: { id: 'involuntarios', nombre: '⚠️ Cambios Involuntarios y Reembolsos', color: '#dc2626' },
+  MAESTROS: { id: 'maestros', nombre: '🏆 Ejercicios Maestros & Súper-Split', color: '#f59e0b' }
 };
 
 export const PROCEDURE_EXERCISES = [
+  {
+    id: 'proc-ejercicio-super-split-maestro',
+    procedimientoId: 'ejercicio-super-split-servicios-maestro',
+    categoriaId: 'maestros',
+    titulo: '🏆 Súper Ejercicio Maestro: 2 SPLITs + 9 Ancillaries en 3 PNRs',
+    dificultad: 'Leyenda',
+    duracionMin: 35,
+    descripcion: 'Caso real extremo: PNR inicial 2 ADT + 1 CHD + 1 INF. Realiza 2 SPLITs para crear 3 PNRs y configura UMNR, PMR, SPEQ, XBAG, PETC, SPML, BSCT, Corrección de Nombre y AVIH sin errores.',
+    seedPnr: {
+      passengers: [
+        { name: 'MARTINEZ/PATROCLO MR', type: 'ADT', index: 1 },
+        { name: 'GOMEZ/LAURA MRS', type: 'ADT', index: 2 },
+        { name: 'MARTINEZ/PEDRO MSTR', type: 'CHD', index: 3 },
+        { name: 'MARTINEZ/ANDRES', type: 'INF', parentIndex: 1 }
+      ],
+      segments: [
+        { line: 1, flightNumber: 'IB6587', from: 'MAD', to: 'BOG', date: '20OCT', bookingClass: 'Q', status: 'HK4' },
+        { line: 2, flightNumber: 'IB6588', from: 'BOG', to: 'MAD', date: '10NOV', bookingClass: 'Q', status: 'HK4' }
+      ],
+      issuedTicket: '075-9988112233',
+      isTicketed: true
+    }
+  },
   // --- REEMISIÓNY CAMBIOS ---
   {
     id: 'proc-cambio-auto',

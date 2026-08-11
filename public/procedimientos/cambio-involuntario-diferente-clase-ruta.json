@@ -6,20 +6,22 @@
   "resumen": "Reemisión por cambio involuntario cuando cambia la clase y/o la ruta. Usa FXI (con /SC según la ventana de 48 h) y emite solo el cambio.",
   "aplicaSolo": "Solo se puede realizar siempre y cuando cambie la ruta y/o la clase. Si se conservan ambas, aplica el hermano #3639 (cambio-involuntario-misma-clase-ruta).",
   "advertencias": [
-    { "nivel": "critico", "texto": "En caso de cambio de ruta, se permite un MÁXIMO DE 250 MILLAS entre la ciudad original y la nueva.", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "MÁXIMO 250 MILLAS: En cambio de ruta, la nueva ciudad no puede estar a más de 250 millas de la original. Revisar la columna CUM en FQM (si CUM <= 250 aplica, si CUM > 250 NO aplica).", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "REGLA DE CABINAS: Prohibido re-ubicar en cabinas diferentes. Business (J, C, D, R, I, U), Turista Premium (W, E, T, P), Turista Económica (Y, B, H, K, M, L, V, S, N, Q, O, A, G, X).", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "ORDEN DE ACOPLE DE VUELOS: 1° Grupo IB (Iberia, IB Express, Air Nostrum), 2° British Airways, 3° Joint Business (AJB: IB/BA/AA/AY/EI, SJB: IB/JL/BA/AY, QJB: IB/QR/BA), 4° Marketing IB Oneworld, 5° Oneworld fuera de JB, 6° Otra cía con acuerdo e-ticket (verificar TGAD-IB/xx -> 'E' confirma acuerdo). Evitar Air Europa, PROHIBIDO Aerolíneas Argentinas.", "confianza": "verbatim" },
     { "nivel": "critico", "texto": "ANTES DE INICIAR: realiza el filtro de seguridad — APELLIDO + PNR.", "confianza": "verbatim" },
-    { "nivel": "alto", "texto": "La elección entre FXI y FXI/SC depende de si el nuevo vuelo asignado está a MENOS o MÁS de 48 horas de la llamada. Equivocarse cambia el cálculo del cambio.", "confianza": "verbatim" }
+    { "nivel": "alto", "texto": "La elección entre FXI y FXI/SC depende de si el nuevo vuelo asignado está a MENOS (-48h -> FXI) o MÁS (+48h -> FXI/SC) de 48 horas de la llamada.", "confianza": "verbatim" }
   ],
   "fuente": {
-    "documento": "IberiaNet Lite — #3638 \"1. DIFERENTE CLASE Y/O RUTA\" (hermano de #3639)",
+    "documento": "IberiaNet Lite — #3638 \"1. DIFERENTE CLASE Y/O RUTA\" + #3636 \"VENTANA OPERATIVA <48HRS\"",
     "tipo": "manual-oficial-interno",
-    "recibido": "2026-08-08",
+    "recibido": "2026-08-11",
     "confianzaGlobal": "verbatim",
-    "nota": "RESTAURADO el 08AGO26: este manual había sido sobrescrito por error por el #3639 dentro de cambio-involuntario-clase-ruta.json. El usuario lo volvió a enviar y ahora cada uno tiene su archivo."
+    "nota": "Enriquecido con lectura de la columna CUM en FQM, prioridades de acople y restricciones de cabina."
   },
   "pasos": [
     { "n": 0, "sistema": "natiba", "proceso": "Filtro de seguridad", "comando": null, "explicacion": "APELLIDO + PNR.", "confianza": "verbatim", "esBloqueante": true },
-    { "n": 0.1, "sistema": "amadeus", "proceso": "Calcular las millas entre ciudad original y nueva", "comando": "FQM MAD BCN", "plantilla": "FQM {origen} {destino}", "explicacion": "MAD = origen · BCN = destino. Valida el máximo de 250 millas permitido en cambio de ruta.", "confianza": "verbatim", "validacion": { "tipo": "regex", "patron": "^FQM\\s[A-Z]{3}\\s[A-Z]{3}$" } },
+    { "n": 0.1, "sistema": "amadeus", "proceso": "Calcular las millas entre ciudad original y nueva (revisar columna CUM)", "comando": "FQM MAD BCN", "plantilla": "FQM {origen} {destino}", "explicacion": "MAD = origen · BCN = destino. Revisar columna CUM (distancia acumulada). Si CUM <= 250 millas aplica cambio de ruta; si CUM > 250 millas NO aplica.", "confianza": "verbatim", "validacion": { "tipo": "regex", "patron": "^FQM\\s[A-Z]{3}\\s[A-Z]{3}$" } },
     { "n": 1, "sistema": "amadeus", "proceso": "Colocar el TKT del ADT/CHD en FHE", "comando": "FHE 075-1422342526/P1", "plantilla": "FHE {numeroBillete}/P{pasajero}", "explicacion": "075-142… = ticket del ADT o CHD · P1 = número del pax.", "confianza": "verbatim" },
     { "n": 1.1, "sistema": "amadeus", "proceso": "Colocar el TKT del INF en FHE", "comando": "FHE INF 075-1422342526/P1", "plantilla": "FHE INF {numeroBillete}/P{pasajero}", "explicacion": "P1 = número del ADT que va con el infante.", "confianza": "verbatim" },
     { "n": 2, "sistema": "amadeus", "proceso": "Eliminar el TKT en FA (solo si aplica)", "comando": "XE 14", "plantilla": "XE {lineaFA}", "explicacion": "14 = línea del elemento FA del adulto.", "confianza": "verbatim", "opcional": true },

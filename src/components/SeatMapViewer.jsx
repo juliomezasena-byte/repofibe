@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Armchair, UserCheck, ShieldAlert, Sparkles, Check } from 'lucide-react';
+import { Armchair, UserCheck, ShieldAlert, Check } from 'lucide-react';
 
 export function SeatMapViewer({ activeScenario, history, onChipTap }) {
   const [selectedSeat, setSelectedSeat] = useState('12A');

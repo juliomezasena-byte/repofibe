@@ -5,31 +5,13 @@
   "categoria": "servicios",
   "resumen": "Procedimiento oficial #3116 de IberiaNet Lite para la solicitud de Mascota en Cabina (PETC) en billetes 075. Incluye requisitos de peso/transportín, tabla de precios por trayecto directo/conexión, y comparación de sintaxis exacta entre Amadeus y Resiber.",
   "advertencias": [
-    {
-      "nivel": "critico",
-      "texto": "ESTO SOLO APLICA PARA BILLETES 075 (IBERIA).",
-      "confianza": "verbatim"
-    },
-    {
-      "nivel": "critico",
-      "texto": "PESO MÁXIMO: 8 kg incluyendo el transportín. Dimensiones máximas: 45 x 35 x 25 cm (resistente, con ventilación, fondo impermeable y cierre seguro).",
-      "confianza": "verbatim"
-    },
-    {
-      "nivel": "critico",
-      "texto": "RESTRICCIÓN DE RAZA EN AEROPUERTO: No se aceptan registros como 'cruce', 'mestizo', 'criollo', 'común' o 'mezcla' a secas. Se debe especificar la raza exacta o la combinación de razas (ej: CRUCE CHIHUAHUA CON PINCHER).",
-      "confianza": "verbatim"
-    },
-    {
-      "nivel": "alto",
-      "texto": "FILA DE EMERGENCIA: No se permiten mascotas en asientos de fila de salida de emergencia. Viajan bajo el asiento delantero sin molestar a los demás.",
-      "confianza": "verbatim"
-    },
-    {
-      "nivel": "alto",
-      "texto": "GUARDADO EN RESIBER: Se guarda con ÑK y cada vez que se use ÑK se debe volver a ingresar a la reserva. En Amadeus se guarda con ER y se confirma con ERK.",
-      "confianza": "verbatim"
-    }
+    { "nivel": "critico", "texto": "ESTO SOLO APLICA PARA BILLETES 075 (IBERIA).", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "CAMBIOS DOT: Eliminación de ESAN (apoyo emocional ya NO existe). Solo se admiten perros SVAN (servicio) adiestrados.", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "PESO MÁXIMO: 8 kg incluyendo el transportín. Dimensiones máximas: 45 x 35 x 25 cm (resistente, con ventilación, fondo impermeable y cierre seguro).", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "RAZAS PELIGROSAS PROHIBIDAS: Pit Bull Terrier, Staffordshire Bull Terrier, American Staffordshire Terrier, Rottweiler, Dóberman, Dogo Argentino, Fila Brasileiro, Tosa Inu, Akita Inu (y sus cruces).", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "REGISTROS EN AEROPUERTO: No se aceptan términos genéricos como 'cruce', 'mestizo', 'criollo', 'común' o 'mezcla'. Se deben especificar las dos razas exactas (ej: CRUCE CHIHUAHUA CON PINCHER).", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "TRAYECTOS ESPECIALES: Reino Unido (LHR/LGW/MAN/EDI) en salida de España solo IAG Cargo; retornos directos hacia MAD permiten PETC. Ver tabla de rutas especiales.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "FILA DE EMERGENCIA: No se permiten mascotas en asientos de fila de salida de emergencia. Viajan bajo el asiento delantero.", "confianza": "verbatim" }
   ],
   "precios": {
     "directos": {

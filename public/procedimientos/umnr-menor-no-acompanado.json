@@ -5,18 +5,17 @@
   "categoria": "servicios",
   "resumen": "Emisión del EMD de UMNR (Unaccompanied Minor Fee, código E0B0) desde la pantalla WEMD de Resiber, con pago por IberiaPay.",
   "advertencias": [
-    { "nivel": "critico", "texto": "Edad obligatoria: menores entre 5 y 11 años. Opcional hasta los 17.", "confianza": "verbatim" },
-    { "nivel": "critico", "texto": "Antelación: reserva del servicio con al menos 24 HORAS de antelación.", "confianza": "verbatim" },
-    { "nivel": "critico", "texto": "Documentación: formulario de \"Descargo de Responsabilidad\" completo y ORIGINAL.", "confianza": "verbatim" },
-    { "nivel": "alto", "texto": "Contacto: datos de quien entrega y quien recoge al menor. Imprescindible que sean correctos.", "confianza": "verbatim" },
-    { "nivel": "alto", "texto": "Un niño menor de 12 años, en la fecha del vuelo, puede viajar ACOMPAÑADO de alguna persona que haya cumplido al menos 16 años de edad, que sea capaz de cuidar de él durante el vuelo y de aplicar las consignas en tierra y en vuelo, incluyendo formalidades en los aeropuertos.", "confianza": "verbatim" }
+    { "nivel": "critico", "texto": "EDAD OBLIGATORIA: Menores entre 5 y 11 años (Iberia). Opcional de 12 a 17 años (tarifados como adulto).", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "EDAD MÍNIMA PARA VIAJAR SOLO SIN SERVICIO: Iberia (12), British Airways (14), LEVEL (14), American Airlines (15).", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "PROHIBICIONES: No permitido en vuelos de código compartido (IB7000/IB4000), conexiones con pernocta ni asientos junto a salida de emergencia.", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "DOCUMENTACIÓN OBLIGATORIA: Formulario Descargo de Responsabilidad cumplimentado + DNI/Pasaporte + Autorización policial/notarial si viaja sin padres fuera de España.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "DATOS DE CONTACTO (OSI): Imprescindible incluir datos completos (Nombre, Teléfono, DNI/Dirección) de la persona que entrega en origen y de la persona que recibe en destino.", "confianza": "verbatim" }
   ],
   "fuente": {
-    "documento": "manual/umr/ (12 capturas de pantalla real de Resiber, MAD905 y MAD002)",
-    "tipo": "material-formacion-interno",
-    "recibido": "2026-08-08",
-    "confianzaGlobal": "verbatim",
-    "nota": "Capturas del sistema real en vivo, no transcripción. Confirma lo que el bot EverGPT solo había insinuado: el cobro del UMNR se hace por WEMD desde Resiber."
+    "documento": "IberiaNet Lite — #3098 \"UMNR\" + #3114 \"DOCUMENTACION\" + #3115 \"REMISION UMNR\"",
+    "tipo": "manual-oficial-interno",
+    "recibido": "2026-08-11",
+    "confianzaGlobal": "verbatim"
   },
   "limitesEdadPorAerolinea": {
     "confianza": "verbatim",

@@ -1,0 +1,49 @@
+{
+  "id": "reembolso-motivos-especificos",
+  "titulo": "Reembolsos por Motivos Específicos — Compromiso de Calidad, No PCC, Condiciones de Tarifa y Duplicidad",
+  "aerolinea": "IB",
+  "categoria": "reembolsos",
+  "resumen": "Manual operativo para procesar solicitudes de reembolso por Compromiso de Calidad (<24h), No PCC, Condiciones de Tarifa (con FXX, FQD, FQP) y Duplicidad (sin GG) en Resiber y Salesforce.",
+  "aplicaSolo": "Billetes 075- (Iberia).",
+  "pasos": [],
+  "advertencias": [
+    { "nivel": "critico", "texto": "COMPROMISO DE CALIDAD: Solicitudes dentro de las 24 horas desde la EMISIÓN (DOI), no desde la reserva. ❌ NO aplica para Colombia ni para billetes 060 (Iberia Express). Aplica Gasto de Gestión.", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "NO PCC: Debe ser visible 'CHECK CREDIT CARD AX...' en Resiber y existir 2 reservas idénticas (una con PCC y otra sin PCC). Se reembolsa el billete pero NO se devuelven gastos de gestión de compra ni de reembolso.", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "DUPLICIDAD: Aplica cuando existen 2 o más reservas iguales. 💸 NO APLICA GASTO DE GESTIÓN. Se reembolsa siempre el ÚLTIMO billete emitido.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "CONDICIONES DE TARIFA: Consultar en este orden: 1. Web, 2. Cotización a histórico (FXX/S#,#/R,DOI,UP/FF-...), 3. FQD (FQDMADEZE/AIB/CV/D16OCT/R,DOI,UP), 4. FQP (Directo, Escala, Surface ---).", "confianza": "verbatim" }
+  ],
+  "fuente": {
+    "documento": "IberiaNet Lite — #3069 \"COMPROMISO DE CALIDAD\" + #3071 \"CONDICIONES DE TARIFA\" + #3072 \"DUPLICIDAD\" + #3078/#3079/#3080",
+    "tipo": "manual-oficial-interno",
+    "recibido": "2026-08-11",
+    "confianzaGlobal": "verbatim"
+  },
+  "motivos": {
+    "compromisoDeCalidad": {
+      "reglas": "Solicitud dentro de las 24h a la emisión (DOI). DTR TN -> ver DOI -> DTR H (hora emisión) -> DD MAD (hora actual local oficina). Verificar <24h.",
+      "resiber": "INT PAX SOLICITA REEMBOLSO POR COMPROMISO DE CALIDAD AVDO 30 EUR GG -> XE2 -> ÑIK",
+      "salesforce": "Origen petición: Compromiso de calidad"
+    },
+    "noPCC": {
+      "reglas": "Titular de tarjeta no presenta la tarjeta en embarque. DTR TN muestra 'CHECK CREDIT CARD...'. Requiere tener 2 reservas iguales (la nueva que va a volar). No se reembolsa GG.",
+      "resiber": "RT PNR -> DTR TN -> INT PAX SOLICITA REEMBOLSO POR NO PCC, RESERVA NUEVA ABC12 -> XE2 -> ÑIK",
+      "salesforce": "Origen petición: No PCC. Especificar ambos PNRs en la descripción."
+    },
+    "condicionesDeTarifa": {
+      "reglas": "Cancelación voluntaria acogiéndose a las condiciones compradas. Si hubo remisiones: tarifa original reembolsable + remisión no reembolsable = NO reembolso; tarifa original no reembolsable + remisión reembolsable = reembolso solo del cambio.",
+      "metodosConsulta": [
+        { "metodo": "1. Web", "comando": "Iberia.com" },
+        { "metodo": "2. Cotización a Histórico", "comando": "FXX/S2,3/R,15MAR23,UP/FF-OPTIMA", "explicacion": "Solo si no ha volado ningún segmento. FQQ ver opción, FQN#*PE penalidades, FQN#*CD descuentos child/infante." },
+        { "metodo": "3. Con FQD", "comando": "FQDMADEZE/AIB/CV/D16OCT/R,15MAR24,UP", "explicacion": "Solo para 1 segmento individual." },
+        { "metodo": "4. Con FQP", "comando": "FQPMAD/AIB/CV/D10OCTEZE-/AIB/CV/D16OCTMAD/R,15MAR24,UP/FF-OPTIMA", "explicacion": "Roundtrip directo, con escala o surface (---). FQQ -> FQN#*PE / FQN#*CD." }
+      ],
+      "resiber": "RT PNR -> INT PAX SOLICITA REEMBOLSO POR CONDICIONES DE /DM -> XE2 -> ÑIK",
+      "salesforce": "Condiciones tarifa: Reembolsable"
+    },
+    "duplicidad": {
+      "reglas": "Dos o más reservas idénticas para el mismo pax. 💸 SIN GASTO DE GESTIÓN. Se reembolsa el ÚLTIMO billete emitido.",
+      "resiber": "RT PNR -> DTR TN -> INT PAX SOLICITA REEMBOLSO POR DUPLICIDAD, RESERVA DUPLICADA ABC12 -> XE2 -> ÑIK",
+      "salesforce": "Origen petición: Duplicidad"
+    }
+  }
+}

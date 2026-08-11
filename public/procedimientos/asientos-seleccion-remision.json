@@ -1,0 +1,60 @@
+{
+  "id": "asientos-seleccion-remision",
+  "titulo": "Asientos — Selección, Cunas y Remisión de EMD (Resiber & Amadeus)",
+  "aerolinea": "IB",
+  "categoria": "servicios",
+  "resumen": "Manual completo para la selección de asientos de pago, asignación de cunas gratuitas (BSCT) y remisión de EMD por cambio de vuelo en Resiber y Amadeus.",
+  "aplicaSolo": "Billetes 075 en vuelos operados únicamente por IB, I2, LEVEL o YW con estado OPEN FOR USE (O). No aplica si ya se realizó el Check-In.",
+  "advertencias": [
+    { "nivel": "critico", "texto": "CHECK-IN REALIZADO: Si el cliente ya ha realizado el Check-In, NO es posible modificar sus asientos.", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "RESPONSABILIDAD AGENCIAS: Agencias GDS se apoya con selección de asientos. Agencias NDC se redirecciona a la agencia o a Iberia.com.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "CUNAS (BSCT): Solo trayectos transatlánticos, bebé < 8 meses y < 11 kg. Gratuito pero sujeto a disponibilidad. Buscar letra 'C' en el mapa.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "CÓDIGOS COMPARTIDOS: Si es operado por otra aerolínea, asientos se solicitan únicamente por la web de la aerolínea operadora.", "confianza": "verbatim" }
+  ],
+  "fuente": {
+    "documento": "IberiaNet Lite — #3061 \"SERVICIOS\" + #3096 \"ASIENTOS\" + #3105 \"REMISIÓN DE ASIENTOS\" + #3104 \"CUNAS\"",
+    "tipo": "manual-oficial-interno",
+    "recibido": "2026-08-11",
+    "confianzaGlobal": "verbatim"
+  },
+  "pasos": [
+    { "n": 0, "sistema": "natiba", "proceso": "Filtro de seguridad", "comando": null, "explicacion": "APELLIDO + PNR.", "confianza": "verbatim", "esBloqueante": true },
+    { "n": 1, "sistema": "amadeus", "proceso": "Ingresar al mapa de asientos del segmento", "comando": "SM3/SL", "plantilla": "SM{segmento}/SL", "explicacion": "Muestra el mapa de asientos. Letras: E (Emergencia), L (XL), Q (Delanteros), V (Lateral), Y (Central), C (Cuna), H (Handicap), + (Ocupado), . (Gratuito).", "confianza": "verbatim" },
+    { "n": 2, "sistema": "amadeus", "proceso": "Seleccionar el asiento", "comando": "ST/01B/P1", "variantes": ["ST/01BY/P1,2"], "explicacion": "ST/asientoFila/Ppasajero. Varios pax: ST/01BY/P1,2.", "confianza": "verbatim" },
+    { "n": 3, "sistema": "amadeus", "proceso": "Cotizar el asiento", "comando": "FXH/L14", "plantilla": "FXH/L{lineaSSR}", "explicacion": "14 = línea del elemento SSR RQST.", "confianza": "verbatim" },
+    { "n": 4, "sistema": "amadeus", "proceso": "Documentar valores informados", "comando": "RM08MAY26PAX AVDO VALOR SEAT X ADT xxx EUR//AR", "explicacion": "Si sale 'ET NOR ISSUED...' -> revalidar TKT TTP-ETRV... Si sale 'ITINERARY PRICING REQUIRED...' -> máscara a histórico FXX/R,DOI,UP...", "confianza": "verbatim" },
+    { "n": 5, "sistema": "amadeus", "proceso": "Guardar la cotización del asiento", "comando": "FXG/L14", "plantilla": "FXG/L{lineaSSR}", "explicacion": "Guardar con ER y confirmar servicios con ERK.", "confianza": "verbatim" },
+    { "n": 6, "sistema": "amadeus", "proceso": "Incluir datos del titular de la tarjeta y tomador PCI", "comando": "RMCSY/JUAN:PELAEZ", "explicacion": "Guardar con ER. Tomar datos con PCI PAL o Travel Pay.", "confianza": "verbatim" },
+    { "n": 7, "sistema": "amadeus", "proceso": "Agregar forma de pago, autorizar PCI y emitir EMD", "comando": "TMI/M1/FP-MS-TT,VI1234567890123456-1023-V1234ABCD", "variantes": ["$$CONFIG:CCTYPE/2", "$$PAY", "XE17", "TTM1/M1/RT"], "explicacion": "M1 = TQM. Cargar perfil PCI $$CONFIG:CCTYPE/2, $$PAY, borrar cyber XE17 y emitir TTM1/M1/RT.", "confianza": "verbatim" },
+    { "n": 8, "sistema": "amadeus", "proceso": "Enviar itinerario", "comando": "IBP-EMLA/LPSP", "variantes": ["IEPJ-EMLA/LPSP", "ITR-EMLA"], "explicacion": "IBP (itinerario), IEPJ (itinerario y servicios), ITR (billetes electrónicos).", "confianza": "verbatim" }
+  ],
+  "cunas": {
+    "requisitos": "Transatlánticos, bebé < 8 meses y < 11 kg. Gratuito.",
+    "pasos": [
+      { "n": 1, "comando": "SM2", "explicacion": "Validar disponibilidad buscando la letra C en el mapa." },
+      { "n": 2, "comando": "SR BSCT/P1/S2-3", "explicacion": "Agregar elemento SR BSCT para el adulto P1 en los segmentos. Guardar ER y confirmar con ERK varias veces hasta ver los asientos asignados (SSR NSST IB BOGMAD/S3/P1)." },
+      { "n": 3, "comando": "IBP-EMLA/LPSP", "explicacion": "Enviar itinerario." }
+    ]
+  },
+  "remisionAsientos": {
+    "resiber": [
+      { "n": 1, "comando": "DTR TN 075-253123456", "explicacion": "Buscar EMDs OPEN en EXCH del billete anterior." },
+      { "n": 2, "comando": "DEMR DN 0754013668261", "explicacion": "Verificar valor del EMD y número de asiento." },
+      { "n": 3, "comando": "RSD:2", "explicacion": "Ingresar al mapa del avión del segmento 2." },
+      { "n": 4, "comando": "SR1F30L/2/P1", "explicacion": "Seleccionar asiento. Guardar con ÑK y reingresar a la reserva." },
+      { "n": 5, "comando": "WEMD: 075-2000635369", "explicacion": "Ingresar a WEMD, marcar LISTA DE SERVICIO -> X -> Intro. Elegir SEAT ASSIGNMENT (A0B5), completar RMK, cupones X, FARE original, FP O/MS-TT, OI EMD original, TOTAL 0.00." },
+      { "n": 6, "comando": "DTR TN 075-253123456", "explicacion": "Verificar TKT OPEN con EMDs asociados y enviar ITP:/RESERVA/EMAIL, DTR TN..., DEMR DN..." }
+    ],
+    "amadeus": [
+      { "n": 1, "comando": "EWD/EMD075-454545445", "explicacion": "Copiar EMD original, POI, DOI, IOI y cupón (M#). Borrar TSM anteriores con TMX/ALL." },
+      { "n": 2, "comando": "SM3/SL", "explicacion": "Mapa de asientos." },
+      { "n": 3, "comando": "ST/01B/P1", "explicacion": "Seleccionar asiento." },
+      { "n": 4, "comando": "FXH/L14/R,11MAR26,UP", "explicacion": "Cotizar a histórico con fecha DOI." },
+      { "n": 5, "comando": "FXG/L14/R,11MAR26,UP", "explicacion": "Guardar cotización a histórico." },
+      { "n": 6, "comando": "TMI/EXCH/M2", "explicacion": "Poner TSM en modo remisión. Guardar con ER." },
+      { "n": 7, "comando": "TMI/M3/FO-075-5551234567M1MAD11MAR26/023045", "explicacion": "Crear FO para el EMD (TMI/M#/FO-075-EMD M# POI DOI/IOI)." },
+      { "n": 8, "comando": "TMI/M1/FP-O/CCVI+", "explicacion": "Agregar FP a coste 0." },
+      { "n": 9, "comando": "TTM1/M1/RT", "explicacion": "Emitir el EMD y enviar IBP-EMLA/LPSP, IEPJ-EMLA/LPSP, ITR-EMLA." }
+    ]
+  }
+}

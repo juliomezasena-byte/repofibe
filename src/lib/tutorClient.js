@@ -36,6 +36,6 @@ async function post(path, body) {
  * (que lo decida el árbol). Si el árbol necesita más datos, la respuesta
  * trae `decision.siguientePregunta` en vez de un paso.
  */
-export function pedirPaso({ procedimientoId, caso, pasoActual, comandoEscrito, datos, nivel, conIA = true }) {
-  return post('/tutor/paso', { procedimientoId, caso, pasoActual, comandoEscrito, datos, nivel, conIA });
+export function pedirPaso({ procedimientoId, caso, pasoActual, comandoEscrito, datos, nivel, conIA = true, consulta = null, soloResponder = false }) {
+  return post('/tutor/paso', { procedimientoId, caso, pasoActual, comandoEscrito, datos, nivel, conIA, consulta, soloResponder });
 }

@@ -1,0 +1,32 @@
+{
+  "id": "pmr-silla-de-ruedas",
+  "titulo": "Pasajeros con Movilidad Reducida (PMR) — Sillas de Ruedas (WCHC, WCHS, WCHR) y Asistencias Especiales",
+  "aerolinea": "IB",
+  "categoria": "servicios",
+  "resumen": "Procedimiento operativo para solicitar asistencia de silla de ruedas y servicios especiales para personas con discapacidad o movilidad reducida en Resiber y Amadeus/SARA.",
+  "aplicaSolo": "Billetes 075 (Iberia, Air Nostrum, Iberia Express y acuerdos interlinea). Gratuito.",
+  "advertencias": [
+    { "nivel": "critico", "texto": "GRATUITO: La asistencia PMR es un servicio sin costo adicional pero requiere notificación previa con al menos 48 HORAS de antelación.", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "CLASIFICACIÓN EXACTA: WCHR (rampa/distancias), WCHS (escaleras/no camina distancias largas), WCHC (cabina/inmovilidad total).", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "OTRAS DISCAPACIDADES: BLND (pasajero ciego), DEAF (pasajero sordo), DPNA (discapacidad intelectual o del desarrollo).", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "ASIENTOS PROHIBIDOS: Los pasajeros PMR NUNCA pueden ubicarse en filas de salida de emergencia.", "confianza": "verbatim" }
+  ],
+  "fuente": {
+    "documento": "IberiaNet Lite — Asistencia PMR y Movilidad Reducida",
+    "tipo": "manual-oficial-interno",
+    "recibido": "2026-08-11",
+    "confianzaGlobal": "verbatim"
+  },
+  "codigosPmr": [
+    { "codigo": "WCHR", "descripcion": "Wheelchair Ramp — Pasajero requiere silla para recorrer distancias en terminal, pero puede subir/bajar escaleras y caminar a su asiento." },
+    { "codigo": "WCHS", "descripcion": "Wheelchair Steps — Pasajero requiere silla para distancias y ayuda para subir/bajar escaleras, pero camina hasta su asiento dentro del avión." },
+    { "codigo": "WCHC", "descripcion": "Wheelchair Cabin — Pasajero inamovible. Requiere silla hasta la puerta y silla de cabina para ser trasladado a su asiento." },
+    { "codigo": "BLND", "descripcion": "Blind passenger — Pasajero con discapacidad visual (especificar si viaja con perro guía SVAN)." },
+    { "codigo": "DEAF", "descripcion": "Deaf passenger — Pasajero con discapacidad auditiva." }
+  ],
+  "pasos": [
+    { "n": 0, "sistema": "natiba", "proceso": "Filtro de seguridad", "comando": null, "explicacion": "APELLIDO + PNR.", "confianza": "verbatim", "esBloqueante": true },
+    { "n": 1, "sistema": "resiber", "proceso": "[RESIBER] Solicitar silla de ruedas (ej. WCHC)", "comando": "SSR WCHC YY NN1 /P1/S2", "plantilla": "SSR {CODIGO_PMR} YY NN1 /P{pasajero}/S{segmento}", "explicacion": "Resiber segmento a segmento. Guardar con ÑK.", "confianza": "verbatim" },
+    { "n": 2, "sistema": "amadeus", "proceso": "[AMADEUS] Solicitar silla de ruedas (ej. WCHC)", "comando": "SR WCHC IB NN1/S2-3/P1", "plantilla": "SR {CODIGO_PMR} IB NN1/S{segmentos}/P{pasajero}", "explicacion": "Amadeus admite rango. Guardar con ER -> ERK.", "confianza": "verbatim" }
+  ]
+}

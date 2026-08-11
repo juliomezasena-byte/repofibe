@@ -440,6 +440,10 @@ export function App() {
       </header>
 
       <AppProvider value={{
+        // pnrFsm lo necesita el TutorPanel para cargar el PNR semilla de cada
+        // ejercicio: sin un PNR de partida, "cambia este vuelo" no tiene nada
+        // que cambiar. Faltaba aquí, así que `seedPnr` no se aplicaba nunca.
+        pnrFsm,
         profileConfig, flightsCatalog, locationsCatalog, equipmentCatalog,
         scenarios, curriculum, learningProgress, dailyPlan, dailyScenarioId,
         activeScenarioId, history, examMode, examStartTs, examResult,

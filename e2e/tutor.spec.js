@@ -8,6 +8,11 @@ import { test, expect } from '@playwright/test';
  * documentar NO le dé un comando inventado.
  */
 
+/** Fija el modo antes de cargar la página (el panel lo lee de localStorage). */
+function modoGuiado(page) {
+  return page.addInitScript(() => localStorage.setItem('cryptic-tutor-mode-v1', 'guiado'));
+}
+
 /** Respuestas del worker, en el orden en que las va pidiendo el panel. */
 function mockearTutor(page, respuestas) {
   let i = 0;
@@ -19,6 +24,42 @@ function mockearTutor(page, respuestas) {
     })
   );
 }
+
+test('le puedo ESCRIBIR y me responde, sin inventar comandos', async ({ page }) => {
+  // El chat hace dos llamadas por turno (conIA:false rápido, conIA:true con
+  // texto). Se responde según el flag, como el worker real.
+  await page.route('**/tutor/paso', async (route) => {
+    const body = route.request().postDataJSON();
+    if (body.conIA === false) {
+      // Fase 1: territorio coach (aún no hay procedimiento).
+      await route.fulfill({
+        status: 200, contentType: 'application/json',
+        body: JSON.stringify({ decision: { procedimientoId: null, siguientePregunta: null }, lectura: null })
+      });
+    } else {
+      // Fase 2: el coach responde con PALABRAS, nunca con un comando.
+      await route.fulfill({
+        status: 200, contentType: 'application/json',
+        body: JSON.stringify({
+          decision: { procedimientoId: null, siguientePregunta: null },
+          lectura: null,
+          explicacion: '¡Hola! Soy tu coach. ¿Qué necesita el pasajero: comprar, cambiar, reembolso o un servicio?',
+          diagnostico: ''
+        })
+      });
+    }
+  });
+
+  await page.goto('/tutor');
+
+  await page.getByLabel('Escríbele al tutor').fill('hola');
+  await page.getByLabel('Enviar mensaje al tutor').click();
+
+  // Mi mensaje aparece en el hilo al instante
+  await expect(page.locator('.tut-burbuja-alumno')).toContainText('hola');
+  // Y el coach responde encaminándome, sin soltar ningún comando
+  await expect(page.locator('.tut-burbuja-coach')).toContainText(/qué necesita el pasajero/i);
+});
 
 test('el árbol pregunta antes de decidir y luego guía paso a paso', async ({ page }) => {
   await mockearTutor(page, [
@@ -69,6 +110,9 @@ test('el árbol pregunta antes de decidir y luego guía paso a paso', async ({ p
     }
   ]);
 
+  // Este test comprueba el flujo GUIADO (el que enseña el comando). El modo
+  // por defecto es "a ciegas", que lo tapa a propósito.
+  await modoGuiado(page);
   await page.goto('/tutor');
 
   // Arranque: elige la intención
@@ -94,6 +138,45 @@ test('el árbol pregunta antes de decidir y luego guía paso a paso', async ({ p
 
   await expect(page.getByText(/correcto/i)).toBeVisible();
   await expect(page.getByText('EF', { exact: true })).toBeVisible();
+});
+
+test('a ciegas tapa el comando y NO se destapa al acertar el paso anterior', async ({ page }) => {
+  await mockearTutor(page, [
+    {
+      procedimientoId: 'generar-split',
+      titulo: 'Separar pasajeros (SPLIT)',
+      paso: { n: 1, sistema: 'amadeus', proceso: 'Seleccionar pasajero', comando: 'SP 1', confianza: 'verbatim' },
+      veredicto: null, avisos: [], explicacion: 'Marca al pasajero.', diagnostico: null
+    },
+    // Acierta el paso 1 → llega el paso 1.1 CON el veredicto del anterior.
+    // Ese veredicto no puede destapar el comando nuevo.
+    {
+      procedimientoId: 'generar-split',
+      titulo: 'Separar pasajeros (SPLIT)',
+      paso: { n: 1.1, sistema: 'amadeus', proceso: 'Separar el rango', comando: 'SP1-2', confianza: 'verbatim' },
+      veredicto: { correcto: true }, avisos: [], explicacion: 'Separa el rango.', diagnostico: null
+    }
+  ]);
+
+  // Sin tocar nada: el modo por defecto ya es "a ciegas"
+  await page.goto('/tutor');
+  await page.getByRole('button', { name: /cambiar un vuelo/i }).click();
+
+  // El comando va tapado y no aparece por ningún lado
+  await expect(page.locator('.tut-comando-enmascarado')).toBeVisible();
+  await expect(page.getByText('SP 1', { exact: true })).toHaveCount(0);
+
+  // Se puede revelar a propósito
+  await page.getByRole('button', { name: /revelar/i }).click();
+  await expect(page.getByText('SP 1', { exact: true })).toBeVisible();
+
+  // Y ahora lo que fallaba: acertar el paso anterior NO destapa el siguiente
+  await page.getByLabel('Comando para el tutor').fill('SP 1');
+  await page.getByRole('button', { name: /comprobar/i }).click();
+
+  await expect(page.getByText(/correcto/i)).toBeVisible();
+  await expect(page.locator('.tut-comando-enmascarado')).toBeVisible();
+  await expect(page.getByText('SP1-2', { exact: true })).toHaveCount(0);
 });
 
 test('un paso sin documentar NO da comando inventado', async ({ page }) => {
@@ -167,6 +250,7 @@ test('pegar el billete se confirma en pantalla y ahorra la pregunta', async ({ p
     });
   });
 
+  await modoGuiado(page);
   await page.goto('/tutor');
   await page.getByRole('button', { name: /cambiar un vuelo/i }).click();
   await expect(page.getByText(/¿el pasajero ya ha volado algún tramo\?/i)).toBeVisible();

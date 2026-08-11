@@ -1,0 +1,51 @@
+{
+  "id": "correcion-de-nombre",
+  "titulo": "Corrección de nombre — reglas sin cargo y operativa (Iberia y otras aerolíneas)",
+  "aerolinea": "IB",
+  "categoria": "reemision",
+  "resumen": "Política de corrección gratuita de errores tipográficos, transcripción y orden de nombre/apellido en billetes 075, junto con el procedimiento operativo en Amadeus para vuelos de Grupo IB y otras aerolíneas.",
+  "aplicaSolo": "Billetes 075 en vuelos IB, I2, YW, codeshare con AA, BA y VY (IB5000). Billetes sin volar tramos.",
+  "advertencias": [
+    { "nivel": "critico", "texto": "RESTRICCIÓN STRICTA: NO se permite cambio completo de pasajero. NO aplica en vuelos de LEVEL ni en billetes parcialmente usados.", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "VERIFICACIÓN DE IDENTIDAD: Las correcciones aplican siempre y cuando se pueda comprobar que se trata del mismo pasajero.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "ERRORES DE HASTA 3 LETRAS: Se permiten correcciones de hasta 3 letras en nombre o apellidos (ej: Martin -> Martinez, Clara -> Sara), adición de primer/segundo nombre, inversión de orden de apellidos o nombre/apellido y adición de apellido faltante.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "OTRAS AEROLÍNEAS ONEWORLD (distintas a AA, BA, VY): Consultar con un supervisor en piso antes de proceder.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "CAMBIO COMPLETO AUTORIZADO POR COACH: Emitir nuevo billete + reembolso aplicando gasto de gestión por reembolso (el SF original no se devuelve).", "confianza": "verbatim" }
+  ],
+  "fuente": {
+    "documento": "IberiaNet Lite — #3108 \"CORRECCIÓN DE NOMBRE\" + #3110 \"OPERADOS POR OTRAS AEROLÍNEAS\" + #3722 \"CREAR MÁSCARA MANUAL\"",
+    "tipo": "manual-oficial-interno",
+    "recibido": "2026-08-11",
+    "confianzaGlobal": "verbatim"
+  },
+  "casosPermitidosGratis": [
+    { "caso": "Nombres compuestos", "ejemplo": "Carmen por María Carmen, o por Carmen María" },
+    { "caso": "Error de hasta 3 letras", "ejemplo": "Martin por Martinez, Clara por Sara" },
+    { "caso": "Error de transcripción de 1 letra", "ejemplo": "FernáMdez por Fernández, Albaro por Alvaro" },
+    { "caso": "Lengua oficial", "ejemplo": "Pedro por Pere" },
+    { "caso": "Cambio posición apellidos/nombres", "ejemplo": "Vargas Pérez por Pérez Vargas" },
+    { "caso": "Cambio posición entre nombre y apellido", "ejemplo": "Alonso Vazquez/Julián por Julián Vazquez/Alonso" },
+    { "caso": "Inclusión de apellido faltante", "ejemplo": "Martín/Antonio por Martín Segura/Antonio" },
+    { "caso": "Apellido bebé", "ejemplo": "Cuando el bebé tomó los apellidos del adulto asociado y no los reales" }
+  ],
+  "pasos": [
+    { "n": 0, "sistema": "natiba", "proceso": "Filtro de seguridad", "comando": null, "explicacion": "APELLIDO + PNR.", "confianza": "verbatim", "esBloqueante": true },
+    { "n": 1, "sistema": "amadeus", "proceso": "Colocar TKT en FHE y borrar elementos antiguos", "comando": "FHE 075-1422342526/P1", "variantes": ["XE 14 (FA)", "XE 10 (SR TKNE)", "XE 23 (SSR FQTV)"], "explicacion": "Asociar billete en FHE. Eliminar FA, SR TKNE y FQTV del pasajero a corregir.", "confianza": "verbatim" },
+    { "n": 2, "sistema": "amadeus", "proceso": "Eliminar segmentos viejos y corregir el nombre (NU1)", "comando": "NU1 MARTINEZ CORTES/PATROCLO", "variantes": ["NU1 MARTINEZ SANZ/PEDRO (CHD)", "1/(ADT) (desasociar INF)", "1/(ADT)(INFPEREZ/ANDRES/18MAY23) (reasociar INF)"], "explicacion": "XE lineaSegmentos -> NU1 APELLIDOCORRECTO/NAMECORRECTO.", "confianza": "verbatim" },
+    { "n": 3, "sistema": "amadeus", "proceso": "Reservar nuevamente las plazas en la misma clase (Caso A)", "comando": "SS 2 A 1", "variantes": ["SS 2 A 1 * S 11", "SS 2 A S 1"], "explicacion": "Misma clase y mismo vuelo. Si no hay misma clase, cotizar diferencia con FXX + DF (Caso B).", "confianza": "verbatim" },
+    { "n": 4, "sistema": "amadeus", "proceso": "Verificar/Crear TST y poner en modo reemisión", "comando": "TQT", "variantes": ["FXP/L2-AANNOB2/L4-NASNOB2/R,DOI,UP/P1", "TTI/EXCH/T2"], "explicacion": "Si no hay TST, crear a histórico con FXP. Poner TST en modo reemisión TTI/EXCH/T2.", "confianza": "verbatim" },
+    { "n": 5, "sistema": "amadeus", "proceso": "Actualizar elementos FE, FO y FP", "comando": "FE X0/P1", "variantes": ["FO*L14/P1", "FPO/CCVI+/SFCA,/0"], "explicacion": "Borrar FE/FO/FP anteriores (XE) e incluir FE X0/P1, FO*L14/P1 y FP FPO/CCVI+/SFCA,/0.", "confianza": "verbatim" },
+    { "n": 6, "sistema": "amadeus", "proceso": "Reemitir billete", "comando": "TTP1/ET/RT/T2/F", "plantilla": "TTP1/ET/RT/T{numeroTST}/F", "explicacion": "Reemitir el billete con la corrección de nombre.", "confianza": "verbatim" },
+    { "n": 7, "sistema": "amadeus", "proceso": "Enviar itinerario", "comando": "IBP-EMLA/LPSP", "variantes": ["IEPJ-EMLA/LPSP", "ITR-EMLA", "ITP:/RESERVA/EMAIL", "DTR TN 075-..."], "explicacion": "Enviar documentos al cliente por Amadeus o Resiber.", "confianza": "verbatim" }
+  ],
+  "mascaraManualTST3722": {
+    "explicacion": "Pasos para construir un TST a mano con TTI en caso de modificación directa:",
+    "pasos": [
+      { "paso": 1, "comando": "TTC/S5", "detalle": "Crear máscara en segmento S5" },
+      { "paso": 2, "comando": "TQC", "detalle": "Poner TST en modo críptico (TWDRT para regresar al billete)" },
+      { "paso": 3, "comando": "TTI/T2/L1/B AANNOB2 IN/V 31MAR31MAR/A1PC", "detalle": "Agregar Farebasis, NVB/NVA y Piezas de equipaje (IN = Infant, CH = Child)" },
+      { "paso": 4, "comando": "TTI/T2/RUSD1243/EEUR123/O130YQ/O28.38JD/…/T0", "detalle": "Agregar Fare, equivalente, tasas pagadas y diferencia T0" },
+      { "paso": 5, "comando": "TTI/T2/C BOG IB X/MAD…", "detalle": "Agregar Fare Calculation" }
+    ]
+  }
+}

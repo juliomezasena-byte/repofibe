@@ -1,0 +1,37 @@
+{
+  "id": "cambio-involuntario-placa-diferente",
+  "titulo": "Cambio involuntario — Billetes placa diferente a 075",
+  "aerolinea": "IB",
+  "categoria": "reemision",
+  "resumen": "Reemisión por cambio involuntario en billetes emitidos por otras aerolíneas (placa distinta a 075) cuando el vuelo afectado es operado por Grupo IB o Level y se visualiza en Resiber con DTR:TN o ETKD:TN.",
+  "aplicaSolo": "Billetes de placa ajena a 075 visibles en Resiber.",
+  "advertencias": [
+    { "nivel": "critico", "texto": "REQUISITO DE VISIBILIDAD: El billete debe ser visualizable desde Resiber mediante DTR:TN o ETKD:TN y el vuelo afectado ser operado por Grupo IB o Level.", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "SI NO EXISTE RESERVA: Si no hay PNR activo en Amadeus para la placa ajena, se debe crear primero una RESERVA ESPEJO (#3641).", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "OPCIÓN 1 vs OPCIÓN 2: La Opción 1 especifica cupones con F# (ej: F1-2) e ir directo al paso 4 (emitir). La Opción 2 requiere borrar el FO automático (XE 14) y rehacerlo manualmente con cupones F1,2 y *I.", "confianza": "verbatim" }
+  ],
+  "fuente": {
+    "documento": "IberiaNet Lite — #3640 \"3. BILLETES PLACA DIFERENTE A (075)\"",
+    "tipo": "manual-oficial-interno",
+    "recibido": "2026-08-11",
+    "confianzaGlobal": "verbatim"
+  },
+  "pasos": [
+    { "n": 0, "sistema": "natiba", "proceso": "Filtro de seguridad", "comando": null, "explicacion": "APELLIDO + PNR.", "confianza": "verbatim", "esBloqueante": true },
+    { "n": 1.1, "sistema": "amadeus", "proceso": "Opción 1 — FXI por Cupón (con nº de billete)", "comando": "FXI/S2,4/TKT 075-142456789F1-2", "plantilla": "FXI/S{segmentos}/TKT {numeroBillete}F{cupones}", "explicacion": "Afectación -48h antes de la salida. Especifica cupones (F1-2). Continúa directo al paso 4 (emitir).", "confianza": "verbatim" },
+    { "n": 1.2, "sistema": "amadeus", "proceso": "Opción 1 — FXI por Cupón (con línea de billete)", "comando": "FXI/S2,4/T16F1-2", "plantilla": "FXI/S{segmentos}/T{lineaBillete}F{cupones}", "explicacion": "Variante usando línea del billete. Continúa directo al paso 4.", "confianza": "verbatim" },
+    { "n": 1.3, "sistema": "amadeus", "proceso": "Opción 2 — FXI por Pasajero (con nº de billete)", "comando": "FXI/S2,4/TKT 075-142456789/P1", "plantilla": "FXI/S{segmentos}/TKT {numeroBillete}/P{pasajero}", "explicacion": "Carga por pasajero. Genera FO automático que deberá modificarse en paso 2 y 3.", "confianza": "verbatim" },
+    { "n": 1.4, "sistema": "amadeus", "proceso": "Opción 2 — FXI por Pasajero (con línea de billete)", "comando": "FXI/T 16/S2,4/P1", "plantilla": "FXI/T {lineaBillete}/S{segmentos}/P{pasajero}", "explicacion": "Variante por línea de billete.", "confianza": "verbatim" },
+    { "n": 2, "sistema": "amadeus", "proceso": "Opción 2 — Eliminar el FO automático creado por el FXI", "comando": "XE 14", "plantilla": "XE {lineaFO}", "explicacion": "14 = línea del FO automático generado por FXI.", "confianza": "verbatim" },
+    { "n": 3, "sistema": "amadeus", "proceso": "Opción 2 — Crear FO manualmente con cupones correctos", "comando": "FO*L14/P1", "plantilla": "FO*L{lineaBillete}/P{pasajero}", "explicacion": "Modificar la trama del FO sustituyendo 'E' por 'F' + cupones y añadiendo '*I' al final (ej: FO075-2000968528F1,2MAD08APR25/00250025/075-2000968528F1,2*I/P1).", "confianza": "verbatim" },
+    { "n": 4, "sistema": "amadeus", "proceso": "Emitir solo el cambio", "comando": "TTP1/ET/RT/T2/F", "plantilla": "TTP1/ET/RT/T{numeroTST}/F", "explicacion": "T2 = número del TST.", "confianza": "verbatim" },
+    { "n": 5, "sistema": "amadeus", "proceso": "Enviar itinerario y billetes electrónicos", "comando": "IBP-EMLA/LPSP", "variantes": ["IEPJ-EMLA/LPSP", "ITR-EMLA"], "explicacion": "IBP = itinerario · IEPJ = itinerario y servicios · ITR = billetes electrónicos.", "confianza": "verbatim" }
+  ],
+  "recuperacionDeError": {
+    "pasos": [
+      { "n": 1, "sistema": "amadeus", "proceso": "Eliminar FO si aplica", "comando": "XE 14" },
+      { "n": 2, "sistema": "amadeus", "proceso": "Incluir de nuevo forma de pago", "comando": "FPO/CCVI+/SFCA,/0" },
+      { "n": 3, "sistema": "amadeus", "proceso": "Volver al paso 4 y emitir", "comando": "TTP1/ET/RT/T2/F" }
+    ]
+  }
+}

@@ -94,8 +94,8 @@ export function LearningGuide() {
 
           {/* Selector de Modo de Aprendizaje (A Ciegas vs Guiado) */}
           <div className="guide-mode-selector" style={{ margin: '15px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#475569' }}>Modo de Estudio:</span>
-            <div style={{ display: 'inline-flex', background: '#f1f5f9', padding: '3px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+            <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--text-muted)' }}>Modo de Estudio:</span>
+            <div style={{ display: 'inline-flex', background: 'var(--bg-dark)', padding: '3px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
               <button
                 type="button"
                 className={`guide-mode-btn ${tutorMode === 'ciegas' ? 'active' : ''}`}
@@ -108,7 +108,7 @@ export function LearningGuide() {
                   fontWeight: '700',
                   cursor: 'pointer',
                   background: tutorMode === 'ciegas' ? '#0284c7' : 'transparent',
-                  color: tutorMode === 'ciegas' ? '#ffffff' : '#64748b',
+                  color: tutorMode === 'ciegas' ? '#ffffff' : 'var(--text-muted)',
                   transition: 'all 0.15s ease'
                 }}
               >
@@ -126,7 +126,7 @@ export function LearningGuide() {
                   fontWeight: '700',
                   cursor: 'pointer',
                   background: tutorMode === 'guiado' ? '#0284c7' : 'transparent',
-                  color: tutorMode === 'guiado' ? '#ffffff' : '#64748b',
+                  color: tutorMode === 'guiado' ? '#ffffff' : 'var(--text-muted)',
                   transition: 'all 0.15s ease'
                 }}
               >

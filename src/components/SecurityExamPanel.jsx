@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useRef } from 'react';
-import { ShieldCheck, CheckCircle2, XCircle, ArrowRight, Award, Lock } from 'lucide-react';
+import { CheckCircle2, XCircle, ArrowRight, Award, Lock } from 'lucide-react';
 import { QuizEngine } from '../engine/QuizEngine';
 
 export const SecurityExamPanel = ({ profileConfig, locationsCatalog, flightsCatalog }) => {

@@ -1,7 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Bot, HelpCircle, ClipboardPaste, CheckCircle2, XCircle, AlertTriangle, ArrowRightLeft, Loader2, FileText, BookOpen, Sparkles, ChevronRight } from 'lucide-react';
 import { pedirPaso } from '../lib/tutorClient';
-import { PROCEDURE_EXERCISES, PROCEDURE_CATEGORIES, getExercisesByCategory } from '../lib/procedureExercises';
+import { getExercisesByCategory } from '../lib/procedureExercises';
+import { aEstadoDelMotor } from '../lib/seedPnr';
 import { useAppContext } from '../context/AppContext';
 
 const SISTEMAS = {
@@ -34,13 +35,27 @@ export function TutorPanel() {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState(null);
   const [revelado, setRevelado] = useState(false);
-  const tutorMode = (() => {
+  // El hilo de conversación: lo que el alumno escribe en sus palabras y lo que
+  // el coach le responde. Es lo que hace que se sienta "hablar con él".
+  const [chat, setChat] = useState([]);
+  const [mensaje, setMensaje] = useState('');
+  // El modo vive en localStorage y lo comparte con /guia. Antes solo se LEÍA
+  // aquí y el interruptor estaba en la otra página: si te atascabas a ciegas,
+  // no sabías cómo salir sin irte del tutor.
+  const [tutorMode, setTutorModeState] = useState(() => {
     try {
       return localStorage.getItem('cryptic-tutor-mode-v1') || 'ciegas';
     } catch {
       return 'ciegas';
     }
-  })();
+  });
+
+  const cambiarModo = (modo) => {
+    setTutorModeState(modo);
+    try {
+      localStorage.setItem('cryptic-tutor-mode-v1', modo);
+    } catch { /* modo privado: se queda en memoria */ }
+  };
   // Contador de peticiones: descarta explicaciones que lleguen tarde.
   const peticionRef = useRef(0);
 
@@ -51,22 +66,34 @@ export function TutorPanel() {
 
   const catalogByCat = getExercisesByCategory();
 
+  // Lo que el alumno teclea en la Terminal cuenta como respuesta del paso.
+  // App.jsx emite `cryptic-command-executed` en cada ejecución; aquí solo se
+  // escucha, para no meter el tutor dentro del contexto global.
+  useEffect(() => {
+    function alEjecutar(e) {
+      // `cargando` frena el atropello: dos comandos seguidos lanzaban dos
+      // peticiones solapadas y la segunda salía con el estado viejo.
+      if (!e.detail?.command || !estado || estado.terminado || cargando) return;
+      // La salida va como pantalla de UN SOLO USO. Si tecleas un DTR:TN, se
+      // lee; si tecleas una AN, no se reconoce y no pasa nada — antes cada
+      // comando sumaba una pantalla que se reenviaba en todas las peticiones
+      // siguientes y pintaba un aviso rojo de "no la reconozco".
+      avanzar({ comandoEscrito: e.detail.command, salidaTerminal: e.detail.output });
+    }
+    window.addEventListener('cryptic-command-executed', alEjecutar);
+    return () => window.removeEventListener('cryptic-command-executed', alEjecutar);
+  }, [estado, cargando]);
+
   const iniciarEjercicio = (ejercicio) => {
     setEjercicioActivo(ejercicio);
     setMostrarCatalogo(false);
 
-    if (ejercicio.seedPnr && pnrFsm) {
-      pnrFsm.setState({
-        ...pnrFsm.getState(),
-        passengers: ejercicio.seedPnr.passengers || [],
-        segments: ejercicio.seedPnr.segments || [],
-        contacts: ejercicio.seedPnr.contacts || [],
-        ticketing: ejercicio.seedPnr.ticketing || null,
-        issuedTicket: ejercicio.seedPnr.issuedTicket || null,
-        isTicketed: !!ejercicio.seedPnr.isTicketed,
-        tsm: ejercicio.seedPnr.tsm || null,
-        tsmIssued: !!ejercicio.seedPnr.tsmIssued
-      });
+    // El seed viene con nombres legibles (flightNumber, bookingClass, from/to)
+    // y el motor guarda otros (flight, class, route). Sin traducir, el PNR
+    // arrancaba vacío y el renderizador rellenaba con sus valores por defecto.
+    const estadoSemilla = aEstadoDelMotor(ejercicio.seedPnr);
+    if (estadoSemilla && pnrFsm) {
+      pnrFsm.setState(estadoSemilla);
     }
 
     avanzar({ procedimientoId: ejercicio.procedimientoId, reiniciar: true });
@@ -80,6 +107,11 @@ export function TutorPanel() {
       const nuevasRespuestas = { ...respuestas, ...(extra.respuestas || {}) };
       setRespuestas(nuevasRespuestas);
 
+      // Lo que el alumno PEGA a mano se acumula: son hechos del caso (el
+      // billete, el PNR, el histórico) y el árbol los necesita en cada
+      // petición. Lo que sale de la terminal NO se acumula: es de un solo
+      // uso. Si no, cada comando ejecutado sumaba una pantalla más que se
+      // reenviaba y reparseaba en todas las peticiones siguientes.
       const nuevasPantallas = extra.pantallaNueva
         ? [...pantallas, extra.pantallaNueva]
         : pantallas;
@@ -87,10 +119,22 @@ export function TutorPanel() {
 
       const peticion = {
         procedimientoId: extra.procedimientoId ?? estado?.procedimientoId,
-        caso: { ...caso, ...(extra.caso || {}), respuestas: nuevasRespuestas, pantallas: nuevasPantallas },
+        caso: {
+          ...caso,
+          ...(extra.caso || {}),
+          respuestas: nuevasRespuestas,
+          pantallas: nuevasPantallas,
+          pantalla: extra.salidaTerminal || undefined
+        },
         pasoActual: extra.reiniciar ? null : (paso?.n ?? null),
         comandoEscrito: extra.comandoEscrito ?? null,
         datos: extra.datos || {},
+        // Lo que el alumno escribió en sus palabras. En el worker: primero pasa
+        // por el detector de intención (encamina al árbol) y, si ya hay un paso
+        // activo, se contesta anclado al manual — nunca inventando.
+        consulta: extra.consulta ?? null,
+        // Preguntar sobre el paso actual NO debe avanzarlo.
+        soloResponder: extra.soloResponder ?? false,
         nivel: 'principiante'
       };
 
@@ -99,19 +143,38 @@ export function TutorPanel() {
       setEstado(datos);
       if (extra.comandoEscrito) setComando('');
 
-      // Fase 2: la redacción. Se pide en segundo plano y se pega encima
-      // cuando llega. Un id de petición evita que una explicación tardía
-      // caiga sobre un paso que ya cambió.
-      if (datos.pendienteDeExplicacion) {
+      // El worker no guarda estado: si dedujo la intención de lo que escribí,
+      // la conservo para reenviarla y que el árbol no me repregunte.
+      const intenc = datos?.decision?.intencionActiva;
+      if (intenc) setCaso((c) => (c?.intencion === intenc ? c : { ...c, intencion: intenc }));
+
+      // Fase 2: la redacción. Se pide en segundo plano y se pega encima cuando
+      // llega. Hace falta cuando hay un paso con explicación pendiente O cuando
+      // el alumno escribió libre y aún no hay procedimiento (territorio coach:
+      // un saludo, algo que no supimos encaminar) — ahí no hay paso, solo
+      // palabras.
+      const territorioCoach = !!extra.consulta && !datos.paso && !datos?.decision?.siguientePregunta;
+      if (datos.pendienteDeExplicacion || territorioCoach) {
         const miPeticion = ++peticionRef.current;
         pedirPaso({ ...peticion, conIA: true })
           .then((conTexto) => {
             if (miPeticion !== peticionRef.current) return;
-            setEstado((previo) =>
-              previo && previo.paso?.n === conTexto.paso?.n
-                ? { ...previo, explicacion: conTexto.explicacion, diagnostico: conTexto.diagnostico, pendienteDeExplicacion: false }
-                : previo
-            );
+            setEstado((previo) => {
+              if (!previo) return previo;
+              // Paso vigente: se pega la explicación al paso actual.
+              if (previo.paso && conTexto.paso?.n === previo.paso.n) {
+                return { ...previo, explicacion: conTexto.explicacion, diagnostico: conTexto.diagnostico, pendienteDeExplicacion: false };
+              }
+              // Coach sin paso: solo palabras.
+              if (!previo.paso) {
+                return { ...previo, explicacion: conTexto.explicacion, diagnostico: conTexto.diagnostico, pendienteDeExplicacion: false };
+              }
+              return previo;
+            });
+            // Si venía de una pregunta libre, la respuesta va al hilo de chat.
+            if (extra.consulta && conTexto.explicacion) {
+              setChat((c) => [...c, { rol: 'coach', texto: conTexto.explicacion }]);
+            }
           })
           .catch(() => {
             // La explicación es un adorno: si falla, el paso del manual sigue.
@@ -135,6 +198,20 @@ export function TutorPanel() {
     avanzar({ respuestas: { [id]: valor } });
   }
 
+  // El alumno escribió en sus palabras. Su mensaje entra al hilo al instante;
+  // la respuesta del coach llega en la fase 2 de `avanzar`.
+  function enviarMensaje() {
+    const texto = mensaje.trim();
+    if (!texto || cargando) return;
+    setChat((c) => [...c, { rol: 'alumno', texto }]);
+    // Si aún no hay procedimiento, este texto puede encaminar (o saludar) →
+    // reinicia. Si ya hay un paso activo, es una pregunta sobre él → no lo
+    // avanza (soloResponder).
+    const hayPaso = !!estado?.paso;
+    avanzar({ consulta: texto, reiniciar: !estado?.procedimientoId, soloResponder: hayPaso });
+    setMensaje('');
+  }
+
   function reiniciar() {
     setCaso({ intencion: null });
     setRespuestas({});
@@ -144,6 +221,8 @@ export function TutorPanel() {
     setPantallas([]);
     setMostrarPegar(false);
     setError(null);
+    setChat([]);
+    setMensaje('');
   }
 
   return (
@@ -151,6 +230,35 @@ export function TutorPanel() {
       <h2 className="panel-title">
         <Bot size={18} /> Tutor
       </h2>
+
+      {/* El hilo de conversación: lo que le hablas y lo que te responde. Va
+          arriba del todo porque es la vía principal — le escribes en tus
+          palabras y él te encamina o te responde anclado al manual. */}
+      {chat.length > 0 && (
+        <div className="tut-chat">
+          {chat.map((m, i) => (
+            <div key={i} className={`tut-burbuja tut-burbuja-${m.rol}`}>{m.texto}</div>
+          ))}
+          {cargando && <div className="tut-burbuja tut-burbuja-coach tut-burbuja-pensando">…</div>}
+        </div>
+      )}
+
+      <form
+        className="tut-chat-form"
+        onSubmit={(e) => { e.preventDefault(); enviarMensaje(); }}
+      >
+        <input
+          type="text"
+          value={mensaje}
+          onChange={(e) => setMensaje(e.target.value)}
+          placeholder={estado?.procedimientoId ? 'Pregúntame sobre este paso…' : 'Cuéntame el caso: «quiere cambiar la fecha»…'}
+          aria-label="Escríbele al tutor"
+          disabled={cargando}
+        />
+        <button type="submit" className="tut-chat-enviar" aria-label="Enviar mensaje al tutor" disabled={!mensaje.trim() || cargando}>
+          Enviar
+        </button>
+      </form>
 
       {/* Dónde estás */}
       {estado?.titulo && (
@@ -240,6 +348,32 @@ export function TutorPanel() {
             <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)' }}>
               Elige cualquier procedimiento de Iberia/Amadeus para cargarlo con su PNR semilla y practicarlo paso a paso:
             </p>
+          </div>
+
+          {/* La SEGUNDA puerta. El catálogo sirve para "quiero practicar este";
+              esto sirve para "tengo un caso y no sé cuál aplica", que es lo que
+              ningún manual enseña y lo único que usa el árbol de decisión. Sin
+              esta entrada, queProcedimiento() quedaba inalcanzable. */}
+          <div className="tut-arranque-arbol">
+            <p className="tut-arranque-texto">¿No sabes cuál aplica? Deja que te pregunte.</p>
+            <div className="tut-opciones">
+              {[
+                ['emision', 'Comprar un billete nuevo'],
+                ['cambio', 'Cambiar un vuelo'],
+                ['reembolso', 'Que le devuelvan el dinero'],
+                ['servicio', 'Añadir un servicio']
+              ].map(([valor, texto]) => (
+                <button
+                  key={valor}
+                  type="button"
+                  className="quiz-big-btn"
+                  disabled={cargando}
+                  onClick={() => { setEjercicioActivo(null); setMostrarCatalogo(false); responder('intencion', valor); }}
+                >
+                  {texto}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '420px', overflowY: 'auto', paddingRight: '4px' }}>
@@ -374,15 +508,16 @@ export function TutorPanel() {
           </p>
 
           {paso.comando ? (
-            tutorMode === 'ciegas' && !revelado && !estado?.veredicto?.correcto ? (
-              <div className="tut-comando-enmascarado" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#0f172a', padding: '8px 12px', borderRadius: '8px', border: '1px solid #334155', margin: '8px 0' }}>
-                <code style={{ color: '#38bdf8', letterSpacing: '4px', fontSize: '15px' }}>••••••••••••</code>
-                <button
-                  type="button"
-                  onClick={() => setRevelado(true)}
-                  style={{ background: 'rgba(56, 189, 248, 0.2)', border: '1px solid #38bdf8', color: '#38bdf8', borderRadius: '4px', padding: '3px 8px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}
-                >
-                  👁️ Revelar Respuesta
+            // Antes llevaba `&& !estado?.veredicto?.correcto`. El veredicto es
+            // del paso ANTERIOR y viaja junto al paso NUEVO: en cuanto acertabas
+            // uno, el comando del siguiente salía destapado y el modo a ciegas
+            // dejaba de existir. `revelado` se resetea en cada avance y es el
+            // único estado que debe mandar aquí.
+            tutorMode === 'ciegas' && !revelado ? (
+              <div className="tut-comando-enmascarado">
+                <code>••••••••••••</code>
+                <button type="button" className="tut-revelar" onClick={() => setRevelado(true)}>
+                  Revelar
                 </button>
               </div>
             ) : (
@@ -395,6 +530,26 @@ export function TutorPanel() {
                 : 'Este paso no lleva comando.'}
             </p>
           )}
+
+          <div className="tut-modo">
+            <span className="tut-modo-etiqueta">Modo</span>
+            <button
+              type="button"
+              className={`tut-modo-btn ${tutorMode === 'ciegas' ? 'activo' : ''}`}
+              onClick={() => cambiarModo('ciegas')}
+              title="Escribe el comando de memoria: así se aprende de verdad"
+            >
+              A ciegas
+            </button>
+            <button
+              type="button"
+              className={`tut-modo-btn ${tutorMode === 'guiado' ? 'activo' : ''}`}
+              onClick={() => cambiarModo('guiado')}
+              title="Te enseña el comando para que lo copies"
+            >
+              Guiado
+            </button>
+          </div>
 
           {paso.nota && <p className="tut-nota"><AlertTriangle size={13} /> {paso.nota}</p>}
           {estado.explicacion && <p className="tut-explicacion">{estado.explicacion}</p>}

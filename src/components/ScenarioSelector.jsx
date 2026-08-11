@@ -162,23 +162,37 @@ export const ScenarioSelector = ({
           )}
 
           <Collapse title="Enunciado del ejercicio" icon={<BookOpen size={14} />} defaultOpen>
-            <div style={{ fontSize: '0.88rem', color: '#cbd5e1', lineHeight: '1.4', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-              {activeScenario.description}
-            </div>
-            {dataFields.length > 0 && (
-              <button className="link-btn" style={{ marginTop: '8px' }} onClick={() => setShowData((v) => !v)}>
-                <Eye size={12} /> {showData ? 'Ocultar datos' : 'Ver datos extraídos'}
-              </button>
-            )}
-            {showData && (
-              <div className="data-fields">
-                {dataFields.map((f, i) => (
-                  <div key={i} className="data-field">
-                    <span className="data-label">{f.label}</span>
-                    <span className="data-value">{f.value}</span>
+            {/* Las fichas van PRIMERO. El enunciado es un bloque con etiquetas
+                (PASAJEROS / RUTA / FECHA / TAREA) y leerlo como párrafo corrido
+                obligaba a buscar con el dedo qué te pedían. Antes esto estaba
+                escondido tras un botón "Ver datos extraídos" y lo primero que
+                se veía era el texto en bruto. La TAREA se destaca porque es lo
+                único que hay que hacer. */}
+            {dataFields.length > 0 ? (
+              <>
+                <div className="data-fields">
+                  {dataFields.filter((f) => f.label !== 'TAREA').map((f, i) => (
+                    <div key={i} className="data-field">
+                      <span className="data-label">{f.label}</span>
+                      <span className="data-value">{f.value}</span>
+                    </div>
+                  ))}
+                </div>
+                {dataFields.filter((f) => f.label === 'TAREA').map((f, i) => (
+                  <div key={i} className="scn-tarea">
+                    <span className="scn-tarea-etiqueta">Lo que tienes que hacer</span>
+                    <p className="scn-tarea-texto">{f.value}</p>
                   </div>
                 ))}
-              </div>
+                <button className="link-btn" style={{ marginTop: '8px' }} onClick={() => setShowData((v) => !v)}>
+                  <Eye size={12} /> {showData ? 'Ocultar enunciado original' : 'Ver enunciado original'}
+                </button>
+                {showData && (
+                  <div className="scn-enunciado-crudo">{activeScenario.description}</div>
+                )}
+              </>
+            ) : (
+              <div className="scn-enunciado-crudo">{activeScenario.description}</div>
             )}
           </Collapse>
 

@@ -7,6 +7,26 @@
   "advertencias": [
     {
       "nivel": "critico",
+      "texto": "REGLA BASE: Solo se pueden realizar cambios a billetes con placa 075-...",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "critico",
+      "texto": "POLÍTICA ANTI-FRAUDE: NO se pueden realizar cambios a billetes comprados el día de hoy para volar hoy mismo o el día siguiente.",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "alto",
+      "texto": "REGLAS DE AGENCIAS: Pasajero directo procede sin restricción. Agencias NDC & GDS se puede cambiar si tienen tramos volados (y contacta el pax) o sin segmento volado si el vuelo es en las próximas 24h. Únicamente Agencias GDS: si llama fin de semana para vuelo ese mismo fin de semana o lunes temprano.",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "alto",
+      "texto": "PREGUNTAS CLAVE AL CLIENTE: A) ¿Para cuándo desea el cambio y si tiene flexibilidad? B) ¿Es para ida y regreso? C) ¿Misma cabina (Turista/T.Premium/Business)? D) ¿Es para todos los pasajeros?",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "critico",
       "texto": "ANTES DE INICIAR: realiza el filtro de seguridad — APELLIDO + PNR.",
       "confianza": "verbatim"
     },

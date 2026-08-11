@@ -6,13 +6,14 @@
   "resumen": "Solicitud del servicio AVIH (animal vivo en bodega). El manual da el MISMO servicio en los dos sistemas, lo que permite comparar sintaxis línea a línea.",
   "aplicaSolo": "Billetes 075. SOLO vuelos operados por Grupo Iberia: Iberia, Air Nostrum, Iberia Express. NO aplica a Vueling ni LEVEL.",
   "advertencias": [
+    { "nivel": "critico", "texto": "APLICABILIDAD AEROLÍNEA: Solo Grupo Iberia (IB, I2, Air Nostrum YW). ❌ PROHIBIDO en Vueling (VY) y LEVEL (LV).", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "PROHIBICIÓN STRICTA DE BRAQUICÉFALOS EN BODEGA: PROHIBIDOS perros braquicéfalos (Bóxer, Bulldog, Carlino, Pekinés, Shar Pei, Shih Tzu, Pit Bull, etc.) y gatos braquicéfalos (Persa, Burmés, Himalayo, Exótico).", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "PROHIBICIÓN DE RAZAS PELIGROSAS: Pit Bull, Staffordshire, Rottweiler, Dóberman, Dogo Argentino, Fila Brasileiro, Tosa Inu, Akita Inu (y sus cruces).", "confianza": "verbatim" },
     { "nivel": "critico", "texto": "El transporte debe autorizarse con antelación por la disponibilidad limitada de jaulas. La autorización NO es definitiva hasta que se confirmen todos los trayectos (ida y vuelta).", "confianza": "verbatim" },
-    { "nivel": "critico", "texto": "Peso máximo 45 kg (animal + contenedor).", "confianza": "verbatim" },
-    { "nivel": "critico", "texto": "El servicio AVIH solo se confirma en vuelos con conexión si el tiempo de conexión es SUPERIOR a 90 minutos y NO MAYOR a 4 horas.", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "Peso máximo 45 kg (animal + contenedor). Medidas máx. Air Nostrum (AT7/CRJ): 85x65x83 cm (máx. 2 jaulas por avión).", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "CONEXIONES: El servicio AVIH solo se confirma en vuelos con conexión si el tiempo de conexión es SUPERIOR a 90 minutos y NO MAYOR a 4 horas.", "confianza": "verbatim" },
     { "nivel": "alto", "texto": "Las reservas del servicio AVIH se pueden hacer hasta 72 HORAS antes del vuelo.", "confianza": "verbatim" },
-    { "nivel": "alto", "texto": "El aeropuerto NO acepta registros de mascotas como: cruce, mestizo, criollo, común, mezcla. Deben garantizar que la mascota sea óptima según su raza, tamaño y peso.", "confianza": "verbatim" },
-    { "nivel": "medio", "texto": "El servicio se puede agregar SIN tener billete emitido, para asegurar que el pasajero pueda volar con su mascota. El estado del billete debe ser \"OPEN FOR USE\" (O).", "confianza": "verbatim" },
-    { "nivel": "medio", "texto": "Se requiere documentación de importación/exportación o tránsito del animal.", "confianza": "verbatim" }
+    { "nivel": "alto", "texto": "El aeropuerto NO acepta registros de mascotas como: 'cruce', 'mestizo', 'criollo', 'común', 'mezcla'. Deben detallarse las razas exactas.", "confianza": "verbatim" }
   ],
   "fuente": {
     "documento": "IberiaNet Lite — #3117 \"2. MASCOTA EN BODEGA\" (hijo de #3099 \"4. MASCOTAS\")",
