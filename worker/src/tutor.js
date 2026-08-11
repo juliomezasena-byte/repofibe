@@ -36,7 +36,7 @@ export function construirComando(plantilla, datos = {}) {
  * Construye el FQP de una reemisión a partir de los cupones del billete.
  *
  * Se hace aparte porque su forma no es una plantilla plana: cambia según
- * haya escala, superficie o varios tipos de pasajero (#3113 pasos 2.2-2.4).
+ * haya escala, superficie o varios tipos de pasajero (pasos 2.2-2.4).
  *
  * @param {object} opciones
  * @param {Array}  opciones.cupones   [{origen,destino,aerolinea,clase,fecha}]
@@ -74,7 +74,7 @@ export function siguientePaso(procedimiento, estado = {}) {
     return { error: 'El procedimiento no tiene pasos.' };
   }
 
-  const { pasoActual = null, comandoEscrito = null, datos = {} } = estado;
+  const { pasoActual = null, comandoEscrito = null, datos = {}, soloResponder = false } = estado;
 
   // ¿En qué punto estamos?
   const i = pasoActual === null ? -1 : pasos.findIndex((p) => p.n === pasoActual);
@@ -94,7 +94,9 @@ export function siguientePaso(procedimiento, estado = {}) {
   }
 
   // 2 · Elegir el siguiente. Si el anterior estaba mal, se repite.
-  const avanzar = !actual || r.veredicto?.correcto || comandoEscrito === null;
+  //     `soloResponder` es cuando el alumno hizo una PREGUNTA sobre el paso
+  //     actual: se queda donde está para contestarla, no avanza.
+  const avanzar = !actual || r.veredicto?.correcto || (comandoEscrito === null && !soloResponder);
   const siguiente = avanzar ? pasos[i + 1] : actual;
 
   if (!siguiente) {

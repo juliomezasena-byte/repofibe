@@ -41,7 +41,7 @@ function noContiene(nombre, texto, frag) {
 // ── 0 · El bundle del Worker lleva todos los manuales ───────────
 console.log('\n--- EL BUNDLE ESTÁ COMPLETO ---');
 const enDisco = readFileSync(join(RAIZ, 'public', 'procedimientos', '_sistemas.json'), 'utf8');
-comprobar('lleva los 21 procedimientos', Object.keys(procedimientos).filter((k) => !k.startsWith('_')).length, 21);
+comprobar('lleva los 29 procedimientos', Object.keys(procedimientos).filter((k) => !k.startsWith('_')).length, 29);
 comprobar('lleva _sistemas para el conmutador', !!procedimientos._sistemas, true);
 comprobar('y el conmutador ":" está dentro', procedimientos._sistemas.conmutadorEntreSistemas.comando, ':');
 void enDisco;

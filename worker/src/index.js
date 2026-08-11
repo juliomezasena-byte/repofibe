@@ -1,10 +1,12 @@
 import { verifyFirebaseIdToken } from './auth.js';
 import { checkAndConsumeQuota, todayKey } from './quota.js';
-import { buildPassengerSystemPrompt, buildEvaluationPrompt, buildTutorPrompt } from './prompts.js';
+import { buildPassengerSystemPrompt, buildEvaluationPrompt, buildTutorPrompt, buildGeneralCoachPrompt } from './prompts.js';
 import { generatePassengerReply, generateEvaluation, generateTutorText } from './gemini.js';
 import { queProcedimiento } from './arbol.js';
 import { siguientePaso } from './tutor.js';
 import { leerPantalla, fusionarEnCaso } from './pantalla.js';
+import { detectarIntencion } from './coach.js';
+import { consumirCupoPublico, responderCoachPublico } from './publico.js';
 import scenarios from './scenarios.generated.json';
 import procedimientos from './procedimientos.generated.json';
 
@@ -15,6 +17,38 @@ function corsHeaders(env) {
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Content-Type': 'application/json'
   };
+}
+
+// El coach público lo llama una página distinta (hyntibia) y no lleva datos
+// sensibles: los manuales quedan en el servidor y la respuesta ya va anclada.
+// Por eso su CORS es abierto; el gasto lo frena el tope, no el origen.
+function corsPublico() {
+  return {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Bot-Clave',
+    'Content-Type': 'application/json'
+  };
+}
+
+/**
+ * Coach público: sin login, tras la clave, con techo de gasto.
+ * El token (el hash de la clave, ya público en la página) solo filtra
+ * escáneres que no la abrieron; el tope diario es la protección de verdad.
+ */
+async function handleCoachPublico(request, env) {
+  const cors = corsPublico();
+
+  const ip = request.headers.get('CF-Connecting-IP') || 'sin-ip';
+  const cupo = await consumirCupoPublico(env.ROLEPLAY_KV, ip, env);
+  if (!cupo.allowed) {
+    return new Response(JSON.stringify({ error: cupo.motivo, explicacion: cupo.mensaje }), { status: 429, headers: cors });
+  }
+
+  const cuerpo = await request.json().catch(() => ({}));
+  const resultado = await responderCoachPublico(cuerpo, env);
+  const status = resultado?.error === 'procedimiento_desconocido' ? 404 : 200;
+  return new Response(JSON.stringify(resultado), { status, headers: cors });
 }
 
 function findScenario(scenarioId) {
@@ -105,7 +139,11 @@ async function handleTutorPaso(request, env) {
   //     vivos entre pregunta y pregunta.
   let lectura = null;
   let casoConHechos = caso;
-  const pegadas = [caso?.pantalla, ...(caso?.pantallas || [])].filter(Boolean);
+  // `caso.pantalla` es de un solo uso (lo que acaba de salir en la Terminal).
+  // `caso.pantallas` son las que el alumno pegó a mano y se conservan.
+  const pegadas = (caso?.pantallas || []).filter(Boolean);
+  const suelta = caso?.pantalla || null;
+
   for (const texto of pegadas) {
     const l = leerPantalla(texto);
     casoConHechos = fusionarEnCaso(casoConHechos, l);
@@ -114,17 +152,62 @@ async function handleTutorPaso(request, env) {
     if (l.tipo || !lectura) lectura = l;
   }
 
+  if (suelta) {
+    const l = leerPantalla(suelta);
+    casoConHechos = fusionarEnCaso(casoConHechos, l);
+    // Si la salida de la Terminal SÍ es una pantalla útil (un DTR:TN, un RT),
+    // se aprovecha. Si no lo es —una AN, un mensaje de error— se ignora en
+    // silencio: el alumno no ha pegado nada, solo ha ejecutado un comando, y
+    // regañarle con "no reconozco esa pantalla" sería ruido en cada paso.
+    if (l.tipo) lectura = l;
+  }
+
   // 1 · ¿Qué procedimiento? O lo dice el cliente, o lo decide el árbol.
   let id = procedimientoId;
   let decision = null;
   if (!id) {
-    if (!casoConHechos) {
-      return new Response(JSON.stringify({ error: 'bad_request', detalle: 'Hace falta procedimientoId o caso.' }),
-        { status: 400, headers: corsHeaders(env) });
+    const consultaTexto = cuerpo.consulta || cuerpo.texto || cuerpo.mensaje || null;
+
+    // Encaminar desde el texto libre ANTES de que el árbol pregunte. Si el
+    // alumno escribió "quiere cambiar la fecha", eso YA es la intención y nos
+    // saltamos la primera pregunta. Es determinista (coach.js), no IA.
+    let encaminadoPor = null;
+    if (consultaTexto && !(casoConHechos && casoConHechos.intencion)) {
+      const intuido = detectarIntencion(consultaTexto);
+      if (intuido) {
+        casoConHechos = { ...(casoConHechos || {}), intencion: intuido.intencion };
+        encaminadoPor = intuido.comoLoSe;
+      }
     }
-    decision = queProcedimiento(casoConHechos);
-    // El árbol necesita más información: se devuelve la pregunta, sin gastar IA.
+
+    decision = casoConHechos ? queProcedimiento(casoConHechos) : { procedimientoId: null };
+    if (encaminadoPor && decision) decision.encaminadoPor = encaminadoPor;
+    // El worker es SIN ESTADO: si la intención se dedujo del texto, hay que
+    // devolverla para que el cliente la reenvíe en el próximo turno. Sin esto,
+    // al pulsar el siguiente botón el árbol vuelve a preguntar "¿qué necesita?".
+    if (decision) decision.intencionActiva = casoConHechos?.intencion || null;
+
     if (!decision.procedimientoId) {
+      // El coach honesto SOLO habla cuando el árbol no está ya esperando un
+      // dato (siguientePregunta). Si el árbol pregunta, esa pregunta ES la
+      // respuesta — el panel la pinta como botones. El coach nunca da comandos.
+      const debeResponderCoach = conIA && !decision.siguientePregunta
+        && (consultaTexto || (casoConHechos && casoConHechos.pantalla));
+      if (debeResponderCoach) {
+        const prompt = buildGeneralCoachPrompt({ consulta: consultaTexto, lectura });
+        const quota = await checkAndConsumeQuota(env.ROLEPLAY_KV, uid, todayKey(), Number(env.DAILY_QUOTA));
+        if (quota.allowed) {
+          try {
+            const resIA = await generateTutorText(env.GEMINI_API_KEY, env.GEMINI_MODEL, prompt);
+            return new Response(JSON.stringify({
+              decision,
+              lectura,
+              explicacion: resIA.explicacion || '👋 ¡Hola! Soy tu coach. ¿Qué necesita el pasajero: comprar, cambiar, reembolso o un servicio?',
+              diagnostico: resIA.diagnostico || ''
+            }), { status: 200, headers: corsHeaders(env) });
+          } catch (e) { /* si la IA falla, cae a la respuesta determinista */ }
+        }
+      }
       return new Response(JSON.stringify({ decision, lectura }), { status: 200, headers: corsHeaders(env) });
     }
     id = decision.procedimientoId;
@@ -139,7 +222,8 @@ async function handleTutorPaso(request, env) {
   }
 
   // 2 · Qué paso toca. El comando sale de aquí, nunca del modelo.
-  const avance = siguientePaso(procedimiento, { pasoActual, comandoEscrito, datos });
+  //     `soloResponder`: el alumno preguntó sobre el paso actual → no avanza.
+  const avance = siguientePaso(procedimiento, { pasoActual, comandoEscrito, datos, soloResponder: cuerpo.soloResponder });
 
   const respuesta = {
     procedimientoId: id,
@@ -187,7 +271,10 @@ async function handleTutorPaso(request, env) {
       veredicto: avance.veredicto,
       avisos: avance.avisos,
       saltoDeSistema: avance.saltoDeSistema,
-      nivel
+      nivel,
+      // Si el alumno escribió una pregunta libre en medio del paso, se contesta
+      // anclada al contexto del manual — nunca inventando.
+      pregunta: cuerpo.consulta || cuerpo.texto || cuerpo.mensaje || null
     });
     const texto = await generateTutorText(env.GEMINI_API_KEY, env.GEMINI_MODEL, prompt);
     respuesta.explicacion = texto.explicacion;
@@ -204,11 +291,16 @@ async function handleTutorPaso(request, env) {
 
 export default {
   async fetch(request, env) {
+    const url = new URL(request.url);
+
+    // El coach público (hyntibia) tiene su propio CORS abierto — es una página
+    // distinta y pública. El resto sigue atado al origen del simulador.
+    const esPublico = url.pathname === '/coach/publico';
+
     if (request.method === 'OPTIONS') {
-      return new Response(null, { status: 204, headers: corsHeaders(env) });
+      return new Response(null, { status: 204, headers: esPublico ? corsPublico() : corsHeaders(env) });
     }
 
-    const url = new URL(request.url);
     try {
       if (request.method === 'POST' && url.pathname === '/roleplay/turn') {
         return await handleTurn(request, env);
@@ -218,6 +310,9 @@ export default {
       }
       if (request.method === 'POST' && url.pathname === '/tutor/paso') {
         return await handleTutorPaso(request, env);
+      }
+      if (request.method === 'POST' && esPublico) {
+        return await handleCoachPublico(request, env);
       }
       return new Response(JSON.stringify({ error: 'not_found' }), { status: 404, headers: corsHeaders(env) });
     } catch (err) {

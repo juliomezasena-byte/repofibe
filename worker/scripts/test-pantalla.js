@@ -180,7 +180,7 @@ for (const t of ['_glosario', '_gama-tarifas-cabinas', '_tipos-de-tarifas-benefi
   comprobar(`${t} empaquetada`, !!material[t], true);
 }
 comprobar('las tablas NO se confunden con procedimientos',
-  Object.keys(material).filter((k) => !k.startsWith('_')).every((k) => Array.isArray(material[k].pasos)), true);
+  Object.keys(material).filter((k) => !k.startsWith('_')).every((k) => Array.isArray(material[k].pasos) || Array.isArray(material[k].fases) || !!material[k].motivos), true);
 
 console.log('\n' + '='.repeat(50));
 console.log(`Resultados: ${pasados} pasados, ${fallos} fallidos.`);

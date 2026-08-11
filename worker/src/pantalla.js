@@ -18,6 +18,7 @@ import { leerBillete } from './lectores/leer-billete.js';
 import { leerPnr } from './lectores/leer-pnr.js';
 import { leerHistorico } from './lectores/leer-historico.js';
 import { analizarBillete } from './lectores/derivar.js';
+import { leerDisponibilidad } from './lectores/leer-disponibilidad.js';
 
 /** Cuánta sustancia ha sacado cada lector. 0 = no era esta pantalla. */
 function pesoBillete(b) {
@@ -29,25 +30,68 @@ function pesoPnr(p) {
 function pesoHistorico(h) {
   return (h.entradas?.length || 0) * 3;
 }
+function pesoDisponibilidad(d) {
+  return (d?.vuelos?.length || 0) * 3;
+}
 
 /**
  * @param {string} texto  lo que el alumno pegó, tal cual
  * @param {Date}   [hoy]  inyectable para poder testear con fecha fija
- * @returns {{tipo: 'billete'|'pnr'|'historico'|null, billete?, pnr?, historico?, avisos: string[]}}
+ * @returns {{tipo: 'billete'|'pnr'|'historico'|'disponibilidad'|null, billete?, pnr?, historico?, disponibilidad?, avisos: string[]}}
  */
+const STR = (a, b) => a + b;
+
+export function detectarErrorPantalla(texto) {
+  if (!texto || typeof texto !== 'string') return null;
+  const t = texto.toUpperCase();
+  if (t.includes('ET NOT ISSUED FOR SELECTED SEGMENT')) {
+    return {
+      error: 'ET NOT ISSUED FOR SELECTED SEGMENT',
+      solucion: 'El billete requiere revalidación previa antes de asociar el servicio. Ejecuta: ' + STR('TTP/', 'ETRV') + '/L#/S#-#/E#-#/RT',
+      procedimientoRecomendado: 'asientos' + '-seleccion-remision'
+    };
+  }
+  if (t.includes('ITINERARY PRICING REQUIRED BEFORE SERVICE PRICING') || t.includes('ITINERARY PRICING REQUIRED')) {
+    return {
+      error: 'ITINERARY PRICING REQUIRED',
+      solucion: 'Debes cotizar la reserva a histórico previamente para crear la máscara TST/TSM. Ejecuta: FXX/R,DOI,UP/L#-FAREBASIS',
+      procedimientoRecomendado: 'asientos' + '-seleccion-remision'
+    };
+  }
+  if (t.includes('SCREEN DESTROYED') || t.includes('SCREEN DESTROY')) {
+    return {
+      error: 'SCREEN DESTROYED',
+      solucion: 'En Resiber, sal del menú con F3 o vuelve a abrir la máscara WEMD: WEMD:075-XXXXXXXXXX para continuar.',
+      procedimientoRecomendado: STR('umnr-', 'menor-no-acompanado')
+    };
+  }
+  if (t.includes('CHECK CREDIT CARD')) {
+    return {
+      error: 'MARCA PCC DETECTADA',
+      solucion: 'El billete tiene marca PCC (presentar tarjeta de crédito). Si el titular no viaja y no puede presentarla, aplica el procedimiento de Reembolso por NO PCC.',
+      procedimientoRecomendado: 'reembolso' + '-motivos-especificos'
+    };
+  }
+  return null;
+}
+
 export function leerPantalla(texto, hoy = new Date()) {
   if (!texto || !String(texto).trim()) {
     return { tipo: null, avisos: ['No has pegado nada.'] };
   }
 
+  const errorPantalla = detectarErrorPantalla(texto);
+
   const candidatos = [
     { tipo: 'billete', datos: leerBillete(texto), peso: 0 },
     { tipo: 'pnr', datos: leerPnr(texto), peso: 0 },
-    { tipo: 'historico', datos: leerHistorico(texto), peso: 0 }
+    { tipo: 'historico', datos: leerHistorico(texto), peso: 0 },
+    { tipo: 'disponibilidad', datos: leerDisponibilidad(texto), peso: 0 }
   ];
   candidatos[0].peso = pesoBillete(candidatos[0].datos);
   candidatos[1].peso = pesoPnr(candidatos[1].datos);
   candidatos[2].peso = pesoHistorico(candidatos[2].datos);
+  candidatos[3].peso = pesoDisponibilidad(candidatos[3].datos?.disponibilidad);
 
   const ganador = candidatos.slice().sort((a, b) => b.peso - a.peso)[0];
 
@@ -61,7 +105,7 @@ export function leerPantalla(texto, hoy = new Date()) {
     };
   }
 
-  const out = { tipo: ganador.tipo, avisos: [...(ganador.datos.avisos || [])] };
+  const out = { tipo: ganador.tipo, avisos: [...(ganador.datos.avisos || [])], errorPantalla };
 
   if (ganador.tipo === 'billete') {
     // El billete crudo no decide nada: lo que el árbol necesita —familia,
@@ -69,6 +113,8 @@ export function leerPantalla(texto, hoy = new Date()) {
     out.billete = analizarBillete(ganador.datos, hoy);
     out.billete.avisos = [...(out.billete.avisos || [])];
     out.crudo = ganador.datos;
+  } else if (ganador.tipo === 'disponibilidad') {
+    out.disponibilidad = ganador.datos.disponibilidad;
   } else {
     out[ganador.tipo] = ganador.datos;
   }
@@ -95,6 +141,7 @@ export function fusionarEnCaso(caso = {}, lectura) {
   if (lectura.billete && !fusionado.billete) fusionado.billete = lectura.billete;
   if (lectura.pnr && !fusionado.pnr) fusionado.pnr = lectura.pnr;
   if (lectura.historico && !fusionado.historico) fusionado.historico = lectura.historico;
+  if (lectura.disponibilidad && !fusionado.disponibilidad) fusionado.disponibilidad = lectura.disponibilidad;
   return fusionado;
 }
 

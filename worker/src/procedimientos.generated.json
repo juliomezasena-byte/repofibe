@@ -1,4 +1,232 @@
 {
+  "asientos-seleccion-remision": {
+    "id": "asientos-seleccion-remision",
+    "titulo": "Asientos — Selección, Cunas y Remisión de EMD (Resiber & Amadeus)",
+    "aerolinea": "IB",
+    "categoria": "servicios",
+    "resumen": "Manual completo para la selección de asientos de pago, asignación de cunas gratuitas (BSCT) y remisión de EMD por cambio de vuelo en Resiber y Amadeus.",
+    "aplicaSolo": "Billetes 075 en vuelos operados únicamente por IB, I2, LEVEL o YW con estado OPEN FOR USE (O). No aplica si ya se realizó el Check-In.",
+    "advertencias": [
+      {
+        "nivel": "critico",
+        "texto": "CHECK-IN REALIZADO: Si el cliente ya ha realizado el Check-In, NO es posible modificar sus asientos.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "critico",
+        "texto": "RESPONSABILIDAD AGENCIAS: Agencias GDS se apoya con selección de asientos. Agencias NDC se redirecciona a la agencia o a Iberia.com.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "CUNAS (BSCT): Solo trayectos transatlánticos, bebé < 8 meses y < 11 kg. Gratuito pero sujeto a disponibilidad. Buscar letra 'C' en el mapa.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "CÓDIGOS COMPARTIDOS: Si es operado por otra aerolínea, asientos se solicitan únicamente por la web de la aerolínea operadora.",
+        "confianza": "verbatim"
+      }
+    ],
+    "fuente": {
+      "documento": "IberiaNet Lite — #3061 \"SERVICIOS\" + #3096 \"ASIENTOS\" + #3105 \"REMISIÓN DE ASIENTOS\" + #3104 \"CUNAS\"",
+      "tipo": "manual-oficial-interno",
+      "recibido": "2026-08-11",
+      "confianzaGlobal": "verbatim"
+    },
+    "pasos": [
+      {
+        "n": 0,
+        "sistema": "natiba",
+        "proceso": "Filtro de seguridad",
+        "comando": null,
+        "explicacion": "APELLIDO + PNR.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      },
+      {
+        "n": 1,
+        "sistema": "amadeus",
+        "proceso": "Ingresar al mapa de asientos del segmento",
+        "comando": "SM3/SL",
+        "plantilla": "SM{segmento}/SL",
+        "explicacion": "Muestra el mapa de asientos. Letras: E (Emergencia), L (XL), Q (Delanteros), V (Lateral), Y (Central), C (Cuna), H (Handicap), + (Ocupado), . (Gratuito).",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 2,
+        "sistema": "amadeus",
+        "proceso": "Seleccionar el asiento",
+        "comando": "ST/01B/P1",
+        "variantes": [
+          "ST/01BY/P1,2"
+        ],
+        "explicacion": "ST/asientoFila/Ppasajero. Varios pax: ST/01BY/P1,2.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 3,
+        "sistema": "amadeus",
+        "proceso": "Cotizar el asiento",
+        "comando": "FXH/L14",
+        "plantilla": "FXH/L{lineaSSR}",
+        "explicacion": "14 = línea del elemento SSR RQST.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 4,
+        "sistema": "amadeus",
+        "proceso": "Documentar valores informados",
+        "comando": "RM08MAY26PAX AVDO VALOR SEAT X ADT xxx EUR//AR",
+        "explicacion": "Si sale 'ET NOR ISSUED...' -> revalidar TKT TTP-ETRV... Si sale 'ITINERARY PRICING REQUIRED...' -> máscara a histórico FXX/R,DOI,UP...",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 5,
+        "sistema": "amadeus",
+        "proceso": "Guardar la cotización del asiento",
+        "comando": "FXG/L14",
+        "plantilla": "FXG/L{lineaSSR}",
+        "explicacion": "Guardar con ER y confirmar servicios con ERK.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 6,
+        "sistema": "amadeus",
+        "proceso": "Incluir datos del titular de la tarjeta y tomador PCI",
+        "comando": "RMCSY/JUAN:PELAEZ",
+        "explicacion": "Guardar con ER. Tomar datos con PCI PAL o Travel Pay.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 7,
+        "sistema": "amadeus",
+        "proceso": "Agregar forma de pago, autorizar PCI y emitir EMD",
+        "comando": "TMI/M1/FP-MS-TT,VI1234567890123456-1023-V1234ABCD",
+        "variantes": [
+          "$$CONFIG:CCTYPE/2",
+          "$$PAY",
+          "XE17",
+          "TTM1/M1/RT"
+        ],
+        "explicacion": "M1 = TQM. Cargar perfil PCI $$CONFIG:CCTYPE/2, $$PAY, borrar cyber XE17 y emitir TTM1/M1/RT.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 8,
+        "sistema": "amadeus",
+        "proceso": "Enviar itinerario",
+        "comando": "IBP-EMLA/LPSP",
+        "variantes": [
+          "IEPJ-EMLA/LPSP",
+          "ITR-EMLA"
+        ],
+        "explicacion": "IBP (itinerario), IEPJ (itinerario y servicios), ITR (billetes electrónicos).",
+        "confianza": "verbatim"
+      }
+    ],
+    "cunas": {
+      "requisitos": "Transatlánticos, bebé < 8 meses y < 11 kg. Gratuito.",
+      "pasos": [
+        {
+          "n": 1,
+          "comando": "SM2",
+          "explicacion": "Validar disponibilidad buscando la letra C en el mapa."
+        },
+        {
+          "n": 2,
+          "comando": "SR BSCT/P1/S2-3",
+          "explicacion": "Agregar elemento SR BSCT para el adulto P1 en los segmentos. Guardar ER y confirmar con ERK varias veces hasta ver los asientos asignados (SSR NSST IB BOGMAD/S3/P1)."
+        },
+        {
+          "n": 3,
+          "comando": "IBP-EMLA/LPSP",
+          "explicacion": "Enviar itinerario."
+        }
+      ]
+    },
+    "remisionAsientos": {
+      "resiber": [
+        {
+          "n": 1,
+          "comando": "DTR TN 075-253123456",
+          "explicacion": "Buscar EMDs OPEN en EXCH del billete anterior."
+        },
+        {
+          "n": 2,
+          "comando": "DEMR DN 0754013668261",
+          "explicacion": "Verificar valor del EMD y número de asiento."
+        },
+        {
+          "n": 3,
+          "comando": "RSD:2",
+          "explicacion": "Ingresar al mapa del avión del segmento 2."
+        },
+        {
+          "n": 4,
+          "comando": "SR1F30L/2/P1",
+          "explicacion": "Seleccionar asiento. Guardar con ÑK y reingresar a la reserva."
+        },
+        {
+          "n": 5,
+          "comando": "WEMD: 075-2000635369",
+          "explicacion": "Ingresar a WEMD, marcar LISTA DE SERVICIO -> X -> Intro. Elegir SEAT ASSIGNMENT (A0B5), completar RMK, cupones X, FARE original, FP O/MS-TT, OI EMD original, TOTAL 0.00."
+        },
+        {
+          "n": 6,
+          "comando": "DTR TN 075-253123456",
+          "explicacion": "Verificar TKT OPEN con EMDs asociados y enviar ITP:/RESERVA/EMAIL, DTR TN..., DEMR DN..."
+        }
+      ],
+      "amadeus": [
+        {
+          "n": 1,
+          "comando": "EWD/EMD075-454545445",
+          "explicacion": "Copiar EMD original, POI, DOI, IOI y cupón (M#). Borrar TSM anteriores con TMX/ALL."
+        },
+        {
+          "n": 2,
+          "comando": "SM3/SL",
+          "explicacion": "Mapa de asientos."
+        },
+        {
+          "n": 3,
+          "comando": "ST/01B/P1",
+          "explicacion": "Seleccionar asiento."
+        },
+        {
+          "n": 4,
+          "comando": "FXH/L14/R,11MAR26,UP",
+          "explicacion": "Cotizar a histórico con fecha DOI."
+        },
+        {
+          "n": 5,
+          "comando": "FXG/L14/R,11MAR26,UP",
+          "explicacion": "Guardar cotización a histórico."
+        },
+        {
+          "n": 6,
+          "comando": "TMI/EXCH/M2",
+          "explicacion": "Poner TSM en modo remisión. Guardar con ER."
+        },
+        {
+          "n": 7,
+          "comando": "TMI/M3/FO-075-5551234567M1MAD11MAR26/023045",
+          "explicacion": "Crear FO para el EMD (TMI/M#/FO-075-EMD M# POI DOI/IOI)."
+        },
+        {
+          "n": 8,
+          "comando": "TMI/M1/FP-O/CCVI+",
+          "explicacion": "Agregar FP a coste 0."
+        },
+        {
+          "n": 9,
+          "comando": "TTM1/M1/RT",
+          "explicacion": "Emitir el EMD y enviar IBP-EMLA/LPSP, IEPJ-EMLA/LPSP, ITR-EMLA."
+        }
+      ]
+    }
+  },
   "cambio-involuntario-diferente-clase-ruta": {
     "id": "cambio-involuntario-diferente-clase-ruta",
     "titulo": "Cambio involuntario — DIFERENTE clase y/o ruta",
@@ -9,7 +237,17 @@
     "advertencias": [
       {
         "nivel": "critico",
-        "texto": "En caso de cambio de ruta, se permite un MÁXIMO DE 250 MILLAS entre la ciudad original y la nueva.",
+        "texto": "MÁXIMO 250 MILLAS: En cambio de ruta, la nueva ciudad no puede estar a más de 250 millas de la original. Revisar la columna CUM en FQM (si CUM <= 250 aplica, si CUM > 250 NO aplica).",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "critico",
+        "texto": "REGLA DE CABINAS: Prohibido re-ubicar en cabinas diferentes. Business (J, C, D, R, I, U), Turista Premium (W, E, T, P), Turista Económica (Y, B, H, K, M, L, V, S, N, Q, O, A, G, X).",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "ORDEN DE ACOPLE DE VUELOS: 1° Grupo IB (Iberia, IB Express, Air Nostrum), 2° British Airways, 3° Joint Business (AJB: IB/BA/AA/AY/EI, SJB: IB/JL/BA/AY, QJB: IB/QR/BA), 4° Marketing IB Oneworld, 5° Oneworld fuera de JB, 6° Otra cía con acuerdo e-ticket (verificar TGAD-IB/xx -> 'E' confirma acuerdo). Evitar Air Europa, PROHIBIDO Aerolíneas Argentinas.",
         "confianza": "verbatim"
       },
       {
@@ -19,16 +257,16 @@
       },
       {
         "nivel": "alto",
-        "texto": "La elección entre FXI y FXI/SC depende de si el nuevo vuelo asignado está a MENOS o MÁS de 48 horas de la llamada. Equivocarse cambia el cálculo del cambio.",
+        "texto": "La elección entre FXI y FXI/SC depende de si el nuevo vuelo asignado está a MENOS (-48h -> FXI) o MÁS (+48h -> FXI/SC) de 48 horas de la llamada.",
         "confianza": "verbatim"
       }
     ],
     "fuente": {
-      "documento": "IberiaNet Lite — #3638 \"1. DIFERENTE CLASE Y/O RUTA\" (hermano de #3639)",
+      "documento": "IberiaNet Lite — #3638 \"1. DIFERENTE CLASE Y/O RUTA\" + #3636 \"VENTANA OPERATIVA <48HRS\"",
       "tipo": "manual-oficial-interno",
-      "recibido": "2026-08-08",
+      "recibido": "2026-08-11",
       "confianzaGlobal": "verbatim",
-      "nota": "RESTAURADO el 08AGO26: este manual había sido sobrescrito por error por el #3639 dentro de cambio-involuntario-clase-ruta.json. El usuario lo volvió a enviar y ahora cada uno tiene su archivo."
+      "nota": "Enriquecido con lectura de la columna CUM en FQM, prioridades de acople y restricciones de cabina."
     },
     "pasos": [
       {
@@ -43,10 +281,10 @@
       {
         "n": 0.1,
         "sistema": "amadeus",
-        "proceso": "Calcular las millas entre ciudad original y nueva",
+        "proceso": "Calcular las millas entre ciudad original y nueva (revisar columna CUM)",
         "comando": "FQM MAD BCN",
         "plantilla": "FQM {origen} {destino}",
-        "explicacion": "MAD = origen · BCN = destino. Valida el máximo de 250 millas permitido en cambio de ruta.",
+        "explicacion": "MAD = origen · BCN = destino. Revisar columna CUM (distancia acumulada). Si CUM <= 250 millas aplica cambio de ruta; si CUM > 250 millas NO aplica.",
         "confianza": "verbatim",
         "validacion": {
           "tipo": "regex",
@@ -430,6 +668,145 @@
         "confianza": "verbatim"
       }
     ]
+  },
+  "cambio-involuntario-placa-diferente": {
+    "id": "cambio-involuntario-placa-diferente",
+    "titulo": "Cambio involuntario — Billetes placa diferente a 075",
+    "aerolinea": "IB",
+    "categoria": "reemision",
+    "resumen": "Reemisión por cambio involuntario en billetes emitidos por otras aerolíneas (placa distinta a 075) cuando el vuelo afectado es operado por Grupo IB o Level y se visualiza en Resiber con DTR:TN o ETKD:TN.",
+    "aplicaSolo": "Billetes de placa ajena a 075 visibles en Resiber.",
+    "advertencias": [
+      {
+        "nivel": "critico",
+        "texto": "REQUISITO DE VISIBILIDAD: El billete debe ser visualizable desde Resiber mediante DTR:TN o ETKD:TN y el vuelo afectado ser operado por Grupo IB o Level.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "critico",
+        "texto": "SI NO EXISTE RESERVA: Si no hay PNR activo en Amadeus para la placa ajena, se debe crear primero una RESERVA ESPEJO (#3641).",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "OPCIÓN 1 vs OPCIÓN 2: La Opción 1 especifica cupones con F# (ej: F1-2) e ir directo al paso 4 (emitir). La Opción 2 requiere borrar el FO automático (XE 14) y rehacerlo manualmente con cupones F1,2 y *I.",
+        "confianza": "verbatim"
+      }
+    ],
+    "fuente": {
+      "documento": "IberiaNet Lite — #3640 \"3. BILLETES PLACA DIFERENTE A (075)\"",
+      "tipo": "manual-oficial-interno",
+      "recibido": "2026-08-11",
+      "confianzaGlobal": "verbatim"
+    },
+    "pasos": [
+      {
+        "n": 0,
+        "sistema": "natiba",
+        "proceso": "Filtro de seguridad",
+        "comando": null,
+        "explicacion": "APELLIDO + PNR.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      },
+      {
+        "n": 1.1,
+        "sistema": "amadeus",
+        "proceso": "Opción 1 — FXI por Cupón (con nº de billete)",
+        "comando": "FXI/S2,4/TKT 075-142456789F1-2",
+        "plantilla": "FXI/S{segmentos}/TKT {numeroBillete}F{cupones}",
+        "explicacion": "Afectación -48h antes de la salida. Especifica cupones (F1-2). Continúa directo al paso 4 (emitir).",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 1.2,
+        "sistema": "amadeus",
+        "proceso": "Opción 1 — FXI por Cupón (con línea de billete)",
+        "comando": "FXI/S2,4/T16F1-2",
+        "plantilla": "FXI/S{segmentos}/T{lineaBillete}F{cupones}",
+        "explicacion": "Variante usando línea del billete. Continúa directo al paso 4.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 1.3,
+        "sistema": "amadeus",
+        "proceso": "Opción 2 — FXI por Pasajero (con nº de billete)",
+        "comando": "FXI/S2,4/TKT 075-142456789/P1",
+        "plantilla": "FXI/S{segmentos}/TKT {numeroBillete}/P{pasajero}",
+        "explicacion": "Carga por pasajero. Genera FO automático que deberá modificarse en paso 2 y 3.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 1.4,
+        "sistema": "amadeus",
+        "proceso": "Opción 2 — FXI por Pasajero (con línea de billete)",
+        "comando": "FXI/T 16/S2,4/P1",
+        "plantilla": "FXI/T {lineaBillete}/S{segmentos}/P{pasajero}",
+        "explicacion": "Variante por línea de billete.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 2,
+        "sistema": "amadeus",
+        "proceso": "Opción 2 — Eliminar el FO automático creado por el FXI",
+        "comando": "XE 14",
+        "plantilla": "XE {lineaFO}",
+        "explicacion": "14 = línea del FO automático generado por FXI.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 3,
+        "sistema": "amadeus",
+        "proceso": "Opción 2 — Crear FO manualmente con cupones correctos",
+        "comando": "FO*L14/P1",
+        "plantilla": "FO*L{lineaBillete}/P{pasajero}",
+        "explicacion": "Modificar la trama del FO sustituyendo 'E' por 'F' + cupones y añadiendo '*I' al final (ej: FO075-2000968528F1,2MAD08APR25/00250025/075-2000968528F1,2*I/P1).",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 4,
+        "sistema": "amadeus",
+        "proceso": "Emitir solo el cambio",
+        "comando": "TTP1/ET/RT/T2/F",
+        "plantilla": "TTP1/ET/RT/T{numeroTST}/F",
+        "explicacion": "T2 = número del TST.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 5,
+        "sistema": "amadeus",
+        "proceso": "Enviar itinerario y billetes electrónicos",
+        "comando": "IBP-EMLA/LPSP",
+        "variantes": [
+          "IEPJ-EMLA/LPSP",
+          "ITR-EMLA"
+        ],
+        "explicacion": "IBP = itinerario · IEPJ = itinerario y servicios · ITR = billetes electrónicos.",
+        "confianza": "verbatim"
+      }
+    ],
+    "recuperacionDeError": {
+      "pasos": [
+        {
+          "n": 1,
+          "sistema": "amadeus",
+          "proceso": "Eliminar FO si aplica",
+          "comando": "XE 14"
+        },
+        {
+          "n": 2,
+          "sistema": "amadeus",
+          "proceso": "Incluir de nuevo forma de pago",
+          "comando": "FPO/CCVI+/SFCA,/0"
+        },
+        {
+          "n": 3,
+          "sistema": "amadeus",
+          "proceso": "Volver al paso 4 y emitir",
+          "comando": "TTP1/ET/RT/T2/F"
+        }
+      ]
+    }
   },
   "cambio-manual-con-segmento-volado": {
     "id": "cambio-manual-con-segmento-volado",
@@ -1431,6 +1808,26 @@
     "advertencias": [
       {
         "nivel": "critico",
+        "texto": "REGLA BASE: Solo se pueden realizar cambios a billetes con placa 075-...",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "critico",
+        "texto": "POLÍTICA ANTI-FRAUDE: NO se pueden realizar cambios a billetes comprados el día de hoy para volar hoy mismo o el día siguiente.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "REGLAS DE AGENCIAS: Pasajero directo procede sin restricción. Agencias NDC & GDS se puede cambiar si tienen tramos volados (y contacta el pax) o sin segmento volado si el vuelo es en las próximas 24h. Únicamente Agencias GDS: si llama fin de semana para vuelo ese mismo fin de semana o lunes temprano.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "PREGUNTAS CLAVE AL CLIENTE: A) ¿Para cuándo desea el cambio y si tiene flexibilidad? B) ¿Es para ida y regreso? C) ¿Misma cabina (Turista/T.Premium/Business)? D) ¿Es para todos los pasajeros?",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "critico",
         "texto": "ANTES DE INICIAR: realiza el filtro de seguridad — APELLIDO + PNR.",
         "confianza": "verbatim"
       },
@@ -1834,6 +2231,320 @@
       "El manual de CAMBIO MANUAL (#3112, 3 hijos) al que deriva la bifurcación del paso 5."
     ]
   },
+  "comidas-equipajes-especiales": {
+    "id": "comidas-equipajes-especiales",
+    "titulo": "Comidas Especiales (SPML) y Equipajes Especiales (SPEQ / GOLF / BIKE / WEAP)",
+    "aerolinea": "IB",
+    "categoria": "servicios",
+    "resumen": "Procedimiento operativo para la reserva de Menús Especiales (SPML) y Equipajes Especiales o Deportivos (SPEQ) en Resiber y Amadeus/SARA.",
+    "aplicaSolo": "Billetes 075 en vuelos de largo radio / Business para SPML. Vuelos operados por Grupo Iberia para SPEQ.",
+    "advertencias": [
+      {
+        "nivel": "critico",
+        "texto": "ANTELACIÓN SPML: Las comidas especiales deben solicitarse con al menos 24 a 48 HORAS de antelación al vuelo.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "critico",
+        "texto": "EQUIPAJES ESPECIALES: El pago de equipo deportivo (Golf, Bicicletas, Esquí) se emite como EMD de servicios adicionales o se cobra en mostrador según tarifa.",
+        "confianza": "verbatim"
+      }
+    ],
+    "fuente": {
+      "documento": "IberiaNet Lite — Comidas y Equipajes Especiales",
+      "tipo": "manual-oficial-interno",
+      "recibido": "2026-08-11",
+      "confianzaGlobal": "verbatim"
+    },
+    "codigosSpml": [
+      {
+        "codigo": "VGML",
+        "descripcion": "Vegetariana Estricta / Vegana"
+      },
+      {
+        "codigo": "VLML",
+        "descripcion": "Vegetariana Lacto-Ovo"
+      },
+      {
+        "codigo": "KSML",
+        "descripcion": "Comida Kosher"
+      },
+      {
+        "codigo": "MOML",
+        "descripcion": "Comida Musulmana (Halal)"
+      },
+      {
+        "codigo": "GFML",
+        "descripcion": "Comida Sin Gluten"
+      },
+      {
+        "codigo": "DBML",
+        "descripcion": "Comida para Diabéticos"
+      }
+    ],
+    "codigosSpeq": [
+      {
+        "codigo": "GOLF",
+        "descripcion": "Equipo de Golf (bolsa + zapatos)"
+      },
+      {
+        "codigo": "BIKE",
+        "descripcion": "Bicicleta no motorizada empaquetada"
+      },
+      {
+        "codigo": "SPEQ",
+        "descripcion": "Equipaje Especial Genérico / Deporte acuático / Esquí"
+      },
+      {
+        "codigo": "WEAP",
+        "descripcion": "Armas de caza o deportivas (requiere trámite Guardia Civil)"
+      }
+    ],
+    "pasos": [
+      {
+        "n": 0,
+        "sistema": "natiba",
+        "proceso": "Filtro de seguridad",
+        "comando": null,
+        "explicacion": "APELLIDO + PNR.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      },
+      {
+        "n": 1,
+        "sistema": "resiber",
+        "proceso": "[RESIBER] Solicitar comida especial (ej. VGML)",
+        "comando": "SSR VGML YY NN1 /P1/S2",
+        "explicacion": "Resiber segmento a segmento. Guardar con ÑK.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 2,
+        "sistema": "amadeus",
+        "proceso": "[AMADEUS] Solicitar comida especial (ej. VGML)",
+        "comando": "SR VGML IB NN1/S2-3/P1",
+        "explicacion": "Amadeus admite rango. Guardar con ER -> ERK.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 3,
+        "sistema": "resiber",
+        "proceso": "[RESIBER] Solicitar equipo de golf (GOLF)",
+        "comando": "SSR GOLF YY NN1 1BAG 15KG 120X40X30/P1/S2",
+        "explicacion": "Registrar peso y dimensiones.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 4,
+        "sistema": "amadeus",
+        "proceso": "[AMADEUS] Solicitar equipo de golf (GOLF)",
+        "comando": "SR GOLF IB NN1 - 1BAG 15KG 120X40X30/S2-3/P1",
+        "explicacion": "Registrar peso y dimensiones en Amadeus.",
+        "confianza": "verbatim"
+      }
+    ]
+  },
+  "correcion-de-nombre": {
+    "id": "correcion-de-nombre",
+    "titulo": "Corrección de nombre — reglas sin cargo y operativa (Iberia y otras aerolíneas)",
+    "aerolinea": "IB",
+    "categoria": "reemision",
+    "resumen": "Política de corrección gratuita de errores tipográficos, transcripción y orden de nombre/apellido en billetes 075, junto con el procedimiento operativo en Amadeus para vuelos de Grupo IB y otras aerolíneas.",
+    "aplicaSolo": "Billetes 075 en vuelos IB, I2, YW, codeshare con AA, BA y VY (IB5000). Billetes sin volar tramos.",
+    "advertencias": [
+      {
+        "nivel": "critico",
+        "texto": "RESTRICCIÓN STRICTA: NO se permite cambio completo de pasajero. NO aplica en vuelos de LEVEL ni en billetes parcialmente usados.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "critico",
+        "texto": "VERIFICACIÓN DE IDENTIDAD: Las correcciones aplican siempre y cuando se pueda comprobar que se trata del mismo pasajero.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "ERRORES DE HASTA 3 LETRAS: Se permiten correcciones de hasta 3 letras en nombre o apellidos (ej: Martin -> Martinez, Clara -> Sara), adición de primer/segundo nombre, inversión de orden de apellidos o nombre/apellido y adición de apellido faltante.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "OTRAS AEROLÍNEAS ONEWORLD (distintas a AA, BA, VY): Consultar con un supervisor en piso antes de proceder.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "CAMBIO COMPLETO AUTORIZADO POR COACH: Emitir nuevo billete + reembolso aplicando gasto de gestión por reembolso (el SF original no se devuelve).",
+        "confianza": "verbatim"
+      }
+    ],
+    "fuente": {
+      "documento": "IberiaNet Lite — #3108 \"CORRECCIÓN DE NOMBRE\" + #3110 \"OPERADOS POR OTRAS AEROLÍNEAS\" + #3722 \"CREAR MÁSCARA MANUAL\"",
+      "tipo": "manual-oficial-interno",
+      "recibido": "2026-08-11",
+      "confianzaGlobal": "verbatim"
+    },
+    "casosPermitidosGratis": [
+      {
+        "caso": "Nombres compuestos",
+        "ejemplo": "Carmen por María Carmen, o por Carmen María"
+      },
+      {
+        "caso": "Error de hasta 3 letras",
+        "ejemplo": "Martin por Martinez, Clara por Sara"
+      },
+      {
+        "caso": "Error de transcripción de 1 letra",
+        "ejemplo": "FernáMdez por Fernández, Albaro por Alvaro"
+      },
+      {
+        "caso": "Lengua oficial",
+        "ejemplo": "Pedro por Pere"
+      },
+      {
+        "caso": "Cambio posición apellidos/nombres",
+        "ejemplo": "Vargas Pérez por Pérez Vargas"
+      },
+      {
+        "caso": "Cambio posición entre nombre y apellido",
+        "ejemplo": "Alonso Vazquez/Julián por Julián Vazquez/Alonso"
+      },
+      {
+        "caso": "Inclusión de apellido faltante",
+        "ejemplo": "Martín/Antonio por Martín Segura/Antonio"
+      },
+      {
+        "caso": "Apellido bebé",
+        "ejemplo": "Cuando el bebé tomó los apellidos del adulto asociado y no los reales"
+      }
+    ],
+    "pasos": [
+      {
+        "n": 0,
+        "sistema": "natiba",
+        "proceso": "Filtro de seguridad",
+        "comando": null,
+        "explicacion": "APELLIDO + PNR.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      },
+      {
+        "n": 1,
+        "sistema": "amadeus",
+        "proceso": "Colocar TKT en FHE y borrar elementos antiguos",
+        "comando": "FHE 075-1422342526/P1",
+        "variantes": [
+          "XE 14 (FA)",
+          "XE 10 (SR TKNE)",
+          "XE 23 (SSR FQTV)"
+        ],
+        "explicacion": "Asociar billete en FHE. Eliminar FA, SR TKNE y FQTV del pasajero a corregir.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 2,
+        "sistema": "amadeus",
+        "proceso": "Eliminar segmentos viejos y corregir el nombre (NU1)",
+        "comando": "NU1 MARTINEZ CORTES/PATROCLO",
+        "variantes": [
+          "NU1 MARTINEZ SANZ/PEDRO (CHD)",
+          "1/(ADT) (desasociar INF)",
+          "1/(ADT)(INFPEREZ/ANDRES/18MAY23) (reasociar INF)"
+        ],
+        "explicacion": "XE lineaSegmentos -> NU1 APELLIDOCORRECTO/NAMECORRECTO.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 3,
+        "sistema": "amadeus",
+        "proceso": "Reservar nuevamente las plazas en la misma clase (Caso A)",
+        "comando": "SS 2 A 1",
+        "variantes": [
+          "SS 2 A 1 * S 11",
+          "SS 2 A S 1"
+        ],
+        "explicacion": "Misma clase y mismo vuelo. Si no hay misma clase, cotizar diferencia con FXX + DF (Caso B).",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 4,
+        "sistema": "amadeus",
+        "proceso": "Verificar/Crear TST y poner en modo reemisión",
+        "comando": "TQT",
+        "variantes": [
+          "FXP/L2-AANNOB2/L4-NASNOB2/R,DOI,UP/P1",
+          "TTI/EXCH/T2"
+        ],
+        "explicacion": "Si no hay TST, crear a histórico con FXP. Poner TST en modo reemisión TTI/EXCH/T2.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 5,
+        "sistema": "amadeus",
+        "proceso": "Actualizar elementos FE, FO y FP",
+        "comando": "FE X0/P1",
+        "variantes": [
+          "FO*L14/P1",
+          "FPO/CCVI+/SFCA,/0"
+        ],
+        "explicacion": "Borrar FE/FO/FP anteriores (XE) e incluir FE X0/P1, FO*L14/P1 y FP FPO/CCVI+/SFCA,/0.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 6,
+        "sistema": "amadeus",
+        "proceso": "Reemitir billete",
+        "comando": "TTP1/ET/RT/T2/F",
+        "plantilla": "TTP1/ET/RT/T{numeroTST}/F",
+        "explicacion": "Reemitir el billete con la corrección de nombre.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 7,
+        "sistema": "amadeus",
+        "proceso": "Enviar itinerario",
+        "comando": "IBP-EMLA/LPSP",
+        "variantes": [
+          "IEPJ-EMLA/LPSP",
+          "ITR-EMLA",
+          "ITP:/RESERVA/EMAIL",
+          "DTR TN 075-..."
+        ],
+        "explicacion": "Enviar documentos al cliente por Amadeus o Resiber.",
+        "confianza": "verbatim"
+      }
+    ],
+    "mascaraManualTST3722": {
+      "explicacion": "Pasos para construir un TST a mano con TTI en caso de modificación directa:",
+      "pasos": [
+        {
+          "paso": 1,
+          "comando": "TTC/S5",
+          "detalle": "Crear máscara en segmento S5"
+        },
+        {
+          "paso": 2,
+          "comando": "TQC",
+          "detalle": "Poner TST en modo críptico (TWDRT para regresar al billete)"
+        },
+        {
+          "paso": 3,
+          "comando": "TTI/T2/L1/B AANNOB2 IN/V 31MAR31MAR/A1PC",
+          "detalle": "Agregar Farebasis, NVB/NVA y Piezas de equipaje (IN = Infant, CH = Child)"
+        },
+        {
+          "paso": 4,
+          "comando": "TTI/T2/RUSD1243/EEUR123/O130YQ/O28.38JD/…/T0",
+          "detalle": "Agregar Fare, equivalente, tasas pagadas y diferencia T0"
+        },
+        {
+          "paso": 5,
+          "comando": "TTI/T2/C BOG IB X/MAD…",
+          "detalle": "Agregar Fare Calculation"
+        }
+      ]
+    }
+  },
   "ejercicio-split-servicios-complejo": {
     "id": "ejercicio-split-servicios-complejo",
     "titulo": "Ejercicio Maestro — Reserva 4 Pax (2 ADT + 1 CHD + 1 INF), 2 SPLITs y Servicios por PNR",
@@ -2054,6 +2765,131 @@
       "reserva2": "1 CHD (SOFIA) con UMNR, silla de ruedas WCHR y equipaje deportivo SPEQ.",
       "reserva3": "1 ADT (CARLOS) con equipaje adicional XBAG, mascota en cabina PETC y comida vegetariana VGML."
     }
+  },
+  "ejercicio-super-split-servicios-maestro": {
+    "id": "ejercicio-super-split-servicios-maestro",
+    "titulo": "Súper Ejercicio Maestro — División Múltiple (2 SPLITs) y Gestión Avanzada de 9 Ancillaries en 3 Reservas",
+    "aerolinea": "IB",
+    "categoria": "ejercicios-maestros",
+    "resumen": "Ejercicio de evaluación avanzada end-to-end: creación de PNR inicial (2 ADT + 1 CHD + 1 INF), ejecución de 2 SPLITs consecutivos para generar 3 reservas independientes, y asignación combinada de UMNR, PMR, SPEQ, XBAG, PETC, SPML, BSCT, Corrección de Nombre y AVIH.",
+    "aplicaSolo": "Entrenamiento de Alto Rendimiento en Amadeus y Resiber para Agentes Senior de Iberia.",
+    "pasos": [],
+    "advertencias": [
+      {
+        "nivel": "critico",
+        "texto": "SECUENCIA OBLIGATORIA: Los SPLITs deben realizarse ANTES de solicitar los servicios específicos en cada PNR hijo para evitar la propagación indeseada de ancillaries a todos los pasajeros.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "critico",
+        "texto": "RESERVA CHD SOLA (PNR 2): Al quedar el menor de 12 años solo en la reserva dividida, es OBLIGATORIO agregar el SSR UMNR con los datos OSI CTCT de tutores en origen y destino.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "critico",
+        "texto": "RESERVA ADT + INF (PNR 1): Para la mascota en bodega (AVIH), verificar estrictamente que el animal NO sea braquicéfalo ni raza peligrosa. Asiento cuna (BSCT) requiere bebé < 8 meses y < 11 kg.",
+        "confianza": "verbatim"
+      }
+    ],
+    "fases": [
+      {
+        "fase": 1,
+        "nombre": "Reserva Inicial y Primer SPLIT (Separar al CHD)",
+        "descripcion": "PNR Original con 2 ADT (P1, P2), 1 CHD (P3), 1 INF (asociado a P1). Dividir al CHD (P3).",
+        "comandosAmadeus": [
+          "SP 1 (dividir pasajero 3)",
+          "EF (guardar PNR hijo para CHD -> PNR 2)",
+          "ET (finalizar PNR hijo)"
+        ],
+        "comandosResiber": [
+          "SPLIT/P3",
+          "ÑK (guardar PNR hijo -> PNR 2)"
+        ]
+      },
+      {
+        "fase": 2,
+        "nombre": "Segundo SPLIT (Separar al ADT 2 solo)",
+        "descripcion": "En el PNR principal de adultos, dividir al ADT 2 (quien no lleva al bebé).",
+        "comandosAmadeus": [
+          "RT [PNR_PADRE]",
+          "SP 1 (dividir al adulto sin infante)",
+          "EF (guardar PNR hijo para ADT2 -> PNR 3)",
+          "ET (finalizar PNR hijo)"
+        ],
+        "comandosResiber": [
+          "RT [PNR_PADRE]",
+          "SPLIT/P2",
+          "ÑK (guardar PNR hijo -> PNR 3)"
+        ]
+      },
+      {
+        "fase": 3,
+        "nombre": "Configuración de Servicios en PNR 2 (1 CHD)",
+        "servicios": [
+          "UMNR (Menor No Acompañado)",
+          "PMR WCHC (Silla de Ruedas)",
+          "SPEQ GOLF (Equipo de Golf)"
+        ],
+        "comandosAmadeus": [
+          "SR UMNR- 08 YEARS/S2,3/P1",
+          "OS IB UMCT MAD 34123456/PADRE/CALLE 123",
+          "OS IB UMCT BOG 57123456/MADRE/CALLE 456",
+          "SR WCHC IB NN1/S2-3/P1",
+          "SR GOLF IB NN1 - 1BAG 15KG 120X40X30/S2-3/P1",
+          "ER -> ERK"
+        ],
+        "comandosResiber": [
+          "SSR UMNR IB NN1 MADBOG 6587 Q 10AUG 08 YEARS/P1",
+          "OSI IB CTC MAD PADRE PH 34123456 DNI 12345678",
+          "OSI IB CTC BOG MADRE PH 57123456 DNI 87654321",
+          "SSR WCHC YY NN1 /P1/S2",
+          "SSR GOLF YY NN1 1BAG 15KG 120X40X30/P1/S2",
+          "ÑK"
+        ]
+      },
+      {
+        "fase": 4,
+        "nombre": "Configuración de Servicios en PNR 3 (1 ADT)",
+        "servicios": [
+          "XBAG (Equipaje Adicional)",
+          "PETC (Mascota en Cabina)",
+          "SPML VGML (Comida Vegana)"
+        ],
+        "comandosAmadeus": [
+          "SR XBAG IB NN1/S2-3/P1",
+          "SR PETC IB NN1 - DOG CHIHUAHUA 8KG 45X35X25/S2-3/P1",
+          "SR VGML IB NN1/S2-3/P1",
+          "ER -> ERK"
+        ],
+        "comandosResiber": [
+          "SSR XBAG YY NN1 /P1/S2",
+          "SSR PETC YY NN1 DOG CHIHUAHUA 8KG 45X35X25/P1/S2",
+          "SSR VGML YY NN1 /P1/S2",
+          "ÑK"
+        ]
+      },
+      {
+        "fase": 5,
+        "nombre": "Configuración de Servicios y Edición en PNR 1 (1 ADT + 1 INF)",
+        "servicios": [
+          "BSCT (Asiento Cuna Bebé)",
+          "NU1 (Corrección de Nombre)",
+          "AVIH (Mascota en Bodega)"
+        ],
+        "comandosAmadeus": [
+          "SR BSCT/P1/S2-3",
+          "NU1 MARTINEZ CORTES/PATROCLO",
+          "SR AVIH IB NN1 - DOG CHIHUAHUA 15KG 60X50X40/S2-3/P1",
+          "ER -> ERK"
+        ],
+        "comandosResiber": [
+          "SR BSCT/P1/S2-3",
+          "NU1 MARTINEZ CORTES/PATROCLO",
+          "SSR AVIH YY NN1 DOG CHIHUAHUA 15KG 60X50X40/P1/S2",
+          "ÑK"
+        ]
+      }
+    ]
   },
   "emision-latam": {
     "id": "emision-latam",
@@ -3375,6 +4211,11 @@
     "advertencias": [
       {
         "nivel": "critico",
+        "texto": "PASOS OBLIGATORIOS ANTES DE INICIAR CUALQUIER PROCESO: Identificar origen (Avaya/Salesforce) -> Abrir reserva (RT+PNR) -> Filtro Natiba (Localizador + Apellido) -> Ticket (SR TKNE/FA/FHE) -> Responsabilidad (DNA 075, DTR TN/H, .PV/IOI) -> Estado (HK/O).",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "critico",
         "texto": "Siempre ofrecer como PRIMERA opción reserva ON HOLD.",
         "confianza": "verbatim"
       },
@@ -3390,11 +4231,11 @@
       }
     ],
     "fuente": {
-      "documento": "IberiaNet Lite — #3056 \"1. LATAM GENERAL\" (hijo de #3043 \"0.2 LATAM\")",
+      "documento": "IberiaNet Lite — #3056 \"1. LATAM GENERAL\" + Checklist de Verificación Previa a la Llamada",
       "tipo": "manual-oficial-interno",
-      "recibido": "2026-08-07",
+      "recibido": "2026-08-11",
       "confianzaGlobal": "verbatim",
-      "nota": "Texto crudo copiado del manual. ⚠️ La versión HTML que generó EverGPT del mismo manual añadió asteriscos que el original NO tiene (ver paso 5) — se conserva el crudo."
+      "nota": "Enriquecido con el procedimiento de Verificación Adicional Previa a la Llamada (Natiba, DNA, DTR TN/H)."
     },
     "pasos": [
       {
@@ -3402,7 +4243,48 @@
         "sistema": "salesforce",
         "proceso": "Identificar origen de la llamada",
         "comando": null,
-        "explicacion": "Mediante Avaya (+00 de la ciudad) o Salesforce.",
+        "explicacion": "Mediante Avaya (IATA de la ciudad / +00) o Salesforce.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      },
+      {
+        "n": 1.1,
+        "sistema": "amadeus",
+        "proceso": "Abrir reserva en RESIBER / AMADEUS",
+        "comando": "RT {PNR}",
+        "explicacion": "Transacción RT seguida del PNR de la reserva.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      },
+      {
+        "n": 1.2,
+        "sistema": "natiba",
+        "proceso": "Filtro de seguridad obligatorio",
+        "comando": null,
+        "explicacion": "Ingresar desde Natiba solicitando Código de reserva (PNR) y Apellido del pasajero.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      },
+      {
+        "n": 1.3,
+        "sistema": "amadeus",
+        "proceso": "Localizar el ticket y verificar responsabilidad",
+        "comando": "DNA 075",
+        "variantes": [
+          "DTR TN 075-...",
+          "DTR H",
+          ".PV/IOI"
+        ],
+        "explicacion": "Buscar SR TKNE, FA o FHE. Verificar placa 075 con DNA 075. Verificar si es pasajero directo o de agencia con DTR TN 075-... / DTR H.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      },
+      {
+        "n": 1.4,
+        "sistema": "amadeus",
+        "proceso": "Verificar estado de plazas y cupones",
+        "comando": null,
+        "explicacion": "Verificar estado de plazas en HK y cupones en O (OPEN). Solo si se cumple con todo, proceder con el manual respectivo.",
         "confianza": "verbatim",
         "esBloqueante": true
       },
@@ -3442,8 +4324,7 @@
           "RM*EMISION POR (MOTIVO DEL ERROR O INCIDENCIA)"
         ],
         "explicacion": "Se debe solicitar AUTORIZACION de un Coach y agregar los tres campos al PNR.",
-        "confianza": "verbatim",
-        "nota": "⚠️ OJO CON EL ASTERISCO. El manual crudo escribe los dos primeros SIN asterisco (RMACCNOONHOLD, RMAUTORIZADA EMISION POR COACH XXX) y solo el tercero CON asterisco (RM*EMISION POR ...). El HTML que generó EverGPT del mismo manual les puso asterisco a los tres — es contaminación del bot, no del manual. Confirmar con el instructor cuál es la sintaxis que acepta el sistema."
+        "confianza": "verbatim"
       }
     ],
     "arbolManual": {
@@ -3552,17 +4433,32 @@
     "advertencias": [
       {
         "nivel": "critico",
+        "texto": "APLICABILIDAD AEROLÍNEA: Solo Grupo Iberia (IB, I2, Air Nostrum YW). ❌ PROHIBIDO en Vueling (VY) y LEVEL (LV).",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "critico",
+        "texto": "PROHIBICIÓN STRICTA DE BRAQUICÉFALOS EN BODEGA: PROHIBIDOS perros braquicéfalos (Bóxer, Bulldog, Carlino, Pekinés, Shar Pei, Shih Tzu, Pit Bull, etc.) y gatos braquicéfalos (Persa, Burmés, Himalayo, Exótico).",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "critico",
+        "texto": "PROHIBICIÓN DE RAZAS PELIGROSAS: Pit Bull, Staffordshire, Rottweiler, Dóberman, Dogo Argentino, Fila Brasileiro, Tosa Inu, Akita Inu (y sus cruces).",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "critico",
         "texto": "El transporte debe autorizarse con antelación por la disponibilidad limitada de jaulas. La autorización NO es definitiva hasta que se confirmen todos los trayectos (ida y vuelta).",
         "confianza": "verbatim"
       },
       {
         "nivel": "critico",
-        "texto": "Peso máximo 45 kg (animal + contenedor).",
+        "texto": "Peso máximo 45 kg (animal + contenedor). Medidas máx. Air Nostrum (AT7/CRJ): 85x65x83 cm (máx. 2 jaulas por avión).",
         "confianza": "verbatim"
       },
       {
         "nivel": "critico",
-        "texto": "El servicio AVIH solo se confirma en vuelos con conexión si el tiempo de conexión es SUPERIOR a 90 minutos y NO MAYOR a 4 horas.",
+        "texto": "CONEXIONES: El servicio AVIH solo se confirma en vuelos con conexión si el tiempo de conexión es SUPERIOR a 90 minutos y NO MAYOR a 4 horas.",
         "confianza": "verbatim"
       },
       {
@@ -3572,17 +4468,7 @@
       },
       {
         "nivel": "alto",
-        "texto": "El aeropuerto NO acepta registros de mascotas como: cruce, mestizo, criollo, común, mezcla. Deben garantizar que la mascota sea óptima según su raza, tamaño y peso.",
-        "confianza": "verbatim"
-      },
-      {
-        "nivel": "medio",
-        "texto": "El servicio se puede agregar SIN tener billete emitido, para asegurar que el pasajero pueda volar con su mascota. El estado del billete debe ser \"OPEN FOR USE\" (O).",
-        "confianza": "verbatim"
-      },
-      {
-        "nivel": "medio",
-        "texto": "Se requiere documentación de importación/exportación o tránsito del animal.",
+        "texto": "El aeropuerto NO acepta registros de mascotas como: 'cruce', 'mestizo', 'criollo', 'común', 'mezcla'. Deben detallarse las razas exactas.",
         "confianza": "verbatim"
       }
     ],
@@ -3803,22 +4689,32 @@
       },
       {
         "nivel": "critico",
+        "texto": "CAMBIOS DOT: Eliminación de ESAN (apoyo emocional ya NO existe). Solo se admiten perros SVAN (servicio) adiestrados.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "critico",
         "texto": "PESO MÁXIMO: 8 kg incluyendo el transportín. Dimensiones máximas: 45 x 35 x 25 cm (resistente, con ventilación, fondo impermeable y cierre seguro).",
         "confianza": "verbatim"
       },
       {
         "nivel": "critico",
-        "texto": "RESTRICCIÓN DE RAZA EN AEROPUERTO: No se aceptan registros como 'cruce', 'mestizo', 'criollo', 'común' o 'mezcla' a secas. Se debe especificar la raza exacta o la combinación de razas (ej: CRUCE CHIHUAHUA CON PINCHER).",
+        "texto": "RAZAS PELIGROSAS PROHIBIDAS: Pit Bull Terrier, Staffordshire Bull Terrier, American Staffordshire Terrier, Rottweiler, Dóberman, Dogo Argentino, Fila Brasileiro, Tosa Inu, Akita Inu (y sus cruces).",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "critico",
+        "texto": "REGISTROS EN AEROPUERTO: No se aceptan términos genéricos como 'cruce', 'mestizo', 'criollo', 'común' o 'mezcla'. Se deben especificar las dos razas exactas (ej: CRUCE CHIHUAHUA CON PINCHER).",
         "confianza": "verbatim"
       },
       {
         "nivel": "alto",
-        "texto": "FILA DE EMERGENCIA: No se permiten mascotas en asientos de fila de salida de emergencia. Viajan bajo el asiento delantero sin molestar a los demás.",
+        "texto": "TRAYECTOS ESPECIALES: Reino Unido (LHR/LGW/MAN/EDI) en salida de España solo IAG Cargo; retornos directos hacia MAD permiten PETC. Ver tabla de rutas especiales.",
         "confianza": "verbatim"
       },
       {
         "nivel": "alto",
-        "texto": "GUARDADO EN RESIBER: Se guarda con ÑK y cada vez que se use ÑK se debe volver a ingresar a la reserva. En Amadeus se guarda con ER y se confirma con ERK.",
+        "texto": "FILA DE EMERGENCIA: No se permiten mascotas en asientos de fila de salida de emergencia. Viajan bajo el asiento delantero.",
         "confianza": "verbatim"
       }
     ],
@@ -4347,12 +5243,99 @@
       "No dice qué hacer si el vuelo supera 8 h y el cliente no puede garantizar el apartado higiénico del formulario."
     ]
   },
+  "pmr-silla-de-ruedas": {
+    "id": "pmr-silla-de-ruedas",
+    "titulo": "Pasajeros con Movilidad Reducida (PMR) — Sillas de Ruedas (WCHC, WCHS, WCHR) y Asistencias Especiales",
+    "aerolinea": "IB",
+    "categoria": "servicios",
+    "resumen": "Procedimiento operativo para solicitar asistencia de silla de ruedas y servicios especiales para personas con discapacidad o movilidad reducida en Resiber y Amadeus/SARA.",
+    "aplicaSolo": "Billetes 075 (Iberia, Air Nostrum, Iberia Express y acuerdos interlinea). Gratuito.",
+    "advertencias": [
+      {
+        "nivel": "critico",
+        "texto": "GRATUITO: La asistencia PMR es un servicio sin costo adicional pero requiere notificación previa con al menos 48 HORAS de antelación.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "critico",
+        "texto": "CLASIFICACIÓN EXACTA: WCHR (rampa/distancias), WCHS (escaleras/no camina distancias largas), WCHC (cabina/inmovilidad total).",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "OTRAS DISCAPACIDADES: BLND (pasajero ciego), DEAF (pasajero sordo), DPNA (discapacidad intelectual o del desarrollo).",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "ASIENTOS PROHIBIDOS: Los pasajeros PMR NUNCA pueden ubicarse en filas de salida de emergencia.",
+        "confianza": "verbatim"
+      }
+    ],
+    "fuente": {
+      "documento": "IberiaNet Lite — Asistencia PMR y Movilidad Reducida",
+      "tipo": "manual-oficial-interno",
+      "recibido": "2026-08-11",
+      "confianzaGlobal": "verbatim"
+    },
+    "codigosPmr": [
+      {
+        "codigo": "WCHR",
+        "descripcion": "Wheelchair Ramp — Pasajero requiere silla para recorrer distancias en terminal, pero puede subir/bajar escaleras y caminar a su asiento."
+      },
+      {
+        "codigo": "WCHS",
+        "descripcion": "Wheelchair Steps — Pasajero requiere silla para distancias y ayuda para subir/bajar escaleras, pero camina hasta su asiento dentro del avión."
+      },
+      {
+        "codigo": "WCHC",
+        "descripcion": "Wheelchair Cabin — Pasajero inamovible. Requiere silla hasta la puerta y silla de cabina para ser trasladado a su asiento."
+      },
+      {
+        "codigo": "BLND",
+        "descripcion": "Blind passenger — Pasajero con discapacidad visual (especificar si viaja con perro guía SVAN)."
+      },
+      {
+        "codigo": "DEAF",
+        "descripcion": "Deaf passenger — Pasajero con discapacidad auditiva."
+      }
+    ],
+    "pasos": [
+      {
+        "n": 0,
+        "sistema": "natiba",
+        "proceso": "Filtro de seguridad",
+        "comando": null,
+        "explicacion": "APELLIDO + PNR.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      },
+      {
+        "n": 1,
+        "sistema": "resiber",
+        "proceso": "[RESIBER] Solicitar silla de ruedas (ej. WCHC)",
+        "comando": "SSR WCHC YY NN1 /P1/S2",
+        "plantilla": "SSR {CODIGO_PMR} YY NN1 /P{pasajero}/S{segmento}",
+        "explicacion": "Resiber segmento a segmento. Guardar con ÑK.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 2,
+        "sistema": "amadeus",
+        "proceso": "[AMADEUS] Solicitar silla de ruedas (ej. WCHC)",
+        "comando": "SR WCHC IB NN1/S2-3/P1",
+        "plantilla": "SR {CODIGO_PMR} IB NN1/S{segmentos}/P{pasajero}",
+        "explicacion": "Amadeus admite rango. Guardar con ER -> ERK.",
+        "confianza": "verbatim"
+      }
+    ]
+  },
   "reembolso-iberia-general": {
     "id": "reembolso-iberia-general",
     "titulo": "Reembolso Iberia — condiciones generales y creación del caso",
     "aerolinea": "IB",
     "categoria": "reembolsos",
-    "resumen": "Validaciones obligatorias antes de tramitar un reembolso de billete 075 (Iberia) y creación del caso en Salesforce para evaluación del BO.",
+    "resumen": "Validaciones obligatorias antes de tramitar un reembolso de billete 075 (Iberia), verificación de casos en Salesforce (#3068) y creación del caso para evaluación del BO.",
     "aplicaSolo": "Billetes 075- (IBERIA). Si es 060- es Iberia Express y aplica OTRO procedimiento.",
     "advertencias": [
       {
@@ -4362,17 +5345,27 @@
       },
       {
         "nivel": "critico",
-        "texto": "No proporciones al cliente detalles específicos sobre el monto del reembolso hasta que el caso sea revisado y aprobado por el BO.",
-        "confianza": "verbatim"
-      },
-      {
-        "nivel": "alto",
-        "texto": "Si tienes dudas sobre las condiciones de la tarifa, consulta con un coach para evitar confusiones.",
+        "texto": "REGLA DE ORO DE MONTO: NUNCA informar el monto exacto del reembolso al cliente. El BO es quien calcula y aprueba el importe final.",
         "confianza": "verbatim"
       },
       {
         "nivel": "critico",
-        "texto": "En ningún caso se reembolsará a una tarjeta o cuenta distinta. Siempre se reembolsará a la misma tarjeta con la que se realizó el pago original.",
+        "texto": "RESPONSABILIDAD AGENCIAS: Si el billete fue emitido por una agencia (incluso si fue reemitido por Iberia), la agencia debe realizar el reembolso. Iberia NO reembolsa billetes de agencias.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "critico",
+        "texto": "ESTADO Y VIGENCIA: El billete debe estar en estado OPEN FOR USE (O) y la fecha de solicitud no debe superar los 18 meses desde el DOI (1 año para Compromiso de Calidad).",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "critico",
+        "texto": "FORMA DE PAGO: En ningún caso se reembolsará a una tarjeta o cuenta distinta. Siempre se reembolsará a la misma tarjeta con la que se realizó el pago original.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "TIEMPOS DE TRAMITACIÓN: Procesamiento por Back Office en 72 horas. Reflejo en cuenta bancaria en 7 días o según el ciclo bancario del cliente.",
         "confianza": "verbatim"
       }
     ],
@@ -4633,6 +5626,86 @@
       "Sin verificar: números de cola 36 y 97."
     ]
   },
+  "reembolso-motivos-especificos": {
+    "id": "reembolso-motivos-especificos",
+    "titulo": "Reembolsos por Motivos Específicos — Compromiso de Calidad, No PCC, Condiciones de Tarifa y Duplicidad",
+    "aerolinea": "IB",
+    "categoria": "reembolsos",
+    "resumen": "Manual operativo para procesar solicitudes de reembolso por Compromiso de Calidad (<24h), No PCC, Condiciones de Tarifa (con FXX, FQD, FQP) y Duplicidad (sin GG) en Resiber y Salesforce.",
+    "aplicaSolo": "Billetes 075- (Iberia).",
+    "pasos": [],
+    "advertencias": [
+      {
+        "nivel": "critico",
+        "texto": "COMPROMISO DE CALIDAD: Solicitudes dentro de las 24 horas desde la EMISIÓN (DOI), no desde la reserva. ❌ NO aplica para Colombia ni para billetes 060 (Iberia Express). Aplica Gasto de Gestión.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "critico",
+        "texto": "NO PCC: Debe ser visible 'CHECK CREDIT CARD AX...' en Resiber y existir 2 reservas idénticas (una con PCC y otra sin PCC). Se reembolsa el billete pero NO se devuelven gastos de gestión de compra ni de reembolso.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "critico",
+        "texto": "DUPLICIDAD: Aplica cuando existen 2 o más reservas iguales. 💸 NO APLICA GASTO DE GESTIÓN. Se reembolsa siempre el ÚLTIMO billete emitido.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "CONDICIONES DE TARIFA: Consultar en este orden: 1. Web, 2. Cotización a histórico (FXX/S#,#/R,DOI,UP/FF-...), 3. FQD (FQDMADEZE/AIB/CV/D16OCT/R,DOI,UP), 4. FQP (Directo, Escala, Surface ---).",
+        "confianza": "verbatim"
+      }
+    ],
+    "fuente": {
+      "documento": "IberiaNet Lite — #3069 \"COMPROMISO DE CALIDAD\" + #3071 \"CONDICIONES DE TARIFA\" + #3072 \"DUPLICIDAD\" + #3078/#3079/#3080",
+      "tipo": "manual-oficial-interno",
+      "recibido": "2026-08-11",
+      "confianzaGlobal": "verbatim"
+    },
+    "motivos": {
+      "compromisoDeCalidad": {
+        "reglas": "Solicitud dentro de las 24h a la emisión (DOI). DTR TN -> ver DOI -> DTR H (hora emisión) -> DD MAD (hora actual local oficina). Verificar <24h.",
+        "resiber": "INT PAX SOLICITA REEMBOLSO POR COMPROMISO DE CALIDAD AVDO 30 EUR GG -> XE2 -> ÑIK",
+        "salesforce": "Origen petición: Compromiso de calidad"
+      },
+      "noPCC": {
+        "reglas": "Titular de tarjeta no presenta la tarjeta en embarque. DTR TN muestra 'CHECK CREDIT CARD...'. Requiere tener 2 reservas iguales (la nueva que va a volar). No se reembolsa GG.",
+        "resiber": "RT PNR -> DTR TN -> INT PAX SOLICITA REEMBOLSO POR NO PCC, RESERVA NUEVA ABC12 -> XE2 -> ÑIK",
+        "salesforce": "Origen petición: No PCC. Especificar ambos PNRs en la descripción."
+      },
+      "condicionesDeTarifa": {
+        "reglas": "Cancelación voluntaria acogiéndose a las condiciones compradas. Si hubo remisiones: tarifa original reembolsable + remisión no reembolsable = NO reembolso; tarifa original no reembolsable + remisión reembolsable = reembolso solo del cambio.",
+        "metodosConsulta": [
+          {
+            "metodo": "1. Web",
+            "comando": "Iberia.com"
+          },
+          {
+            "metodo": "2. Cotización a Histórico",
+            "comando": "FXX/S2,3/R,15MAR23,UP/FF-OPTIMA",
+            "explicacion": "Solo si no ha volado ningún segmento. FQQ ver opción, FQN#*PE penalidades, FQN#*CD descuentos child/infante."
+          },
+          {
+            "metodo": "3. Con FQD",
+            "comando": "FQDMADEZE/AIB/CV/D16OCT/R,15MAR24,UP",
+            "explicacion": "Solo para 1 segmento individual."
+          },
+          {
+            "metodo": "4. Con FQP",
+            "comando": "FQPMAD/AIB/CV/D10OCTEZE-/AIB/CV/D16OCTMAD/R,15MAR24,UP/FF-OPTIMA",
+            "explicacion": "Roundtrip directo, con escala o surface (---). FQQ -> FQN#*PE / FQN#*CD."
+          }
+        ],
+        "resiber": "RT PNR -> INT PAX SOLICITA REEMBOLSO POR CONDICIONES DE /DM -> XE2 -> ÑIK",
+        "salesforce": "Condiciones tarifa: Reembolsable"
+      },
+      "duplicidad": {
+        "reglas": "Dos o más reservas idénticas para el mismo pax. 💸 SIN GASTO DE GESTIÓN. Se reembolsa el ÚLTIMO billete emitido.",
+        "resiber": "RT PNR -> DTR TN -> INT PAX SOLICITA REEMBOLSO POR DUPLICIDAD, RESERVA DUPLICADA ABC12 -> XE2 -> ÑIK",
+        "salesforce": "Origen petición: Duplicidad"
+      }
+    }
+  },
   "reemision-equipaje-emd": {
     "id": "reemision-equipaje-emd",
     "titulo": "Reemisión de Equipaje (EMD) — Resiber y Amadeus",
@@ -4822,6 +5895,98 @@
       }
     ]
   },
+  "reserva-espejo": {
+    "id": "reserva-espejo",
+    "titulo": "Reserva Espejo — creación manual para billetes placa no 075",
+    "aerolinea": "IB",
+    "categoria": "ticketing",
+    "resumen": "Creación manual de PNR para replicar el itinerario del pasajero cuando el billete es de otra aerolínea y se necesita un PNR activo en Amadeus antes de procesar el cambio involuntario.",
+    "aplicaSolo": "Billetes placa diferente a 075 sin reserva activa en Amadeus.",
+    "advertencias": [
+      {
+        "nivel": "critico",
+        "texto": "USO EXCLUSIVO: Se utiliza cuando el billete es de placa diferente a 075 y se requiere una reserva espejo en el sistema para poder gestionar el cambio involuntario.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "EMISIÓN INMEDIATA TKOK: El tiempo de emisión se fija con TKOK y la forma de pago se procesará inmediatamente vía PCI Pal o Travel Pay autorizada por Coach.",
+        "confianza": "verbatim"
+      }
+    ],
+    "fuente": {
+      "documento": "IberiaNet Lite — #3641 \"1. RESERVA ESPEJO\"",
+      "tipo": "manual-oficial-interno",
+      "recibido": "2026-08-11",
+      "confianzaGlobal": "verbatim"
+    },
+    "pasos": [
+      {
+        "n": 1,
+        "sistema": "amadeus",
+        "proceso": "Buscar fechas de vuelo",
+        "comando": "AN 11MAR MADBOG",
+        "explicacion": "AN fecha ruta. PRO TIP: MY = día anterior, MN = día siguiente.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 2,
+        "sistema": "amadeus",
+        "proceso": "Seleccionar plazas",
+        "comando": "SS 2 A 1",
+        "variantes": [
+          "SS 2 A S 1"
+        ],
+        "explicacion": "SS plazas clase línea.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 3,
+        "sistema": "amadeus",
+        "proceso": "Agregar nombres de pasajeros",
+        "comando": "NM1 MARTINEZ/PATROCLO",
+        "variantes": [
+          "NM1 ALMANZA/JUAN(CHD/13FEB16)",
+          "NM1 PEREZ/SARA(INFPEREZ/LUCY/01JAN24)",
+          "FFAIB-12345678"
+        ],
+        "explicacion": "Adulto, Child con fecha de nacimiento, Adulto + Infante o viajero frecuente Iberia Plus.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 4,
+        "sistema": "amadeus",
+        "proceso": "Incluir datos de contacto (Correo y Teléfono)",
+        "comando": "APE- AB@AB.COM",
+        "variantes": [
+          "SR CTCE- AB//AB.COM",
+          "AP+ 34 63232323",
+          "SR CTCM- 34 63232323"
+        ],
+        "explicacion": "Correo (reemplazando @ por // en Resiber) y teléfono.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 5,
+        "sistema": "amadeus",
+        "proceso": "Establecer tiempo de emisión y guardar para obtener PNR",
+        "comando": "TKOK",
+        "explicacion": "TKOK para emisión inmediata. Guardar con ER para obtener código de reserva PNR.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 6,
+        "sistema": "amadeus",
+        "proceso": "Colocar el ticket en FHE",
+        "comando": "FHE 075-1422342526/P1",
+        "variantes": [
+          "FHE INF075-1422342526/P1"
+        ],
+        "explicacion": "Asociar el billete original al pasajero. Guardar con ER y proceder al manual de Cambio Involuntario (#3640).",
+        "confianza": "verbatim"
+      }
+    ]
+  },
   "servicios-adicionales": {
     "id": "servicios-adicionales",
     "titulo": "Servicios adicionales — qué se añade por Amadeus y qué por Resiber",
@@ -4964,36 +6129,35 @@
     "advertencias": [
       {
         "nivel": "critico",
-        "texto": "Edad obligatoria: menores entre 5 y 11 años. Opcional hasta los 17.",
+        "texto": "EDAD OBLIGATORIA: Menores entre 5 y 11 años (Iberia). Opcional de 12 a 17 años (tarifados como adulto).",
         "confianza": "verbatim"
       },
       {
         "nivel": "critico",
-        "texto": "Antelación: reserva del servicio con al menos 24 HORAS de antelación.",
+        "texto": "EDAD MÍNIMA PARA VIAJAR SOLO SIN SERVICIO: Iberia (12), British Airways (14), LEVEL (14), American Airlines (15).",
         "confianza": "verbatim"
       },
       {
         "nivel": "critico",
-        "texto": "Documentación: formulario de \"Descargo de Responsabilidad\" completo y ORIGINAL.",
+        "texto": "PROHIBICIONES: No permitido en vuelos de código compartido (IB7000/IB4000), conexiones con pernocta ni asientos junto a salida de emergencia.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "critico",
+        "texto": "DOCUMENTACIÓN OBLIGATORIA: Formulario Descargo de Responsabilidad cumplimentado + DNI/Pasaporte + Autorización policial/notarial si viaja sin padres fuera de España.",
         "confianza": "verbatim"
       },
       {
         "nivel": "alto",
-        "texto": "Contacto: datos de quien entrega y quien recoge al menor. Imprescindible que sean correctos.",
-        "confianza": "verbatim"
-      },
-      {
-        "nivel": "alto",
-        "texto": "Un niño menor de 12 años, en la fecha del vuelo, puede viajar ACOMPAÑADO de alguna persona que haya cumplido al menos 16 años de edad, que sea capaz de cuidar de él durante el vuelo y de aplicar las consignas en tierra y en vuelo, incluyendo formalidades en los aeropuertos.",
+        "texto": "DATOS DE CONTACTO (OSI): Imprescindible incluir datos completos (Nombre, Teléfono, DNI/Dirección) de la persona que entrega en origen y de la persona que recibe en destino.",
         "confianza": "verbatim"
       }
     ],
     "fuente": {
-      "documento": "manual/umr/ (12 capturas de pantalla real de Resiber, MAD905 y MAD002)",
-      "tipo": "material-formacion-interno",
-      "recibido": "2026-08-08",
-      "confianzaGlobal": "verbatim",
-      "nota": "Capturas del sistema real en vivo, no transcripción. Confirma lo que el bot EverGPT solo había insinuado: el cobro del UMNR se hace por WEMD desde Resiber."
+      "documento": "IberiaNet Lite — #3098 \"UMNR\" + #3114 \"DOCUMENTACION\" + #3115 \"REMISION UMNR\"",
+      "tipo": "manual-oficial-interno",
+      "recibido": "2026-08-11",
+      "confianzaGlobal": "verbatim"
     },
     "limitesEdadPorAerolinea": {
       "confianza": "verbatim",

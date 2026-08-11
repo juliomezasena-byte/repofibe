@@ -73,6 +73,12 @@ const p2 = siguientePaso(split, { pasoActual: 1, comandoEscrito: 'SP 1' });
 comprobar('acepta el comando bueno', p2.veredicto.correcto, true);
 comprobar('y avanza', p2.paso.n, 1.1);
 
+// Preguntar sobre el paso (sin escribir comando) NO debe avanzarlo.
+const preg = siguientePaso(split, { pasoActual: 1, comandoEscrito: null, soloResponder: true });
+comprobar('soloResponder se queda en el paso actual', preg.paso.n, 1);
+const sinPreg = siguientePaso(split, { pasoActual: 1, comandoEscrito: null });
+comprobar('sin soloResponder, comandoEscrito null sí avanza', sinPreg.paso.n, 1.1);
+
 const p2b = siguientePaso(split, { pasoActual: 1, comandoEscrito: 'XE 1' });
 comprobar('rechaza el comando malo', p2b.veredicto.correcto, false);
 comprobar('NO avanza: repite el paso', p2b.paso.n, 1);
