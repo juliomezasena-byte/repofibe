@@ -2,12 +2,18 @@
 // child_process.spawn (cross-platform, no depende de sintaxis de shell
 // como `VAR=1 cmd` o `set VAR=1 && cmd`, que difiere entre sh y cmd.exe).
 import { spawn } from 'child_process';
+import { fileURLToPath } from 'url';
 
 const env = { ...process.env, VITE_E2E_MOCK_AUTH: '1' };
 
 function run(command, args) {
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, { env, stdio: 'inherit', shell: true });
+    const child = spawn(command, args, {
+      env,
+      stdio: 'inherit',
+      shell: false,
+      cwd: process.cwd()
+    });
     child.on('exit', (code) => (code === 0 ? resolve() : reject(new Error(`${command} exited with code ${code}`))));
     child.on('error', reject);
   });
@@ -25,8 +31,9 @@ function run(command, args) {
 const SALIDA = 'dist-e2e';
 
 async function main() {
-  await run('npx', ['vite', 'build', '--outDir', SALIDA]);
-  await run('npx', ['vite', 'preview', '--outDir', SALIDA, '--port', '4173']);
+  const viteBin = fileURLToPath(new URL('../node_modules/vite/bin/vite.js', import.meta.url));
+  await run(process.execPath, [viteBin, 'build', '--outDir', SALIDA]);
+  await run(process.execPath, [viteBin, 'preview', '--outDir', SALIDA, '--port', '4173']);
 }
 
 main().catch((err) => {

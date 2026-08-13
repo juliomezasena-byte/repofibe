@@ -32,7 +32,10 @@ export default defineConfig({
     // justo después de los tests publicó el build con el login desactivado.
     command: 'node scripts/e2e-server.js',
     url: 'http://localhost:4173',
-    reuseExistingServer: true,
+    // Cada corrida debe arrancar el build/preview que corresponde al commit
+    // actual. Reutilizar un preview viejo deja pruebas colgadas después de una
+    // interrupción y puede ocultar cambios del simulador.
+    reuseExistingServer: false,
     timeout: 120000, // el build de vite corre dentro de este presupuesto
   },
 });
