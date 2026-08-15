@@ -32,8 +32,10 @@ export function TutorPanel({ onStateChange = null, routeMode = 'free' }) {
   const [pantallas, setPantallas] = useState([]);
   const [mostrarPegar, setMostrarPegar] = useState(false);
   const [cargando, setCargando] = useState(false);
+  const [redactando, setRedactando] = useState(false);
   const [error, setError] = useState(null);
   const [revelado, setRevelado] = useState(false);
+  const chatEndRef = useRef(null);
   // El hilo de conversación: lo que el alumno escribe en sus palabras y lo que
   // el coach le responde. Es lo que hace que se sienta "hablar con él".
   const [chat, setChat] = useState([
@@ -75,6 +77,7 @@ export function TutorPanel({ onStateChange = null, routeMode = 'free' }) {
   };
   // Contador de peticiones: descarta explicaciones que lleguen tarde.
   const peticionRef = useRef(0);
+  const ocupado = cargando || redactando;
 
   const paso = estado?.paso;
   const pregunta = estado?.decision?.siguientePregunta;
@@ -85,6 +88,10 @@ export function TutorPanel({ onStateChange = null, routeMode = 'free' }) {
     onStateChange?.(estado);
   }, [estado, onStateChange]);
 
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [chat, cargando, redactando]);
+
   const catalogByCat = getExercisesByCategory();
 
   // Lo que el alumno teclea en la Terminal cuenta como respuesta del paso.
@@ -94,7 +101,7 @@ export function TutorPanel({ onStateChange = null, routeMode = 'free' }) {
     function alEjecutar(e) {
       // `cargando` frena el atropello: dos comandos seguidos lanzaban dos
       // peticiones solapadas y la segunda salía con el estado viejo.
-      if (!e.detail?.command || !estado || estado.terminado || cargando) return;
+      if (!e.detail?.command || !estado || estado.terminado || ocupado) return;
       // La salida va como pantalla de UN SOLO USO. Si tecleas un DTR:TN, se
       // lee; si tecleas una AN, no se reconoce y no pasa nada — antes cada
       // comando sumaba una pantalla que se reenviaba en todas las peticiones
@@ -103,7 +110,7 @@ export function TutorPanel({ onStateChange = null, routeMode = 'free' }) {
     }
     window.addEventListener('cryptic-command-executed', alEjecutar);
     return () => window.removeEventListener('cryptic-command-executed', alEjecutar);
-  }, [estado, cargando]);
+  }, [estado, ocupado]);
 
   const iniciarEjercicio = (ejercicio) => {
     setEjercicioActivo(ejercicio);
@@ -118,7 +125,9 @@ export function TutorPanel({ onStateChange = null, routeMode = 'free' }) {
   };
 
   async function avanzar(extra = {}) {
+    const requestId = ++peticionRef.current;
     setRevelado(false);
+    setRedactando(false);
     setCargando(true);
     setError(null);
     try {
@@ -170,7 +179,15 @@ export function TutorPanel({ onStateChange = null, routeMode = 'free' }) {
       // El worker no guarda estado: si dedujo la intención de lo que escribí,
       // la conservo para reenviarla y que el árbol no me repregunte.
       const intenc = datos?.decision?.intencionActiva;
-      if (intenc) setCaso((c) => (c?.intencion === intenc ? c : { ...c, intencion: intenc }));
+      const datosCaso = datos?.datosCaso || {};
+      const respuestasActivas = datos?.decision?.respuestasActivas || {};
+      setRespuestas((previas) => ({ ...previas, ...respuestasActivas }));
+      setCaso((previo) => ({
+        ...previo,
+        ...(intenc ? { intencion: intenc } : {}),
+        datos: { ...(previo?.datos || {}), ...datosCaso },
+        ...(datos?.pasajerosCaso ? { pasajeros: datos.pasajerosCaso } : {})
+      }));
 
       // Fase 2: la redacción. Se pide en segundo plano y se pega encima cuando
       // llega. Hace falta cuando hay un paso con explicación pendiente O cuando
@@ -179,10 +196,10 @@ export function TutorPanel({ onStateChange = null, routeMode = 'free' }) {
       // palabras.
       const territorioCoach = !!extra.consulta && !datos.paso && !datos?.decision?.siguientePregunta;
       if (datos.pendienteDeExplicacion || territorioCoach) {
-        const miPeticion = ++peticionRef.current;
+        setRedactando(true);
         pedirPaso({ ...peticion, conIA: true })
           .then((conTexto) => {
-            if (miPeticion !== peticionRef.current) return;
+            if (requestId !== peticionRef.current) return;
             setEstado((previo) => {
               if (!previo) return previo;
               // Paso vigente: se pega la explicación al paso actual.
@@ -202,8 +219,11 @@ export function TutorPanel({ onStateChange = null, routeMode = 'free' }) {
           })
           .catch(() => {
             // La explicación es un adorno: si falla, el paso del manual sigue.
-            if (miPeticion !== peticionRef.current) return;
+            if (requestId !== peticionRef.current) return;
             setEstado((previo) => (previo ? { ...previo, pendienteDeExplicacion: false } : previo));
+          })
+          .finally(() => {
+            if (requestId === peticionRef.current) setRedactando(false);
           });
       }
     } catch (err) {
@@ -215,8 +235,9 @@ export function TutorPanel({ onStateChange = null, routeMode = 'free' }) {
 
   function responder(id, valor) {
     if (id === 'intencion') {
-      setCaso({ intencion: valor });
-      avanzar({ caso: { intencion: valor }, reiniciar: true });
+      const nuevoCaso = { ...caso, intencion: valor };
+      setCaso(nuevoCaso);
+      avanzar({ caso: nuevoCaso, reiniciar: true });
       return;
     }
     avanzar({ respuestas: { [id]: valor } });
@@ -224,9 +245,9 @@ export function TutorPanel({ onStateChange = null, routeMode = 'free' }) {
 
   // El alumno escribió en sus palabras. Su mensaje entra al hilo al instante;
   // la respuesta del coach llega en la fase 2 de `avanzar`.
-  function enviarMensaje() {
-    const texto = mensaje.trim();
-    if (!texto || cargando) return;
+  function enviarMensaje(textoForzado = null) {
+    const texto = (textoForzado ?? mensaje).trim();
+    if (!texto || ocupado) return;
     setChat((c) => [...c, { rol: 'alumno', texto }]);
     // Si aún no hay procedimiento, este texto puede encaminar (o saludar) →
     // reinicia. Si ya hay un paso activo, es una pregunta sobre él → no lo
@@ -240,11 +261,12 @@ export function TutorPanel({ onStateChange = null, routeMode = 'free' }) {
     setCaso({ intencion: null });
     setRespuestas({});
     setEstado(null);
-    setComando('');
     setPantalla('');
     setPantallas([]);
     setMostrarPegar(false);
     setError(null);
+    setRedactando(false);
+    peticionRef.current += 1;
     setChat([{
       rol: 'coach',
       texto: 'Hola. Soy tu tutor de Amadeus e Iberia. Escríbeme el caso con tus palabras o pega la pantalla; identificaré el manual, conservaré el contexto y te diré solo el siguiente paso.'
@@ -253,7 +275,7 @@ export function TutorPanel({ onStateChange = null, routeMode = 'free' }) {
   }
 
   return (
-    <aside className="sidebar-panel tutor-panel" aria-live="polite" data-route-mode={routeMode}>
+    <aside className="sidebar-panel tutor-panel" aria-live="polite" aria-busy={ocupado} data-route-mode={routeMode}>
       <h2 className="panel-title">
         <Bot size={18} /> Tutor
       </h2>
@@ -280,11 +302,20 @@ export function TutorPanel({ onStateChange = null, routeMode = 'free' }) {
           arriba del todo porque es la vía principal — le escribes en tus
           palabras y él te encamina o te responde anclado al manual. */}
       {chat.length > 0 && (
-        <div className="tut-chat">
+        <div className="tut-chat" role="log" aria-label="Conversación con el tutor">
           {chat.map((m, i) => (
-            <div key={i} className={`tut-burbuja tut-burbuja-${m.rol}`}>{m.texto}</div>
+            <div key={i} className={`tut-burbuja-row tut-burbuja-row-${m.rol}`}>
+              <span className="tut-burbuja-autor">{m.rol === 'alumno' ? 'Usted' : 'Tutor'}</span>
+              <div className={`tut-burbuja tut-burbuja-${m.rol}`}>{m.texto}</div>
+            </div>
           ))}
-          {cargando && <div className="tut-burbuja tut-burbuja-coach tut-burbuja-pensando">…</div>}
+          {ocupado && (
+            <div className="tut-burbuja-row tut-burbuja-row-coach">
+              <span className="tut-burbuja-autor">Tutor</span>
+              <div className="tut-burbuja tut-burbuja-coach tut-burbuja-pensando" aria-label="El tutor está preparando una respuesta">…</div>
+            </div>
+          )}
+          <div ref={chatEndRef} aria-hidden="true" />
         </div>
       )}
 
@@ -292,18 +323,32 @@ export function TutorPanel({ onStateChange = null, routeMode = 'free' }) {
         className="tut-chat-form"
         onSubmit={(e) => { e.preventDefault(); enviarMensaje(); }}
       >
-        <input
-          type="text"
+        <textarea
+          rows={2}
           value={mensaje}
           onChange={(e) => setMensaje(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              enviarMensaje();
+            }
+          }}
           placeholder={estado?.procedimientoId ? 'Pregúntame sobre este paso…' : 'Cuéntame el caso: «quiere cambiar la fecha»…'}
           aria-label="Escríbele al tutor"
-          disabled={cargando}
+          disabled={ocupado}
         />
-        <button type="submit" className="tut-chat-enviar" aria-label="Enviar mensaje al tutor" disabled={!mensaje.trim() || cargando}>
+        <button type="submit" className="tut-chat-enviar" aria-label="Enviar mensaje al tutor" disabled={!mensaje.trim() || ocupado}>
           Enviar
         </button>
       </form>
+      <div className="tut-chat-ayuda" aria-hidden="true">Enter enviar · Shift+Enter nueva línea</div>
+
+      <div className="tut-atajos" aria-label="Atajos de práctica">
+        <span>Práctica rápida</span>
+        <button type="button" disabled={ocupado} onClick={() => enviarMensaje('Quiero practicar una llamada y necesito que me corrija el tuteo.')}>Corregir tuteo</button>
+        <button type="button" disabled={ocupado} onClick={() => enviarMensaje('Ayúdeme a tipificar este caso con motivo, gestión y resultado.')}>Tipificar caso</button>
+        <button type="button" disabled={ocupado} onClick={() => enviarMensaje('Hagamos un role play: usted es el pasajero y yo soy el agente.')}>Role play</button>
+      </div>
 
       {/* Dónde estás */}
       {estado?.titulo && (
@@ -342,7 +387,7 @@ export function TutorPanel({ onStateChange = null, routeMode = 'free' }) {
                 key={valor}
                 type="button"
                 className="tut-start-option"
-                disabled={cargando}
+                disabled={ocupado}
                 onClick={() => responder('intencion', valor)}
               >
                 {texto}
@@ -364,7 +409,7 @@ export function TutorPanel({ onStateChange = null, routeMode = 'free' }) {
                   key={String(o.valor)}
                   type="button"
                   className="quiz-big-btn"
-                  disabled={cargando}
+                  disabled={ocupado}
                   onClick={() => responder(pregunta.id, o.valor)}
                 >
                   {o.texto}
@@ -415,7 +460,7 @@ export function TutorPanel({ onStateChange = null, routeMode = 'free' }) {
       </div>
 
       {/* Catálogo Completo de Ejercicios Guiados por Procedimiento */}
-      {mostrarCatalogo && !cargando && (
+      {mostrarCatalogo && !ocupado && (
         <div className="tut-catalogo-ejercicios" style={{ background: 'var(--bg-dark)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', padding: '14px', marginBottom: '16px' }}>
           <div style={{ marginBottom: '12px' }}>
             <h4 style={{ margin: '0 0 4px 0', fontSize: '15px', color: 'var(--text-light)', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -443,7 +488,7 @@ export function TutorPanel({ onStateChange = null, routeMode = 'free' }) {
                   key={valor}
                   type="button"
                   className="quiz-big-btn"
-                  disabled={cargando}
+                  disabled={ocupado}
                   onClick={() => { setEjercicioActivo(null); setMostrarCatalogo(false); responder('intencion', valor); }}
                 >
                   {texto}
@@ -542,7 +587,7 @@ export function TutorPanel({ onStateChange = null, routeMode = 'free' }) {
           <button
             type="button"
             className="quiz-big-btn"
-            disabled={!pantalla.trim() || cargando}
+            disabled={!pantalla.trim() || ocupado}
             onClick={() => { avanzar({ pantallaNueva: pantalla }); setPantalla(''); setMostrarPegar(false); }}
           >
             Leerla
@@ -671,7 +716,7 @@ export function TutorPanel({ onStateChange = null, routeMode = 'free' }) {
             <button
               type="button"
               className="quiz-big-btn"
-              disabled={cargando}
+              disabled={ocupado}
               onClick={() => terminalRef.current.setInput(paso.comando)}
             >
               <ArrowRightLeft size={15} /> Pasar comando al terminal
@@ -693,7 +738,7 @@ export function TutorPanel({ onStateChange = null, routeMode = 'free' }) {
         <button
           type="button"
           className="quiz-big-btn interactive-surface"
-          disabled={cargando}
+          disabled={ocupado}
           onClick={() => avanzar({})}
           style={{
             width: '100%',
@@ -716,7 +761,7 @@ export function TutorPanel({ onStateChange = null, routeMode = 'free' }) {
 
       {/* El botón que siempre está */}
       {estado && !estado.terminado && (
-        <button type="button" className="tut-ayuda" disabled={cargando} onClick={() => avanzar({})}>
+        <button type="button" className="tut-ayuda" disabled={ocupado} onClick={() => avanzar({})}>
           <HelpCircle size={15} /> ¿Y ahora qué hago?
         </button>
       )}
@@ -725,7 +770,7 @@ export function TutorPanel({ onStateChange = null, routeMode = 'free' }) {
         <p className="tut-terminado"><CheckCircle2 size={16} /> Procedimiento completado.</p>
       )}
 
-      {cargando && <p className="tut-cargando"><Loader2 size={14} className="tut-girando" /> Pensando…</p>}
+      {ocupado && <p className="tut-cargando"><Loader2 size={14} className="tut-girando" /> {cargando ? 'Pensando…' : 'Redactando la explicación…'}</p>}
       {error && <p className="tut-error">{error}</p>}
     </aside>
   );

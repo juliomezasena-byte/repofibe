@@ -1,10 +1,19 @@
 import { auth } from './firebase';
 
-const WORKER_URL = import.meta.env.VITE_ROLEPLAY_WORKER_URL;
+const CONFIGURED_WORKER_URL = import.meta.env.VITE_ROLEPLAY_WORKER_URL;
+// En el build de pruebas el worker se intercepta en el mismo origen. En
+// producción exigimos una URL explícita para no convertir una mala
+// configuración en una petición opaca a "undefined/tutor/paso".
+const WORKER_URL = CONFIGURED_WORKER_URL || (
+  import.meta.env.MODE === 'test' && typeof window !== 'undefined' ? window.location.origin : null
+);
 
 async function post(path, body) {
+  if (!WORKER_URL) {
+    throw new Error('El tutor no está configurado en este entorno. Falta VITE_ROLEPLAY_WORKER_URL.');
+  }
   let idToken = 'mock-token';
-  if (import.meta.env.VITE_E2E_MOCK_AUTH !== '1') {
+  if (import.meta.env.MODE !== 'test' && import.meta.env.VITE_E2E_MOCK_AUTH !== '1') {
     if (!auth.currentUser) throw new Error('Debes iniciar sesión para usar el tutor.');
     idToken = await auth.currentUser.getIdToken(true);
   }

@@ -340,7 +340,14 @@ export async function responderCoachPublico(cuerpo, env) {
           diagnostico = redactada.diagnostico;
         }
       }
-      return { decision, lectura, explicacion, diagnostico };
+      return {
+        decision,
+        lectura,
+        explicacion,
+        diagnostico,
+        datosCaso: casoConHechos?.datos || {},
+        pasajerosCaso: casoConHechos?.pasajeros || null
+      };
 
       // SIEMPRE pasar por Gemini cuando hay texto de usuario
       const hayTextoLibre = consulta && consulta.trim().length > 0;
@@ -390,7 +397,14 @@ export async function responderCoachPublico(cuerpo, env) {
             ? decision.siguientePregunta.texto
             : 'Cuéntame qué necesita el pasajero: comprar billete, cambio, reembolso o un servicio — y te guío paso a paso con los comandos exactos del manual.';
         }
-        return { decision, lectura, explicacion, diagnostico };
+        return {
+          decision,
+          lectura,
+          explicacion,
+          diagnostico,
+          datosCaso: casoConHechos?.datos || {},
+          pasajerosCaso: casoConHechos?.pasajeros || null
+        };
       }
     }
     id = decision.procedimientoId;

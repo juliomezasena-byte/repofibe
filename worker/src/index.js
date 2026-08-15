@@ -269,12 +269,21 @@ async function handleTutorPasoLegacy(request, env) {
               decision,
               lectura,
               explicacion: resIA.explicacion || '👋 ¡Hola! Soy tu coach. ¿Qué necesita el pasajero: comprar, cambiar, reembolso o un servicio?',
-              diagnostico: resIA.diagnostico || ''
+              diagnostico: resIA.diagnostico || '',
+              datosCaso: casoConHechos?.datos || {},
+              pasajerosCaso: casoConHechos?.pasajeros || null
             }), { status: 200, headers: corsHeaders(env) });
           } catch (e) { /* si la IA falla, cae a la respuesta determinista */ }
         }
       }
-      return new Response(JSON.stringify({ decision, lectura, explicacion: construirRespuestaDeDecision(decision), diagnostico: '' }), { status: 200, headers: corsHeaders(env) });
+      return new Response(JSON.stringify({
+        decision,
+        lectura,
+        explicacion: construirRespuestaDeDecision(decision),
+        diagnostico: '',
+        datosCaso: casoConHechos?.datos || {},
+        pasajerosCaso: casoConHechos?.pasajeros || null
+      }), { status: 200, headers: corsHeaders(env) });
     }
     id = decision.procedimientoId;
   }
