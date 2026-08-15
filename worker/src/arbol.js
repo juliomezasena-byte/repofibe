@@ -19,6 +19,18 @@
 const PKEY = (a, b) => a + b;
 
 export const DESTINOS = {
+  'agregar-docs': 'Agregar documentos APIS (#3720)',
+  'formas-pago-latam': 'Formas de pago LATAM (#3123)',
+  'casos-meda': 'Casos MEDA (#3124)',
+  'transporte-ceniza': 'Transporte de ceniza (#3125)',
+  'generalidades-latam': 'Generalidades LATAM (#3062)',
+  'facturas-latam': 'Facturas LATAM (#3122)',
+  'comunicaciones-cortadas-latam': 'Comunicaciones cortadas LATAM (#3134)',
+  'on-hold-72h': 'Reserva ON HOLD 72 horas (#3063)',
+  'emision-reservas-on-hold': 'Emisión de reservas ON HOLD (#3686)',
+  'emision-colombia-cop': 'Emisión Colombia COP (BOG001)',
+  'descuento-panama': 'Descuentos Panamá (#3064)',
+  'descuento-ecuador': 'Descuentos Ecuador (#3065)',
   [PKEY('emision-', 'latam')]: 'Emisión LATAM (primera emisión)',
   [PKEY('cambio-voluntario-', 'automatico')]: 'Cambio voluntario automático',
   [PKEY('cambio-manual-sin-', 'segmento-volado')]: 'Cambio manual, sin segmento volado',
@@ -105,6 +117,86 @@ export function queProcedimiento(caso = {}) {
   const { intencion, billete = null, pnr = null, historico = null, respuestas = {} } = caso;
   const r = nuevo();
 
+  const datos = caso.datos || {};
+  const mercadoPanama = datos.paisMercado === 'PANAMA' || datos.mercado === 'PTY001';
+  const mercadoEcuador = datos.paisMercado === 'ECUADOR' || datos.mercado === 'UIO001';
+  const mercadoColombia = datos.paisMercado === 'COLOMBIA' || datos.mercado === 'BOG001';
+  const descuentoPanama = intencion === 'descuento-panama' || (intencion === 'emision' && mercadoPanama && (datos.descuentoPais === true || respuestas.descuentoPais === true));
+  const descuentoEcuador = intencion === 'descuento-ecuador' || (intencion === 'emision' && mercadoEcuador && (datos.descuentoPais === true || respuestas.descuentoPais === true));
+
+  if (intencion === 'generalidades-latam') {
+    paso(r, '¿Qué necesita?', 'Checklist de generalidades LATAM', 'Lo identificaste por el filtro inicial o por la solicitud de verificación previa.');
+    return decidir(r, 'generalidades-latam', 'Antes de cualquier proceso LATAM se valida origen de llamada, reserva, seguridad, ticket, responsabilidad y estados HK/O.');
+  }
+  if (intencion === 'agregar-docs') {
+    paso(r, '¿Qué necesita?', 'Agregar documentos APIS', 'Lo identificaste por DOCS, DOCA, DOCO o datos del pasaporte.');
+    return decidir(r, 'agregar-docs', 'El manual separa pasaporte/fecha de nacimiento, dirección, residencia, visa/redress y Global Entry.');
+  }
+  if (intencion === 'formas-pago-latam') {
+    paso(r, '¿Qué necesita?', 'Validar forma de pago LATAM', 'Lo identificaste por tarjeta, cuotas, franquicia o PCC.');
+    return decidir(r, 'formas-pago-latam', 'Primero se identifica el país; después se validan moneda, cuotas y franquicia. El manual exige informar PCC.');
+  }
+  if (intencion === 'casos-meda') {
+    paso(r, '¿Qué necesita?', 'Evaluar caso MEDA', 'Lo identificaste por valoración médica, INCAD u hospitalización.');
+    return decidir(r, 'casos-meda', 'La información médica sensible no se guarda en el PNR; el procedimiento determina si debe escalarse al Servicio Médico.');
+  }
+  if (intencion === 'transporte-ceniza') {
+    paso(r, '¿Qué necesita?', 'Orientar transporte de cenizas', 'Lo identificaste por urna, cenizas o certificado de incineración.');
+    return decidir(r, 'transporte-ceniza', 'Se verifica urna, embalaje, certificados y requisitos del Consulado si el viaje es internacional.');
+  }
+  if (intencion === 'facturas-latam') {
+    paso(r, '¿Qué necesita?', 'Solicitud de factura LATAM', 'Lo identificaste por la palabra factura, comprobante fiscal o RUC.');
+    return decidir(r, 'facturas-latam', 'El manual separa países con solicitud web, Perú por Call Center y otros países con recibo de itinerario.');
+  }
+  if (intencion === 'comunicaciones-cortadas-latam') {
+    paso(r, '¿Qué necesita?', 'Comunicación cortada LATAM', 'Lo identificaste por un cobro sin emisión durante una compra web.');
+    return decidir(r, 'comunicaciones-cortadas-latam', 'Primero se evita duplicar el caso; después se recopilan monto, moneda, fecha, autorización, PNR y decisión del cliente.');
+  }
+  if (intencion === 'on-hold-72h') {
+    paso(r, '¿Qué necesita?', 'Crear reserva ON HOLD 72 horas', 'Lo identificaste por el depósito inicial y el plazo no prorrogable.');
+    return decidir(r, 'on-hold-72h', 'El flujo crea la reserva, tarifa, TST, EMD y TSM; el pago PCI/Travel Pay queda bloqueado si no hay manual seguro.');
+  }
+  if (intencion === 'emision-reservas-on-hold') {
+    paso(r, '¿Qué necesita?', 'Emitir reserva ON HOLD', 'Lo identificaste por la emisión dentro del plazo de 72 horas.');
+    return decidir(r, 'emision-reservas-on-hold', 'El Cyber debe eliminarse antes de TTP1/ET/RT y nunca se inventa el token de PCI PAL o Travel Pay.');
+  }
+
+  if (intencion === 'emision-colombia-cop' || (intencion === 'emision' && mercadoColombia && (datos.cobroCOP === true || respuestas.cobroCOP === true))) {
+    paso(r, '¿Qué necesita?', 'Reserva de Colombia cobrada en COP', 'Lo deduje del mercado BOG001 y de la moneda COP indicada.');
+    return decidir(r, 'emision-colombia-cop',
+      'Este manual solo aplica a llamadas de Colombia con reservas cobradas en COP y gestionadas por la oficina BOG001. Para depósito bancario, consulta las formas de pago del manual general.');
+  }
+
+  if (intencion === 'emision' && mercadoColombia && datos.cobroCOP !== true && respuestas.cobroCOP !== false) {
+    return preguntar(r, 'cobroCOP', 'La llamada indica mercado Colombia (BOG001). ¿La reserva se cobrará en COP?',
+      [{ valor: true, texto: 'Sí, cobro en COP' }, { valor: false, texto: 'No, reserva general' }],
+      'El manual colombiano exige cobro en COP y gestión desde BOG001.');
+  }
+
+  if (descuentoPanama) {
+    paso(r, '¿Qué necesita?', 'Reserva con descuento país Panamá', 'Lo deduje del mercado PTY001 y del descuento indicado.');
+    return decidir(r, 'descuento-panama',
+      'Este manual solo aplica a reservas con descuento país del mercado PTY001, cotizadas en USD. No concede el descuento por sí solo: verifica nacionalidad o residencia, edad/jubilación y los DOCS.');
+  }
+
+  if (descuentoEcuador) {
+    paso(r, '¿Qué necesita?', 'Reserva con descuento país Ecuador', 'Lo deduje del mercado UIO001 y del descuento indicado.');
+    return decidir(r, 'descuento-ecuador',
+      'Este manual solo aplica a residentes ecuatorianos del mercado UIO001, cotizados en USD. DIS es discapacidad, ZZ es joven de 12 a 24 años y RCD es adulto mayor de 65 años. Verifica el documento y que no se acumule otro descuento.');
+  }
+
+  if (intencion === 'emision' && mercadoPanama && datos.descuentoPais !== true && respuestas.descuentoPais !== false) {
+    return preguntar(r, 'descuentoPais', 'La llamada indica mercado Panamá (PTY001). ¿La reserva lleva descuento país?',
+      [{ valor: true, texto: 'Sí, descuento país' }, { valor: false, texto: 'No, reserva general' }],
+      'El manual #3064 solo se usa con descuento país, cotización en USD y validación obligatoria de DOCS.');
+  }
+
+  if (intencion === 'emision' && mercadoEcuador && datos.descuentoPais !== true && respuestas.descuentoPais !== false) {
+    return preguntar(r, 'descuentoPais', 'La llamada indica mercado Ecuador (UIO001). ¿La reserva lleva descuento país?',
+      [{ valor: true, texto: 'Sí, descuento país' }, { valor: false, texto: 'No, reserva general' }],
+      'El manual #3065 solo se usa con descuento país, cotización en USD y residentes ecuatorianos.');
+  }
+
   if (intencion === 'maestro-split' || intencion === 'ejercicio-super-split-servicios-maestro') {
     paso(r, '¿Qué necesita?', 'Súper Ejercicio Maestro: 2 SPLITs + 9 Ancillaries en 3 Reservas', 'Lo identificaste en tu solicitud.');
     return decidir(r, 'ejercicio-super-split-servicios-maestro', 'Este es el ejercicio de entrenamiento más avanzado del sistema: 2 SPLITs y 9 ancillaries distribuidos en 3 PNRs.');
@@ -168,7 +260,7 @@ export function queProcedimiento(caso = {}) {
 
     if (caso.pasajeros) {
       const p = caso.pasajeros;
-      r.avisos.push(`ComposiciÃ³n detectada: ${p.ADT} ADT + ${p.CHD} CHD + ${p.INF} INF = ${p.plazas} plazas. El INF no ocupa plaza.`);
+      r.avisos.push(`Composición detectada: ${p.ADT} ADT + ${p.CHD} CHD + ${p.INF} INF = ${p.plazas} plazas. El INF no ocupa plaza.`);
     }
     return decidir(r, 'emision-latam',
       'Recuerda: en primera emisión SOLO se hacen reservas ON HOLD. El pago lo completa el pasajero en iberia.com.');

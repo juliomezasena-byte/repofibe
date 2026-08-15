@@ -1,0 +1,47 @@
+{
+  "id": "emision-colombia-cop",
+  "titulo": "Emisión Colombia COP (BOG001)",
+  "aerolinea": "LATAM/Iberia",
+  "categoria": "emision",
+  "resumen": "Flujo de reserva para llamadas de Colombia cuando el cobro se realiza en COP y la gestión corresponde a BOG001.",
+  "aplicaSolo": ["llamada de atención de Colombia", "cobro en COP", "oficina BOG001"],
+  "fuente": {
+    "documento": "Manual aportado por el usuario: reserva Colombia cobrada en COP",
+    "tipo": "manual-oficial-interno",
+    "recibido": "2026-08-12",
+    "confianzaGlobal": "verbatim",
+    "nota": "Los comandos se conservaron de la columna TRANSACCIÓN. Los datos de cliente, tarjeta, correo, documento y token deben completarse en el momento; nunca se inventan."
+  },
+  "advertencias": [
+    "Este manual solo aplica a reservas cobradas en COP para llamadas de Colombia.",
+    "La gestión debe realizarse a través de la oficina BOG001.",
+    "Si el pasajero paga por depósito bancario, consulta el manual general de formas de pago.",
+    "El pago PCI/Travel Pay no se inventa: se consulta al coach o el procedimiento vigente."
+  ],
+  "pasos": [
+    { "n": 1, "sistema": "amadeus", "proceso": "Buscar fechas de vuelo - solo ida", "comando": null, "plantilla": "AN {fecha} {origen}{destino}", "variantes": ["AN {fecha1} {origen}{destino} * {fecha2}", "SN {fecha} {origen}{destino}"], "explicacion": "AN FECHA ORGDES. Para ida y vuelta: AN FECHA1 ORGDES * FECHA2. SN muestra todas las clases. MY mueve al día anterior y MN al día siguiente.", "confianza": "verbatim" },
+    { "n": 2, "sistema": "amadeus", "proceso": "Seleccionar plazas para un solo vuelo", "comando": null, "plantilla": "SS {plazas} {clase} {lineaVuelo}", "variantes": ["SS {plazas} {claseIda} {lineaIda} * {claseVuelta} {lineaVuelta}", "SS {plazas} {claseIda} {claseVuelta} {lineaVuelo}"], "explicacion": "Para ida y vuelta se usa SS PLAZAS CLASE IDA LÍNEA * CLASE REGRESO LÍNEA. Para clases diferentes: SS PLAZAS CLASE IDA CLASE VUELTA LÍNEA.", "confianza": "verbatim" },
+    { "n": 3, "sistema": "amadeus", "proceso": "Cotizar los vuelos", "comando": null, "plantilla": "FXX/FF-{tarifa}", "variantes": ["FXX/FF-{tarifa}/RCH", "FXX/FF-{tarifa}/RIN", "FXX/FF-{tarifa}/RINADCH"], "explicacion": "Adulto: FXX/FF-TARIFA. Niño: /RCH. Infante: /RIN. Varios tipos: /RINADCH. Si aparece NO FARES/RBD/CARRIER/PASSENGER TYPE, cambia las clases y reemplaza FXX por FXR.", "confianza": "verbatim" },
+    { "n": 4, "sistema": "referencia", "proceso": "Verificar gasto de gestión", "comando": null, "plantilla": null, "explicacion": "Tabla del manual: hasta 354 USD = 17.85 USD; 355 a 590 USD = 32.32 USD; 591 a 944 USD = 54.74 USD; 945 USD = 113.05 USD. El cobro final del caso es en COP: convierte cuando corresponda.", "confianza": "verbatim" },
+    { "n": 5, "sistema": "amadeus", "proceso": "Documentar los valores informados al cliente", "comando": "RM05NOV24PAX AVDO VALOR TKT X CHD xxx COP, X ADT xxx COP, X INF xxx COP//AR", "explicacion": "Registra los valores de billete por tipo de pasajero en COP según lo informado al cliente.", "confianza": "verbatim" },
+    { "n": 6, "sistema": "amadeus", "proceso": "Buscar condiciones de tarifa y convertir penalidad a COP", "comando": "FQN {lineaTarifa} * PE", "variantes": ["FQC {valor}USD/COP"], "explicacion": "FQN LÍNEA DE TARIFA * PE. Para convertir penalidad o gasto de gestión: FQC VALORUSD/COP.", "confianza": "verbatim" },
+    { "n": 7, "sistema": "amadeus", "proceso": "Documentar las condiciones indicadas al cliente", "comando": "RM05NOV24PAX AVDO TKT NO REEMBOLSABLE, CHG PERMITIDOS CON PENTY {valor} COP //AR", "explicacion": "Documenta la condición de reembolso, cambios y penalidad convertida a COP.", "confianza": "verbatim" },
+    { "n": 8, "sistema": "amadeus", "proceso": "Agregar nombres y tipos de pasajero", "comando": null, "plantilla": "NM{cantidad}{apellido}/{nombre}", "variantes": ["NM1 {apellido}/{nombre}(CHD/{fechaNacimiento})", "NM1 {apellido}/{nombre}(INF{apellidoInf}/{nombreInf}/{fechaNacimiento})", "NM1 {apellido}/{nombre}(INS/{fechaNacimiento})", "FFAIB-{numeroIberiaPlus}"], "explicacion": "Adulto NM1 APELLIDO/NOMBRE. Child añade (CHD/FECHA). Adulto con infante añade (INFAPELLIDO/NOMBRE/FECHA). Infante con asiento usa (INS/FECHA). Iberia Plus: FFAIB-NÚMERO.", "confianza": "verbatim" },
+    { "n": 9, "sistema": "amadeus", "proceso": "Incluir datos de contacto", "comando": null, "plantilla": "APE- {email}", "variantes": ["SR CTCE- {emailSSR}", "AP+ {telefono}", "SR CTCM- {telefono}"], "explicacion": "En CTCE se reemplaza @ por //. No inventes correo ni teléfono.", "confianza": "verbatim" },
+    { "n": 10, "sistema": "amadeus", "proceso": "Establecer tiempo de emisión", "comando": null, "plantilla": "TKXL {fecha}/{horaZulu}", "variantes": ["TKOK", "TKTL {fecha}/{horaZulu}"], "explicacion": "ON HOLD: TKXL FECHA/HORA ZULU. Inmediata: TKOK. A 72 horas: TKTL FECHA/HORA ZULU. El pago inmediato por PCI/Travel Pay requiere autorización del coach.", "confianza": "verbatim" },
+    { "n": 11, "sistema": "amadeus", "proceso": "Solo para pago web y guardar la reserva", "comando": "OS YY HBFF", "variantes": ["ER"], "explicacion": "Solo para pago web: OS YY HBFF. Guardar con ER para obtener el código de reserva.", "confianza": "verbatim" },
+    { "n": 12, "sistema": "amadeus", "proceso": "Guardar la tarifa cotizada", "comando": null, "plantilla": "FXP/FF-{tarifa}", "variantes": ["FXP/FF-{tarifa}/RCH", "FXP/FF-{tarifa}/RIN", "FXT{opcion}/P{pasajero}", "FXT{opcion}/P{pasajero1}//{opcion2}/P{pasajero2}"], "explicacion": "Adulto FXP/FF-TARIFA; child /RCH; infante /RIN. Si aparece lista de opciones, selecciona una o varias con FXT según pasajero.", "confianza": "verbatim" },
+    { "n": 13, "sistema": "amadeus", "proceso": "Verificar que se creó la máscara TST", "comando": "TQT", "variantes": ["TQT/T1"], "explicacion": "TQT para un tipo de pasajero. TQT/T1 cuando hay varios tipos.", "confianza": "verbatim" },
+    { "n": 14, "sistema": "amadeus", "proceso": "Agregar datos del pasaporte y guardar", "comando": "SR DOCS YY HK1-P-{paisDocumento}-{numeroDocumento}-{paisNacimiento}-{fechaNacimiento}-{genero}-{fechaCaducidad}-{apellido}/{nombre}/P{pasajero}", "variantes": ["ER"], "explicacion": "DOCS es obligatorio. Completa país, documento, país de nacimiento, fecha de nacimiento, género, caducidad, apellido/nombre y pasajero.", "confianza": "verbatim", "esBloqueante": true },
+    { "n": 15, "sistema": "amadeus", "proceso": "Enviar itinerario", "comando": "IBP-EMLA/LPSP", "variantes": ["IEPJ-EMLA/LPSP", "ITR-EMLA"], "explicacion": "En ON HOLD este es el último paso antes de cobrar. Informa que los billetes serán emitidos con PCC y que el cliente presentará la tarjeta usada.", "confianza": "verbatim" },
+    { "n": 16, "sistema": "amadeus", "proceso": "Incluir datos del titular de la tarjeta", "comando": "RMCSY/{nombre}:{apellido}", "explicacion": "Registra nombre y apellido del titular de la tarjeta de pago.", "confianza": "verbatim" },
+    { "n": 17, "sistema": "amadeus", "proceso": "Incluir el gasto de gestión", "comando": "TTO/ST01/CSF/F{gastoGestion}", "variantes": ["TTO/ST01/CSF/F{gastoGestion}/T{numeroTST}", "ER"], "explicacion": "Un TST: TTO/ST01/CSF/FGASTO. Varios TST: añade /Tn. Guardar con ER.", "confianza": "verbatim" },
+    { "n": 18, "sistema": "referencia", "proceso": "Tomar datos de tarjeta PCI o Travel Pay", "comando": null, "explicacion": "El manual remite a PCI PAL LATAM - Formas de pago - PCI PAL y Travel Pay LATAM - Formas de pago - Travel Pay. Este paso está fuera del texto operativo aportado: consulta al coach/instructor y no inventes el flujo.", "confianza": "hueco", "nota": "Paso no documentado en este manual. Pregunta al instructor por PCI PAL o Travel Pay antes de continuar." },
+    { "n": 19, "sistema": "amadeus", "proceso": "Agregar forma de pago", "comando": null, "simulacion": { "comando": "FP CASH,", "nota": "Solo laboratorio: forma de pago ficticia. Nunca pegar tarjeta, CVV ni token." }, "explicacion": "El pago PCI/Travel Pay real no está documentado aquí. En práctica local usa únicamente FP CASH,.", "confianza": "hueco", "esBloqueante": true },
+    { "n": 20, "sistema": "amadeus", "proceso": "Cargar el perfil de PCI en Amadeus", "comando": "$$CONFIG:CCTYPE/2", "confianza": "verbatim" },
+    { "n": 21, "sistema": "amadeus", "proceso": "Realizar el cargo a la tarjeta", "comando": "$$PAY", "confianza": "verbatim" },
+    { "n": 22, "sistema": "amadeus", "proceso": "Borrar el cyber para poder emitir", "comando": "XE17", "explicacion": "17 es la línea donde está el cyber.", "confianza": "verbatim" },
+    { "n": 23, "sistema": "amadeus", "proceso": "Emitir el billete", "comando": "TTP1/ET/RT", "confianza": "verbatim" },
+    { "n": 24, "sistema": "amadeus", "proceso": "Enviar documentos finales", "comando": "IBP-EMLA/LPSP", "variantes": ["IEPJ-EMLA/LPSP", "ITR-EMLA"], "explicacion": "IBP: itinerario; IEPJ: itinerario y servicios; ITR: billetes electrónicos.", "confianza": "verbatim" }
+  ]
+}

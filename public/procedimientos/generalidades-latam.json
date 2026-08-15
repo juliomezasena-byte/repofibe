@@ -1,0 +1,24 @@
+{
+  "id": "generalidades-latam",
+  "titulo": "Generalidades LATAM #3062",
+  "aerolinea": "IB",
+  "categoria": "generalidades",
+  "resumen": "Checklist inicial para identificar la llamada, abrir la reserva, verificar seguridad, responsabilidad del billete y estados antes de cualquier proceso LATAM.",
+  "aplicaSolo": "Cualquier proceso LATAM antes de iniciar emisión, reemisión, reembolso o servicios.",
+  "advertencias": [
+    { "nivel": "critico", "texto": "El filtro de seguridad con localizador/PNR y apellido es obligatorio.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "Verificar la responsabilidad del billete antes de aplicar un procedimiento.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "HK indica plaza confirmada y O indica cupón abierto/disponible.", "confianza": "verbatim" }
+  ],
+  "fuente": { "documento": "IberiaNet Lite — #3062 GENERALIDADES", "tipo": "manual-oficial-interno", "recibido": "2026-08-12", "confianzaGlobal": "verbatim" },
+  "pasos": [
+    { "n": 1, "sistema": "avaya/salesforce", "proceso": "Identificar origen de la llamada", "comando": null, "explicacion": "Identificar la ciudad desde Avaya (+00) o Salesforce.", "confianza": "verbatim", "esBloqueante": true },
+    { "n": 2, "sistema": "resiber/amadeus", "proceso": "Abrir la reserva", "comando": "RT {PNR}", "explicacion": "Abrir la reserva con RT y el localizador.", "confianza": "verbatim", "esBloqueante": true },
+    { "n": 3, "sistema": "natiba", "proceso": "Realizar filtro de seguridad", "comando": null, "explicacion": "Validar localizador/PNR y apellido del pasajero.", "confianza": "verbatim", "esBloqueante": true },
+    { "n": 4, "sistema": "resiber/amadeus", "proceso": "Localizar ticket", "comando": null, "variantes": ["SR TKNE", "FA", "FHE"], "explicacion": "Localizar el elemento que identifica o contiene el billete.", "confianza": "verbatim", "esBloqueante": true },
+    { "n": 5, "sistema": "amadeus", "proceso": "Verificar aerolínea responsable", "comando": "DNA {tresPrimerosDigitosTKT}", "variantes": ["DNA 075"], "explicacion": "Usar los tres primeros dígitos del billete; DNA 075 identifica la placa Iberia.", "confianza": "verbatim", "esBloqueante": true },
+    { "n": 6, "sistema": "amadeus", "proceso": "Verificar pasajero directo o agencia", "comando": "DTR TN 075-{numeroTicket}", "variantes": ["DTR H", ".PV/IOI"], "explicacion": "Consultar la responsabilidad y el tipo de emisión.", "confianza": "verbatim", "esBloqueante": true },
+    { "n": 7, "sistema": "amadeus", "proceso": "Verificar estados de segmentos y cupones", "comando": null, "explicacion": "Confirmar que la plaza esté HK y los cupones estén O (OPEN). Solo entonces continuar al manual específico.", "confianza": "verbatim", "esBloqueante": true }
+  ],
+  "relacionados": ["latam-general-prechecklist", "on-hold-72h", "facturas-latam", "comunicaciones-cortadas-latam", "pmr-silla-de-ruedas"]
+}

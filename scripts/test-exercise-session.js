@@ -4,7 +4,10 @@ import {
   createProcedureSession,
   getPrimaryAction,
   transitionSession,
-  sameSessionIdentity
+  sameSessionIdentity,
+  toSafeSessionSnapshot,
+  writeSafeSessionSnapshot,
+  readSafeSessionSnapshot
 } from '../src/lib/exerciseSession.js';
 
 const scenario = {
@@ -52,4 +55,23 @@ assert.equal(getPrimaryAction(procedureSession).label, 'Leer el caso');
 assert.equal(sameSessionIdentity(scenarioSession, createScenarioSession(scenario)), true);
 assert.equal(sameSessionIdentity(scenarioSession, procedureSession), false);
 
-console.log('exercise-session: 12/12 assertions passed');
+const sensitiveSession = {
+  ...scenarioSession,
+  pnr: { passengers: [{ name: 'PRIVATE/PASSENGER' }] },
+  pastedScreen: 'PRIVATE SCREEN'
+};
+const safeSnapshot = toSafeSessionSnapshot(sensitiveSession);
+assert.equal(safeSnapshot.scenarioId, 'scenario-test');
+assert.equal('pnr' in safeSnapshot, false);
+assert.equal('pastedScreen' in safeSnapshot, false);
+
+const storage = new Map();
+const fakeStorage = {
+  setItem: (key, value) => storage.set(key, value),
+  getItem: (key) => storage.get(key) || null
+};
+assert.equal(writeSafeSessionSnapshot(sensitiveSession, fakeStorage), true);
+assert.equal(readSafeSessionSnapshot(fakeStorage).exerciseId, 'scenario-test');
+assert.equal(readSafeSessionSnapshot(fakeStorage).mode, 'guided');
+
+console.log('exercise-session: 16/16 assertions passed');

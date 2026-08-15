@@ -1,3 +1,15 @@
+function seededRandom(seedText = '') {
+  let seed = 2166136261;
+  for (const char of String(seedText)) seed = Math.imul(seed ^ char.charCodeAt(0), 16777619);
+  return () => {
+    seed += 0x6D2B79F5;
+    let t = seed;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
 /**
  * PnrStateMachine.js
  * Máquina de estados finitos que gestiona el PNR activo (Passenger Name Record).
@@ -333,7 +345,7 @@ export class PnrStateMachine {
    *  - Largo radio (3 cabinas): Business + Turista Premium + Economy.
    *  - Medio/Corto radio (2 cabinas): Business + Economy (sin premium).
    */
-  buildClassLadder(seed = 1, cabins = 3) {
+  buildClassLadder(seed = 1, cabins = 3, rnd = Math.random) {
     const orden = cabins === 3
       ? [...PnrStateMachine.RBD_BUSINESS, ...PnrStateMachine.RBD_PREMIUM, ...PnrStateMachine.RBD_ECONOMY]
       : [...PnrStateMachine.RBD_BUSINESS, ...PnrStateMachine.RBD_ECONOMY];
@@ -346,9 +358,9 @@ export class PnrStateMachine {
       ladder[letra] = (v === 0 || v === 1) ? 'C' : Math.min(9, v);
     });
     // Cabinas vendibles siempre abiertas
-    ladder.Y = 4 + Math.floor(Math.random() * 6); // 4-9
-    ladder.C = 2 + Math.floor(Math.random() * 6);
-    ladder.J = 2 + Math.floor(Math.random() * 6);
+    ladder.Y = 5 + Math.floor(rnd() * 5); // 5-9: permite prácticas de hasta 5 plazas
+    ladder.C = 5 + Math.floor(rnd() * 5);
+    ladder.J = 5 + Math.floor(rnd() * 5);
     return ladder;
   }
 
@@ -369,8 +381,10 @@ export class PnrStateMachine {
    * aerolíneas, horarios, escaleras y equipos aleatorios, y una mezcla de
    * directos y con escala. Y/C/J quedan abiertas para no romper ejercicios.
    */
-  generateDynamicFlights(origin, destination) {
-    const rnd = Math.random;
+  generateDynamicFlights(origin, destination, date = '') {
+    // Misma consulta = misma pantalla: evita que cambien líneas o clases al
+    // reintentar el comando durante un ejercicio.
+    const rnd = seededRandom(`${origin}-${destination}-${date}`);
     const pick = (arr) => arr[Math.floor(rnd() * arr.length)];
     const pad2 = (n) => String(n).padStart(2, '0');
     const n = 3 + Math.floor(rnd() * 3); // 3-5 opciones
@@ -411,7 +425,7 @@ export class PnrStateMachine {
       flights.push({
         airline: air,
         flightNumber: String(1000 + Math.floor(rnd() * 8999)),
-        classes: this.buildClassLadder(1 + Math.floor(rnd() * 10), cabins),
+        classes: this.buildClassLadder(1 + Math.floor(rnd() * 10), cabins, rnd),
         cabins,
         tipoRadio,
         origin,
@@ -511,7 +525,7 @@ export class PnrStateMachine {
     const rtMatch = (rawInput || '').match(/\*\s*(\d{1,2})\s*$/);
     const outbound =
       this._flightsFromCatalog(origin, destination, flightsCatalog) ||
-      this.generateDynamicFlights(origin, destination);
+      this.generateDynamicFlights(origin, destination, date);
 
     if (!rtMatch) {
       this.state.lastAvailability = { date, origin, destination, flights: outbound };
@@ -523,7 +537,7 @@ export class PnrStateMachine {
     const returnDate = `${returnDay}${month}`;
     const inbound =
       this._flightsFromCatalog(destination, origin, flightsCatalog) ||
-      this.generateDynamicFlights(destination, origin);
+      this.generateDynamicFlights(destination, origin, returnDate);
     const outboundCount = outbound.length;
     // La captura real del terminal mostró la ida en 1-3 y el regreso en
     // 11-13 (hay un salto). No sabemos la regla que usa Amadeus para ese
@@ -560,7 +574,8 @@ export class PnrStateMachine {
 
   // Vende el vuelo de una línea de state.lastAvailability (soporta escala).
   _sellFromLine(lineNum, bookingClass, count) {
-    const flight = this.state.lastAvailability.flights.find(f => f.line === lineNum) || this.state.lastAvailability.flights[0];
+    const flight = this.state.lastAvailability.flights.find(f => f.line === lineNum);
+    if (!flight) return { success: false, error: `LINE ${lineNum} NOT FOUND IN AVAILABILITY` };
 
     // Soporte para 2 clases consecutivas (ej: SS 2 A S 1 -> bookingClass = "AS")
     const class1 = bookingClass.length >= 2 ? bookingClass[0] : bookingClass;
@@ -569,6 +584,9 @@ export class PnrStateMachine {
     const resolveClass = (requestedCls) => {
       if (!flight.classes) return requestedCls;
       const status = flight.classes[requestedCls];
+      if (typeof status === 'number' && status < count) {
+        return null;
+      }
       // Si la clase existe en el vuelo y está cerrada explícitamente (0, C, X), se rechaza
       if (status === 0 || status === 'C' || status === 'X') {
         return null;
@@ -577,8 +595,8 @@ export class PnrStateMachine {
         return requestedCls;
       }
       // Si la clase solicitada es un placeholder o no está en la escalera, usar primera clase abierta
-      const openClass = Object.keys(flight.classes).find(c => flight.classes[c] !== 0 && flight.classes[c] !== 'C' && flight.classes[c] !== 'X');
-      return openClass || requestedCls;
+      // La clase solicitada debe existir en ESA línea; nunca la sustituimos.
+      return null;
     };
 
     const finalClass1 = resolveClass(class1);
@@ -652,6 +670,17 @@ export class PnrStateMachine {
     }
     const [, paxStr, class1, line1Str, class2, line2Str] = m;
     const count = parseInt(paxStr, 10);
+    const validarSeleccion = (linea, clase) => {
+      const vuelo = this.state.lastAvailability.flights.find((f) => f.line === linea);
+      if (!vuelo) return `LINE ${linea} NOT FOUND IN AVAILABILITY`;
+      const cupos = vuelo.classes?.[clase];
+      if (cupos === undefined || cupos === 0 || cupos === 'C' || cupos === 'X' || (typeof cupos === 'number' && cupos < count)) {
+        return `CLASS ${clase} CLOSED / NOT ENOUGH SEATS ON LINE ${linea}`;
+      }
+      return null;
+    };
+    const errorSeleccion = validarSeleccion(Number(line1Str), class1.toUpperCase()) || validarSeleccion(Number(line2Str), class2.toUpperCase());
+    if (errorSeleccion) return { success: false, error: errorSeleccion };
     const r1 = this._sellFromLine(parseInt(line1Str, 10), class1.toUpperCase(), count);
     if (!r1.success) return r1;
     const r2 = this._sellFromLine(parseInt(line2Str, 10), class2.toUpperCase(), count);

@@ -1,0 +1,79 @@
+{
+  "id": "servicios-adicionales",
+  "titulo": "Servicios adicionales — qué se añade por Amadeus y qué por Resiber",
+  "aerolinea": "IB",
+  "categoria": "servicios",
+  "resumen": "Matriz de servicios especiales (SSR) y en qué sistema se documenta su adición. La diferencia de sintaxis entre sistemas es el dato clave.",
+  "hallazgoClave": {
+    "titulo": "Amadeus usa SR, Resiber usa SSR",
+    "texto": "El mismo servicio se pide con prefijo distinto según el sistema. Amadeus: 'SR SPEQ - ESQUI 21X50X130 13KG/S3/P1'. Resiber: 'SSR SPEQ IB NN1 ESQUI 21X50X130 13KG/S3/P1'. Resiber además incluye la aerolínea y el estado (IB NN1) que Amadeus no siempre lleva.",
+    "confianza": "derivado",
+    "nota": "Patrón observado en los ejemplos que el bot interno dio para SPEQ, PETC, SVAN y WCxx. Es consistente en los 4, pero NO está confirmado como regla en ningún manual que tengamos. Verificar contra 'Iberia 51 - Glosario.md'."
+  },
+  "advertencias": [
+    {
+      "nivel": "critico",
+      "texto": "\"No visible en el material\" NO significa \"no existe\". Un servicio sin evidencia documental queda como no confirmado, no como imposible.",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "alto",
+      "texto": "Si la pregunta es \"qué servicios PODEMOS ADICIONAR por cada sistema\", se responde por evidencia documental de adición — no por frecuencia de uso. Son cosas distintas.",
+      "confianza": "verbatim"
+    }
+  ],
+  "fuente": {
+    "documento": "Respuestas del bot interno citando 'Manual General - SERVICIOS ADICIONALES.pdf', 'Iberia 15 - Servicios.md', 'Iberia 51 - Glosario.md'",
+    "tipo": "resumen-de-bot",
+    "recibido": "2026-08-07",
+    "confianzaGlobal": "derivado",
+    "nota": "El bot se autocorrigió a mitad de la conversación: primero afirmó 'dónde se usa más' y luego reconoció que solo podía afirmar 'dónde aparece documentado'. Aquí se conserva la versión corregida."
+  },
+  "matriz": [
+    { "servicio": "UMNR", "nombre": "Menor no acompañado", "amadeus": "confirmado", "resiber": "confirmado", "nota": "El cobro del servicio se hace por WEMD desde Resiber; la emisión aparece en Amadeus." },
+    { "servicio": "PETC", "nombre": "Mascota en cabina", "amadeus": "confirmado", "resiber": "confirmado", "ejemploAmadeus": "SR PETC IB NN1 DOG HUSKY 5KG DIM 45X35X25/S2/P1", "ejemploResiber": "SSR PETC IB NN1 MADBCN 123 Y 15SEP 1 DOG HUSKY 15KG DIM83X65X76CM/P1" },
+    { "servicio": "SPEQ", "nombre": "Equipaje deportivo", "amadeus": "confirmado", "resiber": "confirmado", "ejemploAmadeus": "SR SPEQ - ESQUI 21X50X130 13KG/S3/P1", "ejemploResiber": "SSR SPEQ IB NN1 ESQUI 21X50X130 13KG/S3/P1" },
+    { "servicio": "SVAN", "nombre": "Perro de asistencia", "amadeus": "confirmado", "resiber": "confirmado", "ejemploAmadeus": "SR SVAN IB NN1 - DOG HUSKY 40KG/S2/P1", "ejemploResiber": "SSR SVAN IB NN1 DOG HUSKY 40KG/S2/P1" },
+    { "servicio": "WCxx", "nombre": "Silla de ruedas", "amadeus": "confirmado", "resiber": "confirmado", "ejemploAmadeus": "SR WCHR/S1/P1 · SR WCHS/S1/P1 · SR WCHC/S1/P1 · SR WCOB/S1/P1", "ejemploResiber": "SSR WCXX/S3/P1" },
+    { "servicio": "XBAG", "nombre": "Equipaje adicional", "amadeus": "confirmado", "resiber": "no-visible", "ejemploAmadeus": "IU IB NN1 XBAG MAD/P1", "nota": "Flujo completo en Amadeus: IU → FXH/L#-# → FXG/L#-# → TMI/M#/FP-TOKEN → $$CONFIG:CCTYPE/2 → $$PAY → TTM1/M#/RT" },
+    { "servicio": "DPNA", "nombre": "Discapacidad intelectual/del desarrollo", "amadeus": "no-visible", "resiber": "confirmado", "ejemploResiber": "SSR DPNA DOG HUSKY 5KG DIM 45X35X25/S2/P1", "nota": "⚠️ El ejemplo que dio el bot para DPNA describe un perro — parece copiado del de SVAN/PETC. Sospechoso: DPNA es un código de asistencia a pasajero, no de animal. NO usar este ejemplo hasta verificarlo." },
+    { "servicio": "AVIH", "nombre": "Animal vivo en bodega", "amadeus": "no-confirmado", "resiber": "no-confirmado", "nota": "El único servicio sin respaldo en ningún sistema. El bot lo declaró abiertamente. Pendiente de 'Iberia 15 - Servicios.md' o 'Iberia 51 - Glosario.md'." }
+  ],
+  "pasos": [
+    {
+      "n": 1,
+      "sistema": "amadeus",
+      "proceso": "Añadir un servicio especial en Amadeus",
+      "comando": "SR PETC IB NN1 DOG HUSKY 5KG DIM 45X35X25/S2/P1",
+      "plantilla": "SR {codigoServicio} {aerolinea} NN1 {descripcion}/S{segmento}/P{pasajero}",
+      "explicacion": "Prefijo SR. Se indica el segmento (/S) y el pasajero (/P).",
+      "confianza": "derivado",
+      "nota": "Ejemplo dado por el bot interno citando 'AMADEUS Servicios adicionales - Mermaid Flowchart.pdf'. Sin el PDF no se puede confirmar la sintaxis exacta."
+    },
+    {
+      "n": 2,
+      "sistema": "resiber",
+      "proceso": "Añadir el mismo servicio en Resiber",
+      "comando": "SSR PETC IB NN1 MADBCN 123 Y 15SEP 1 DOG HUSKY 15KG DIM83X65X76CM/P1",
+      "plantilla": "SSR {codigoServicio} {aerolinea} NN1 {ruta} {vuelo} {clase} {fecha} {descripcion}/P{pasajero}",
+      "explicacion": "Prefijo SSR. Resiber pide además ruta, vuelo, clase y fecha en la misma línea.",
+      "confianza": "derivado",
+      "nota": "Mismo origen que el paso 1. Es LA diferencia práctica entre sistemas y por eso urge confirmarla con 'Iberia 51 - Glosario.md'."
+    },
+    {
+      "n": 3,
+      "sistema": "amadeus",
+      "proceso": "Equipaje adicional (XBAG) — flujo completo de cobro",
+      "comando": "IU IB NN1 XBAG MAD/P1",
+      "explicacion": "Tras solicitarlo: FXH/L#-# (cotizar) → FXG/L#-# (crear TSM) → TMI/M#/FP-TOKEN → $$CONFIG:CCTYPE/2 → $$PAY → TTM1/M#/RT (emitir EMD).",
+      "confianza": "derivado",
+      "nota": "Bot citando 'AMADEUS Emision de equipaje - Mermaid Flowchart.pdf'. El simulador YA tiene un módulo de equipaje (SRXBAG→FXG→TQM→TMI→TTM) — comparar ambos flujos: no coinciden del todo y hay que resolver cuál es el vigente."
+    }
+  ],
+  "huecosConocidos": [
+    "AVIH sin confirmar en ningún sistema.",
+    "El ejemplo de DPNA parece contaminado con el de PETC/SVAN.",
+    "La regla SR (Amadeus) vs SSR (Resiber) es un patrón observado, no una regla documentada.",
+    "El flujo XBAG del bot no coincide con el módulo de equipaje ya implementado en el simulador."
+  ]
+}

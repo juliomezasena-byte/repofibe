@@ -66,7 +66,8 @@ const split = cargar('generar-split');
 const p1 = siguientePaso(split, {});
 comprobar('arranca por el primer paso', p1.paso.n, 1);
 comprobar('sistema Amadeus', p1.paso.sistema, 'amadeus');
-comprobar('el comando sale del manual', p1.paso.comando, 'SP 1');
+comprobar('sin datos no muestra el ejemplo como comando', p1.paso.comando, null);
+comprobar('declara el dato que falta', p1.paso.faltanDatos, ['numeroPasajero']);
 comprobar('marcado verbatim', p1.paso.confianza, 'verbatim');
 
 const p2 = siguientePaso(split, { pasoActual: 1, comandoEscrito: 'SP 1' });
@@ -77,7 +78,7 @@ comprobar('y avanza', p2.paso.n, 1.1);
 const preg = siguientePaso(split, { pasoActual: 1, comandoEscrito: null, soloResponder: true });
 comprobar('soloResponder se queda en el paso actual', preg.paso.n, 1);
 const sinPreg = siguientePaso(split, { pasoActual: 1, comandoEscrito: null });
-comprobar('sin soloResponder, comandoEscrito null sí avanza', sinPreg.paso.n, 1.1);
+comprobar('sin comando no se puede saltar un paso operativo', sinPreg.paso.n, 1);
 
 const p2b = siguientePaso(split, { pasoActual: 1, comandoEscrito: 'XE 1' });
 comprobar('rechaza el comando malo', p2b.veredicto.correcto, false);

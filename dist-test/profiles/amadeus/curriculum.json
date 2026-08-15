@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "phases": [
+    { "id": "fundamentos", "label": "Fundamentos", "description": "Lee el PNR y domina la base de Amadeus." },
+    { "id": "operacion", "label": "Operación", "description": "Construye reservas, tarifas y emisiones." },
+    { "id": "servicios", "label": "Servicios", "description": "Añade servicios, consultas y documentos." },
+    { "id": "cambios", "label": "Cambios Iberia", "description": "Practica reemisiones y cambios voluntarios." }
+  ],
+  "nodes": [
+    { "scenarioId": "scenario-1", "phaseId": "fundamentos", "order": 1, "prerequisites": [], "estimatedMinutes": 10, "reviewIntervals": [1, 3, 7, 14] },
+    { "scenarioId": "scenario-2", "phaseId": "fundamentos", "order": 2, "prerequisites": ["scenario-1"], "estimatedMinutes": 10, "reviewIntervals": [1, 3, 7, 14] },
+    { "scenarioId": "scenario-3", "phaseId": "fundamentos", "order": 3, "prerequisites": ["scenario-1"], "estimatedMinutes": 8, "reviewIntervals": [1, 3, 7, 14] },
+    { "scenarioId": "scenario-4", "phaseId": "fundamentos", "order": 4, "prerequisites": ["scenario-3"], "estimatedMinutes": 8, "reviewIntervals": [1, 3, 7, 14] },
+    { "scenarioId": "scenario-9", "phaseId": "fundamentos", "order": 5, "prerequisites": [], "estimatedMinutes": 5, "reviewIntervals": [1, 3, 7, 14] },
+    { "scenarioId": "scenario-11", "phaseId": "fundamentos", "order": 6, "prerequisites": [], "estimatedMinutes": 8, "reviewIntervals": [1, 3, 7, 14] },
+    { "scenarioId": "scenario-16", "phaseId": "fundamentos", "order": 7, "prerequisites": ["scenario-1"], "estimatedMinutes": 6, "reviewIntervals": [1, 3, 7, 14] },
+    { "scenarioId": "scenario-5", "phaseId": "operacion", "order": 8, "prerequisites": ["scenario-1"], "estimatedMinutes": 10, "reviewIntervals": [1, 3, 7, 14] },
+    { "scenarioId": "scenario-6", "phaseId": "operacion", "order": 9, "prerequisites": ["scenario-1"], "estimatedMinutes": 8, "reviewIntervals": [1, 3, 7, 14] },
+    { "scenarioId": "scenario-7", "phaseId": "operacion", "order": 10, "prerequisites": ["scenario-1"], "estimatedMinutes": 8, "reviewIntervals": [1, 3, 7, 14] },
+    { "scenarioId": "scenario-8", "phaseId": "operacion", "order": 11, "prerequisites": ["scenario-5"], "estimatedMinutes": 10, "reviewIntervals": [1, 3, 7, 14] },
+    { "scenarioId": "scenario-10", "phaseId": "operacion", "order": 12, "prerequisites": ["scenario-2", "scenario-5"], "estimatedMinutes": 15, "reviewIntervals": [1, 3, 7, 14] },
+    { "scenarioId": "scenario-12", "phaseId": "operacion", "order": 13, "prerequisites": ["scenario-2"], "estimatedMinutes": 12, "reviewIntervals": [1, 3, 7, 14] },
+    { "scenarioId": "scenario-13", "phaseId": "operacion", "order": 14, "prerequisites": ["scenario-5"], "estimatedMinutes": 6, "reviewIntervals": [1, 3, 7, 14] },
+    { "scenarioId": "scenario-14", "phaseId": "operacion", "order": 15, "prerequisites": ["scenario-5"], "estimatedMinutes": 8, "reviewIntervals": [1, 3, 7, 14] },
+    { "scenarioId": "scenario-15", "phaseId": "operacion", "order": 16, "prerequisites": ["scenario-2", "scenario-11"], "estimatedMinutes": 15, "reviewIntervals": [1, 3, 7, 14] },
+    { "scenarioId": "scenario-17", "phaseId": "servicios", "order": 17, "prerequisites": ["scenario-5"], "estimatedMinutes": 8, "reviewIntervals": [1, 3, 7, 14] },
+    { "scenarioId": "scenario-18", "phaseId": "servicios", "order": 18, "prerequisites": ["scenario-1"], "estimatedMinutes": 10, "reviewIntervals": [1, 3, 7, 14] },
+    { "scenarioId": "scenario-19", "phaseId": "servicios", "order": 19, "prerequisites": ["scenario-3"], "estimatedMinutes": 8, "reviewIntervals": [1, 3, 7, 14] },
+    { "scenarioId": "scenario-20", "phaseId": "servicios", "order": 20, "prerequisites": ["scenario-2"], "estimatedMinutes": 12, "reviewIntervals": [1, 3, 7, 14] },
+    { "scenarioId": "scenario-21", "phaseId": "servicios", "order": 21, "prerequisites": ["scenario-6"], "estimatedMinutes": 12, "reviewIntervals": [1, 3, 7, 14] },
+    { "scenarioId": "scenario-22", "phaseId": "servicios", "order": 22, "prerequisites": ["scenario-8", "scenario-21"], "estimatedMinutes": 15, "reviewIntervals": [1, 3, 7, 14] },
+    { "scenarioId": "scenario-23", "phaseId": "cambios", "order": 23, "prerequisites": ["scenario-22"], "estimatedMinutes": 20, "reviewIntervals": [1, 3, 7, 14] },
+    { "scenarioId": "scenario-24", "phaseId": "cambios", "order": 24, "prerequisites": ["scenario-23"], "estimatedMinutes": 25, "reviewIntervals": [1, 3, 7, 14] }
+  ]
+}

@@ -1,6 +1,6 @@
 import { verifyFirebaseIdToken } from './auth.js';
 import { checkAndConsumeQuota, todayKey } from './quota.js';
-import { buildPassengerSystemPrompt, buildEvaluationPrompt, buildTutorPrompt, buildGeneralCoachPrompt } from './prompts.js';
+import { buildPassengerSystemPrompt, buildEvaluationPrompt, buildTutorPrompt, buildGeneralCoachPrompt, construirRespuestaAnclada, construirRespuestaDeDecision } from './prompts.js';
 import { generatePassengerReply, generateEvaluation, generateTutorText } from './gemini.js';
 import { queProcedimiento } from './arbol.js';
 import { siguientePaso } from './tutor.js';
@@ -9,6 +9,7 @@ import { detectarIntencion } from './coach.js';
 import { consumirCupoPublico, responderCoachPublico } from './publico.js';
 import scenarios from './scenarios.generated.json';
 import procedimientos from './procedimientos.generated.json';
+import { enriquecerRespuestaLab } from './caso.js';
 
 function corsHeaders(env) {
   return {
@@ -22,9 +23,14 @@ function corsHeaders(env) {
 // El coach público lo llama una página distinta (hyntibia) y no lleva datos
 // sensibles: los manuales quedan en el servidor y la respuesta ya va anclada.
 // Por eso su CORS es abierto; el gasto lo frena el tope, no el origen.
-function corsPublico() {
+function corsPublico(env, request = null) {
+  const origen = request?.headers.get('Origin') || '';
+  const permitidos = String(env.PUBLIC_ALLOWED_ORIGINS || 'https://hyntibia.com.co,https://yntibia-tutor-lab.web.app,https://simulador-3362613.web.app')
+    .split(',').map((valor) => valor.trim()).filter(Boolean);
+  const origenPermitido = permitidos.includes(origen) ? origen : permitidos[0];
   return {
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': origenPermitido,
+    'Vary': 'Origin',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, X-Bot-Clave',
     'Content-Type': 'application/json'
@@ -37,7 +43,10 @@ function corsPublico() {
  * escáneres que no la abrieron; el tope diario es la protección de verdad.
  */
 async function handleCoachPublico(request, env) {
-  const cors = corsPublico();
+  const cors = corsPublico(env, request);
+  if (env.PUBLIC_BOT_HASH && env.PUBLIC_REQUIRE_BOT_KEY === 'true' && request.headers.get('X-Bot-Clave') !== env.PUBLIC_BOT_HASH) {
+    return new Response(JSON.stringify({ error: 'bot_key_required' }), { status: 403, headers: cors });
+  }
 
   const ip = request.headers.get('CF-Connecting-IP') || 'sin-ip';
   const cupo = await consumirCupoPublico(env.ROLEPLAY_KV, ip, env);
@@ -45,10 +54,22 @@ async function handleCoachPublico(request, env) {
     return new Response(JSON.stringify({ error: cupo.motivo, explicacion: cupo.mensaje }), { status: 429, headers: cors });
   }
 
-  const cuerpo = await request.json().catch(() => ({}));
+  // Algunos clientes del widget envían el cuerpo como JSON válido pero con
+  // un Content-Type inconsistente. Leer el texto una sola vez y parsearlo
+  // explícitamente evita que el tutor caiga silenciosamente en el estado de
+  // entrada genérico por tratar la consulta como si no existiera.
+  const cuerpo = await request.text()
+    .then((texto) => {
+      if (!texto.trim()) return {};
+      try { return JSON.parse(texto); } catch { return {}; }
+    })
+    .catch(() => ({}));
   const resultado = await responderCoachPublico(cuerpo, env);
-  const status = resultado?.error === 'procedimiento_desconocido' ? 404 : 200;
-  return new Response(JSON.stringify(resultado), { status, headers: cors });
+  const status = resultado?.error === 'procedimiento_desconocido' ? 404
+    : resultado?.error === 'step_state_mismatch' ? 409
+    : 200;
+  const respuesta = env.ENVIRONMENT === 'lab' ? enriquecerRespuestaLab(cuerpo, resultado) : resultado;
+  return new Response(JSON.stringify(respuesta), { status, headers: cors });
 }
 
 function findScenario(scenarioId) {
@@ -115,7 +136,53 @@ async function handleEvaluate(request, env) {
  * Si el paso es `hueco`, se corta ANTES del punto 3: no se le pregunta a la
  * IA por algo que no está en el material.
  */
+/**
+ * Tutor autenticado: usa el mismo cerebro conversacional que el coach de
+ * HyntibIA, pero conserva el filtro de Firebase y la cuota por usuario.
+ *
+ * Antes existía otra implementación paralela aquí. Esa copia se quedó atrás:
+ * para una pregunta libre devolvía la primera pregunta del árbol (el menú
+ * "¿qué necesita el pasajero?") y el código que llamaba a Gemini estaba
+ * después de un return inalcanzable. Unificamos la ruta para que Pratika y
+ * HyntibIA decidan con los mismos manuales, extractores y reglas de seguridad.
+ */
 async function handleTutorPaso(request, env) {
+  const { uid } = await authenticate(request, env);
+  const cuerpo = await request.json().catch(() => ({}));
+  const pideIA = cuerpo?.conIA !== false;
+  let cuota = null;
+
+  if (pideIA && env.GEMINI_API_KEY) {
+    cuota = await checkAndConsumeQuota(
+      env.ROLEPLAY_KV,
+      uid,
+      todayKey(),
+      Number(env.DAILY_QUOTA || 20)
+    );
+  }
+
+  const resultado = await responderCoachPublico(
+    { ...cuerpo, conIA: pideIA && (cuota ? cuota.allowed : true) },
+    env
+  );
+
+  if (cuota && !cuota.allowed) {
+    resultado.avisos = [
+      ...(resultado.avisos || []),
+      'Límite diario de redacción alcanzado. El paso y el comando siguen saliendo del manual; continúa en modo determinista.'
+    ];
+  }
+
+  const status = resultado?.error === 'procedimiento_desconocido' ? 404
+    : resultado?.error === 'step_state_mismatch' ? 409
+    : 200;
+  return new Response(JSON.stringify(resultado), { status, headers: corsHeaders(env) });
+}
+
+// Conservamos la implementación histórica durante esta transición para que
+// el diff sea reversible y para no perder la documentación inline del flujo
+// determinista. La ruta activa usa la función unificada anterior.
+async function handleTutorPasoLegacy(request, env) {
   const { uid } = await authenticate(request, env);
 
   const cuerpo = await request.json();
@@ -191,8 +258,7 @@ async function handleTutorPaso(request, env) {
       // El coach honesto SOLO habla cuando el árbol no está ya esperando un
       // dato (siguientePregunta). Si el árbol pregunta, esa pregunta ES la
       // respuesta — el panel la pinta como botones. El coach nunca da comandos.
-      const debeResponderCoach = conIA && !decision.siguientePregunta
-        && (consultaTexto || (casoConHechos && casoConHechos.pantalla));
+      const debeResponderCoach = false;
       if (debeResponderCoach) {
         const prompt = buildGeneralCoachPrompt({ consulta: consultaTexto, lectura });
         const quota = await checkAndConsumeQuota(env.ROLEPLAY_KV, uid, todayKey(), Number(env.DAILY_QUOTA));
@@ -208,7 +274,7 @@ async function handleTutorPaso(request, env) {
           } catch (e) { /* si la IA falla, cae a la respuesta determinista */ }
         }
       }
-      return new Response(JSON.stringify({ decision, lectura }), { status: 200, headers: corsHeaders(env) });
+      return new Response(JSON.stringify({ decision, lectura, explicacion: construirRespuestaDeDecision(decision), diagnostico: '' }), { status: 200, headers: corsHeaders(env) });
     }
     id = decision.procedimientoId;
   }
@@ -246,11 +312,21 @@ async function handleTutorPaso(request, env) {
     return new Response(JSON.stringify(respuesta), { status: 200, headers: corsHeaders(env) });
   }
 
+  // La respuesta visible del tutor siempre queda anclada al paso ya elegido.
+  // Gemini se reserva para roleplay/evaluaciÃ³n; no puede crear transacciones.
+  respuesta.explicacion = construirRespuestaAnclada({
+    paso: avance.paso,
+    veredicto: avance.veredicto,
+    avisos: [...(decision?.avisos || []), ...(avance.avisos || [])],
+    saltoDeSistema: avance.saltoDeSistema
+  });
+  return new Response(JSON.stringify(respuesta), { status: 200, headers: corsHeaders(env) });
+
   // Primera fase: todo lo determinista, sin esperar al modelo ni gastar cuota.
   // Lo que el alumno necesita para seguir —qué paso toca, qué comando, si lo
   // escribió bien— ya está decidido aquí.
   if (!conIA) {
-    respuesta.explicacion = avance.paso.explicacion || null;
+    respuesta.explicacion = construirRespuestaAnclada({ paso: avance.paso, veredicto: avance.veredicto, avisos: [...(decision?.avisos || []), ...(avance.avisos || [])], saltoDeSistema: avance.saltoDeSistema });
     respuesta.pendienteDeExplicacion = true;
     return new Response(JSON.stringify(respuesta), { status: 200, headers: corsHeaders(env) });
   }
@@ -259,7 +335,7 @@ async function handleTutorPaso(request, env) {
   const quota = await checkAndConsumeQuota(env.ROLEPLAY_KV, uid, todayKey(), Number(env.DAILY_QUOTA));
   if (!quota.allowed) {
     // Sin IA el tutor sigue sirviendo: el paso y el comando ya están.
-    respuesta.explicacion = avance.paso.explicacion || null;
+    respuesta.explicacion = construirRespuestaAnclada({ paso: avance.paso, veredicto: avance.veredicto, avisos: [...(decision?.avisos || []), ...(avance.avisos || [])], saltoDeSistema: avance.saltoDeSistema });
     respuesta.avisos = [...(respuesta.avisos || []), 'Cuota diaria agotada: te doy el paso del manual sin explicación redactada.'];
     return new Response(JSON.stringify(respuesta), { status: 200, headers: corsHeaders(env) });
   }
@@ -298,7 +374,7 @@ export default {
     const esPublico = url.pathname === '/coach/publico';
 
     if (request.method === 'OPTIONS') {
-      return new Response(null, { status: 204, headers: esPublico ? corsPublico() : corsHeaders(env) });
+      return new Response(null, { status: 204, headers: esPublico ? corsPublico(env, request) : corsHeaders(env) });
     }
 
     try {

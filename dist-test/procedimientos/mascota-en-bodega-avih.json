@@ -1,0 +1,76 @@
+{
+  "id": "mascota-en-bodega-avih",
+  "titulo": "Mascota en bodega (AVIH) — en Resiber y en Amadeus",
+  "aerolinea": "IB",
+  "categoria": "servicios",
+  "resumen": "Solicitud del servicio AVIH (animal vivo en bodega). El manual da el MISMO servicio en los dos sistemas, lo que permite comparar sintaxis línea a línea.",
+  "aplicaSolo": "Billetes 075. SOLO vuelos operados por Grupo Iberia: Iberia, Air Nostrum, Iberia Express. NO aplica a Vueling ni LEVEL.",
+  "advertencias": [
+    { "nivel": "critico", "texto": "APLICABILIDAD AEROLÍNEA: Solo Grupo Iberia (IB, I2, Air Nostrum YW). ❌ PROHIBIDO en Vueling (VY) y LEVEL (LV).", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "PROHIBICIÓN STRICTA DE BRAQUICÉFALOS EN BODEGA: PROHIBIDOS perros braquicéfalos (Bóxer, Bulldog, Carlino, Pekinés, Shar Pei, Shih Tzu, Pit Bull, etc.) y gatos braquicéfalos (Persa, Burmés, Himalayo, Exótico).", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "PROHIBICIÓN DE RAZAS PELIGROSAS: Pit Bull, Staffordshire, Rottweiler, Dóberman, Dogo Argentino, Fila Brasileiro, Tosa Inu, Akita Inu (y sus cruces).", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "El transporte debe autorizarse con antelación por la disponibilidad limitada de jaulas. La autorización NO es definitiva hasta que se confirmen todos los trayectos (ida y vuelta).", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "Peso máximo 45 kg (animal + contenedor). Medidas máx. Air Nostrum (AT7/CRJ): 85x65x83 cm (máx. 2 jaulas por avión).", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "CONEXIONES: El servicio AVIH solo se confirma en vuelos con conexión si el tiempo de conexión es SUPERIOR a 90 minutos y NO MAYOR a 4 horas.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "Las reservas del servicio AVIH se pueden hacer hasta 72 HORAS antes del vuelo.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "El aeropuerto NO acepta registros de mascotas como: 'cruce', 'mestizo', 'criollo', 'común', 'mezcla'. Deben detallarse las razas exactas.", "confianza": "verbatim" }
+  ],
+  "fuente": {
+    "documento": "IberiaNet Lite — #3117 \"2. MASCOTA EN BODEGA\" (hijo de #3099 \"4. MASCOTAS\")",
+    "tipo": "manual-oficial-interno",
+    "recibido": "2026-08-08",
+    "confianzaGlobal": "verbatim",
+    "nota": "El manual trae DOS tablas de pasos: una para Resiber y otra para Amadeus. Es la primera fuente oficial que muestra el mismo servicio en ambos sistemas."
+  },
+  "hallazgoClave": {
+    "titulo": "La regla SR (Amadeus) vs SSR (Resiber) queda CONFIRMADA — y hay tres diferencias más",
+    "texto": "Este manual documenta el mismo servicio en los dos sistemas, lo que permite comparar carácter a carácter:\n\nResiber:  SSR AVIH YY NN1 DOG CHIHUAHUA 8KG 45X35X25/P1/S2\nAmadeus:  SR  AVIH IB NN1 - DOG CHIHUAHUA 8KG 45X35X25/S2-3/P1\n\n1) Prefijo: SSR (Resiber) vs SR (Amadeus).\n2) Código de aerolínea: YY (Resiber) vs IB (Amadeus).\n3) Amadeus lleva un GUION tras NN1; Resiber no.\n4) Orden de los sufijos: /P{pax}/S{segmento} en Resiber, /S{segmentos}/P{pax} en Amadeus.\n5) Resiber va SEGMENTO POR SEGMENTO; Amadeus admite rango (/S2-3).\n6) Se guarda con ÑK en Resiber y con ER y ERK en Amadeus.",
+    "confianza": "verbatim",
+    "nota": "Sustituye a la hipótesis que estaba marcada 'derivado' en servicios-adicionales.json, que solo se apoyaba en ejemplos sueltos del bot EverGPT."
+  },
+  "pasos": [
+    { "n": 0, "sistema": "natiba", "proceso": "Filtro de seguridad", "comando": null, "explicacion": "APELLIDO + PNR. Igual en ambos sistemas.", "confianza": "verbatim", "esBloqueante": true },
+
+    { "n": 1, "sistema": "resiber", "proceso": "[RESIBER] Documentar la información proporcionada al cliente", "comando": "INT IB PAX AVDO DOCUMENTOS A PRESENTAR EN APTO Y VALOR DEL SERVICIO PETC xxx EUR//AR", "explicacion": "Se usa INT (agregar notas) en Resiber.", "confianza": "verbatim", "nota": "⚠️ ERRATA EN EL MANUAL: el texto dice 'VALOR DEL SERVICIO PETC' pero este procedimiento es AVIH (bodega), no PETC (cabina). Parece copiado del manual de mascota en cabina. Se preserva tal cual." },
+    { "n": 2, "sistema": "resiber", "proceso": "[RESIBER] Solicitar el servicio — una sola mascota", "comando": "SSR AVIH YY NN1 DOG CHIHUAHUA 8KG 45X35X25/P1/S2", "plantilla": "SSR AVIH YY NN1 {ESPECIE} {RAZA} {PESO} {DIMENSIONES}/P{pasajero}/S{segmento}", "explicacion": "RECUERDA: debemos tomar SEGMENTO POR SEGMENTO.", "confianza": "verbatim" },
+    { "n": 2.1, "sistema": "resiber", "proceso": "[RESIBER] Más de una mascota", "comando": "SSR AVIH YY NN1 2DOG CHIHUAHUA 8KG 45X35X25/P1/S2", "plantilla": "SSR AVIH YY NN1 {cantidad}{ESPECIE} {RAZA} {PESO} {DIMENSIONES}/P{pasajero}/S{segmento}", "explicacion": "La cantidad va pegada delante de la especie.", "confianza": "verbatim" },
+    { "n": 2.2, "sistema": "resiber", "proceso": "[RESIBER] Mascotas que son cruces", "comando": "SSR AVIH YY NN1 1DOG CRUCE CHIHUAHUA CON PINCHER 8KG 45X35X25/P1/S2", "plantilla": "SSR AVIH YY NN1 {cantidad}{ESPECIE} CRUCE {RAZA} CON {RAZA} {PESO} {DIMENSIONES}/P{pasajero}/S{segmento}", "explicacion": "Se nombran las DOS razas del cruce.", "confianza": "verbatim", "nota": "⚠️ TENSIÓN CON LAS ADVERTENCIAS: el manual dice que el aeropuerto NO acepta registros tipo 'cruce', pero aquí da el formato para registrarlo. La diferencia parece estar en que sí se aceptan las dos razas nombradas y no la palabra 'cruce' a secas. Confirmar con el instructor." },
+    { "n": 2.3, "sistema": "resiber", "proceso": "[RESIBER] Guardar", "comando": "ÑK", "explicacion": "El servicio queda en HN y se confirmará en 24 horas. RECUERDA: cada vez que uses ÑK deberás VOLVER A INGRESAR a la reserva.", "confianza": "verbatim", "validacion": { "tipo": "exacto", "patron": "ÑK" } },
+    { "n": 3, "sistema": "resiber", "proceso": "[RESIBER] Enviar itinerario y documentos", "comando": "ITP:/RESERVA/EMAIL", "variantes": ["DTR TN 075-2534567890,EML/EMAIL", "DEMR DN 075-2534567890,EML/EMAIL"], "explicacion": "Itinerario · billetes electrónicos · EMD.", "confianza": "verbatim" },
+
+    { "n": 4, "sistema": "amadeus", "proceso": "[AMADEUS] Documentar la información proporcionada al cliente", "comando": "RM10APR26PAX AVDO DOCUMENTOS A PRESENTAR EN APTO Y VALOR DEL SERVICIO PETC xxx EUR//AR", "explicacion": "Se usa RM (remark) en Amadeus, frente a INT en Resiber.", "confianza": "verbatim", "nota": "Misma errata PETC/AVIH que en el paso 1." },
+    { "n": 5, "sistema": "amadeus", "proceso": "[AMADEUS] Solicitar el servicio — una sola mascota", "comando": "SR AVIH IB NN1 - DOG CHIHUAHUA 8KG 45X35X25/S2-3/P1", "plantilla": "SR AVIH IB NN1 - {ESPECIE} {RAZA} {PESO} {DIMENSIONES}/S{segmentos}/P{pasajero}", "explicacion": "Admite rango de segmentos (/S2-3), a diferencia de Resiber.", "confianza": "verbatim" },
+    { "n": 5.1, "sistema": "amadeus", "proceso": "[AMADEUS] Más de una mascota", "comando": "SR AVIH IB NN2 - 2DOG CHIHUAHUA 8KG 45X35X25/S2-3/P1", "plantilla": "SR AVIH IB NN{cantidad} - {cantidad}{ESPECIE} {RAZA} {PESO} {DIMENSIONES}/S{segmentos}/P{pasajero}", "explicacion": "OJO: con dos mascotas el NN pasa a NN2 Y además la cantidad se repite delante de la especie.", "confianza": "verbatim" },
+    { "n": 5.2, "sistema": "amadeus", "proceso": "[AMADEUS] Mascotas que son cruces", "comando": "SR AVIH IB NN1 - 1DOG CRUCE CHIHUAHUA CON PINCHER 8KG 45X35X25/S2-3/P1", "plantilla": "SR AVIH IB NN1 - {cantidad}{ESPECIE} CRUCE {RAZA} CON {RAZA} {PESO} {DIMENSIONES}/S{segmentos}/P{pasajero}", "explicacion": "Se nombran las DOS razas.", "confianza": "verbatim" },
+    { "n": 5.3, "sistema": "amadeus", "proceso": "[AMADEUS] Guardar", "comando": "ER", "variantes": ["ERK"], "explicacion": "Guardamos con ER y ERK. El servicio queda en HN y se confirmará en 24 horas.", "confianza": "verbatim" },
+    { "n": 6, "sistema": "amadeus", "proceso": "[AMADEUS] Enviar itinerario y documentos", "comando": "IBP-EMLA/LPSP", "variantes": ["IEPJ-EMLA/LPSP", "ITR-EMLA"], "explicacion": "Itinerario · itinerario y servicios · billetes electrónicos.", "confianza": "verbatim" }
+  ],
+  "requisitosDelContenedor": {
+    "confianza": "verbatim",
+    "pesoMaximo": "45 kg (animal + contenedor)",
+    "medidasMaximas": "85 cm ancho × 65 cm alto × 83 cm largo (en vuelos Air Nostrum)",
+    "caracteristicas": "Contenedor adecuado provisto por el pasajero: resistencia, seguridad, comodidad, ventilación, cierre seguro y fondo impermeable.",
+    "jaulasPorAvion": "2 jaulas por avión (1 en bodega en la flota AT7 y 1 en la flota CRJ para vuelos Air Nostrum)",
+    "nota": "En principio no hay restricciones de tamaño para el transporte en bodega, salvo las medidas máximas indicadas para la flota Airbus 320."
+  },
+  "tarifas": {
+    "confianza": "verbatim",
+    "unidad": "por trayecto",
+    "vuelosDirectos": [
+      { "peso": "Hasta 10 kg", "espanaExceptoCanarias": "85€ / 100$ / 75£", "canariasEuropaNorteAfricaOrienteMedio": "125€ / 150$ / 110£", "americaYAsia": "280€ / 330$ / 245£" },
+      { "peso": "Entre 11 y 25 kg", "espanaExceptoCanarias": "90€ / 110$ / 80£", "canariasEuropaNorteAfricaOrienteMedio": "135€ / 160$ / 120£", "americaYAsia": "300€ / 355$ / 265£" },
+      { "peso": "Entre 26 y 45 kg", "espanaExceptoCanarias": "100€ / 120$ / 90£", "canariasEuropaNorteAfricaOrienteMedio": "145€ / 170$ / 130£", "americaYAsia": "330€ / 390$ / 290£" }
+    ],
+    "vuelosEnConexion": [
+      { "peso": "Hasta 10 kg", "espanaExceptoCanarias": "120€ / 145$ / 105£", "canariasEuropaNorteAfricaOrienteMedio": "160€ / 190$ / 140£", "americaYAsia": "340€ / 400$ / 300£" },
+      { "peso": "Entre 11 y 25 kg", "espanaExceptoCanarias": "130€ / 155$ / 115£", "canariasEuropaNorteAfricaOrienteMedio": "170€ / 200$ / 150£", "americaYAsia": "360€ / 425$ / 315£" },
+      { "peso": "Entre 26 y 45 kg", "espanaExceptoCanarias": "140€ / 165$ / 125£", "canariasEuropaNorteAfricaOrienteMedio": "190€ / 225$ / 170£", "americaYAsia": "385€ / 455$ / 335£" }
+    ],
+    "cruceConEMD": "Los tres tramos de peso coinciden con los tres códigos EMD del catálogo: C0B3 (0-10 kg), C026 (11-25 kg), C05X (26-45 kg)."
+  },
+  "huecosConocidos": [
+    "El manual no dice cómo se cobra el servicio: si por EMD (C0B3/C026/C05X) o de otra forma.",
+    "No queda claro qué se hace si el tiempo de conexión está fuera de la ventana 90 min – 4 h.",
+    "Tensión entre 'el aeropuerto no acepta cruces' y el formato de comando que sí permite registrar un cruce."
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "id": "agregar-docs",
+  "titulo": "Agregar documentos APIS #3720",
+  "aerolinea": "IB",
+  "categoria": "documentacion",
+  "resumen": "Cargar DOCS, DOCA y DOCO para datos de pasaporte, nacimiento, dirección, residencia, visado, redress y Global Entry.",
+  "aplicaSolo": "Datos APIS requeridos por el itinerario y el pasajero.",
+  "advertencias": [
+    { "nivel": "critico", "texto": "Verificar pasajero y número P antes de asociar cada SSR.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "Para ADT/CHD usar M/F; para INF usar MI/FI según el sexo indicado por el manual.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "No inventar documento, fechas, país, dirección, visa ni número Known Traveller.", "confianza": "derivado" }
+  ],
+  "fuente": { "documento": "IberiaNet Lite — #3720 AGREGAR DOCS", "tipo": "manual-oficial-interno", "recibido": "2026-08-12", "confianzaGlobal": "verbatim" },
+  "pasos": [
+    { "n": 1, "sistema": "amadeus", "proceso": "Agregar pasaporte de ADT o CHD", "comando": "SR DOCS YY HK1-P-{paisDocumento}-{numeroDocumento}-{paisNacimiento}-{fechaNacimiento}-{genero}-{fechaCaducidad}-{apellido}/{nombre}/P{pasajero}", "explicacion": "P = pasaporte; género ADT/CHD M o F; asociar al pasajero P#.", "confianza": "verbatim", "esBloqueante": true },
+    { "n": 1.1, "sistema": "amadeus", "proceso": "Agregar pasaporte de INF", "comando": "SR DOCS YY HK1-P-{paisDocumento}-{numeroDocumento}-{paisNacimiento}-{fechaNacimiento}-{generoINF}-{fechaCaducidad}-{apellido}/{nombre}/P{pasajero}", "explicacion": "Para INF usar MI o FI como género.", "confianza": "verbatim", "condicional": "infante" },
+    { "n": 2, "sistema": "amadeus", "proceso": "Agregar fecha de nacimiento ADT o CHD", "comando": "SR DOCS YY HK1-----{fechaNacimiento}-{genero}--{apellido}/{nombre}/P{pasajero}", "explicacion": "Usar M o F para ADT/CHD.", "confianza": "verbatim" },
+    { "n": 2.1, "sistema": "amadeus", "proceso": "Agregar fecha de nacimiento INF", "comando": "SR DOCS YY HK1-----{fechaNacimiento}-{generoINF}--{apellido}/{nombre}/P{pasajero}", "explicacion": "Usar MI o FI para INF.", "confianza": "verbatim", "condicional": "infante" },
+    { "n": 3, "sistema": "amadeus", "proceso": "Agregar dirección de destino", "comando": "SR DOCA YY HK1-D-{paisDestino}-{direccion}-{ciudad}-{iataCiudad}-{codigoPostal}/P{pasajero}", "explicacion": "D = dirección de destino.", "confianza": "verbatim", "condicional": "requerido-por-itinerario" },
+    { "n": 4, "sistema": "amadeus", "proceso": "Agregar país de residencia", "comando": "SR DOCA YY HK1-R-{paisResidencia}/P{pasajero}", "explicacion": "R = país de residencia actual.", "confianza": "verbatim", "condicional": "requerido-por-itinerario" },
+    { "n": 5, "sistema": "amadeus", "proceso": "Agregar visa o redress", "comando": "SR DOCO YY HK1-{ciudadNacimiento} {paisNacimiento}-{tipoDocumento}-{numeroDocumento}-{ciudadExpedicion} {paisExpedicion}-{fechaExpedicion}-{paisDestino}-{indicadorInfante}-{fechaExpiracion}/P{pasajero}", "explicacion": "Tipo V = Visa, R = Redress, K = Known Traveller. El indicador I se usa solo para INF según el ejemplo.", "confianza": "verbatim", "condicional": "visa-redress" },
+    { "n": 6, "sistema": "amadeus", "proceso": "Agregar Global Entry / Known Traveller", "comando": "SR DOCO YY HK1--K-{numeroKnownTraveller}---{pais}/P{pasajero}", "explicacion": "K = Known Traveller.", "confianza": "verbatim", "condicional": "global-entry" }
+  ]
+}

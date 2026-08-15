@@ -158,11 +158,11 @@ const splitProc = JSON.parse(
   await import('node:fs').then((fs) =>
     fs.readFileSync(new URL('../../public/procedimientos/generar-split.json', import.meta.url), 'utf8'))
 );
-const av1 = siguientePaso(splitProc, { pasoActual: null, comandoEscrito: null, datos: {} });
+const av1 = siguientePaso(splitProc, { pasoActual: null, comandoEscrito: null, datos: { numeroPasajero: 1 } });
 comprobar('el primer paso sale sin IA', av1.paso?.n, 1);
 comprobar('y trae su comando', typeof av1.paso?.comando === 'string', true);
 
-const av2 = siguientePaso(splitProc, { pasoActual: 1, comandoEscrito: av1.paso.comando, datos: {} });
+const av2 = siguientePaso(splitProc, { pasoActual: 1, comandoEscrito: av1.paso.comando, datos: { numeroPasajero: 1 } });
 comprobar('el veredicto de un acierto sale sin IA', av2.veredicto?.correcto, true);
 
 const av3 = siguientePaso(splitProc, { pasoActual: 1, comandoEscrito: 'ZZZ INVENTADO', datos: {} });

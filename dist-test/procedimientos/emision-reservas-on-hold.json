@@ -1,0 +1,29 @@
+{
+  "id": "emision-reservas-on-hold",
+  "titulo": "Emisión de reservas ON HOLD (#3686)",
+  "aerolinea": "IB",
+  "categoria": "emision",
+  "resumen": "Completar dentro del plazo la emisión de una reserva ON HOLD: titular, pago, cobro, eliminación del Cyber, emisión y envío.",
+  "aplicaSolo": "Reserva ON HOLD dentro de las 72 horas y con pago autorizado por el procedimiento de PCI PAL o Travel Pay.",
+  "advertencias": [
+    { "nivel": "critico", "texto": "Antes de cobrar, verificar que la reserva sigue dentro del límite y que no existe una solicitud duplicada.", "confianza": "derivado" },
+    { "nivel": "critico", "texto": "El Cyber debe eliminarse antes de emitir el billete.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "No almacenar ni inventar tokens PCI PAL/Travel Pay.", "confianza": "verbatim" }
+  ],
+  "fuente": {
+    "documento": "IberiaNet Lite — #3686 EMISIÓN RESERVAS ON HOLD",
+    "tipo": "manual-oficial-interno",
+    "recibido": "2026-08-12",
+    "confianzaGlobal": "verbatim"
+  },
+  "pasos": [
+    { "n": 1, "sistema": "amadeus", "proceso": "Registrar titular de tarjeta", "comando": "RMCSY/{nombreTitular}:{apellidoTitular}", "variantes": ["ER"], "explicacion": "Guardar el nombre del titular del nuevo Cyber.", "confianza": "verbatim" },
+    { "n": 2, "sistema": "externo", "proceso": "Obtener datos de tarjeta", "comando": null, "explicacion": "Usar PCI PAL Europa o Travel Pay Europa según el procedimiento autorizado. El manual no aporta un comando de captura de tarjeta.", "confianza": "hueco", "nota": "El manual no aporta una transacción de captura. Es un paso bloqueante: usa únicamente el canal PCI PAL/Travel Pay autorizado y confirma con el supervisor; nunca pegues datos de tarjeta en el tutor.", "esBloqueante": true },
+    { "n": 3, "sistema": "amadeus", "proceso": "Agregar forma de pago del EMD", "comando": "FP {tokenPCI} +BF,1/{moneda}{valorEMD}", "explicacion": "El valor corresponde al EMD ON HOLD.", "confianza": "verbatim" },
+    { "n": 4, "sistema": "amadeus", "proceso": "Cargar perfil PCI", "comando": "$$CONFIG:CCTYPE/2", "confianza": "verbatim" },
+    { "n": 5, "sistema": "amadeus", "proceso": "Realizar cargo", "comando": "$$PAY", "confianza": "verbatim" },
+    { "n": 6, "sistema": "amadeus", "proceso": "Borrar Cyber", "comando": "XE{lineaCyber}", "explicacion": "XE17 en el ejemplo; sustituir por la línea real del Cyber.", "confianza": "verbatim" },
+    { "n": 7, "sistema": "amadeus", "proceso": "Emitir billete", "comando": "TTP1/ET/RT", "explicacion": "Emitir dentro del plazo ON HOLD.", "confianza": "verbatim" },
+    { "n": 8, "sistema": "amadeus", "proceso": "Enviar documentación", "comando": "IBP-EMLA/LPSP", "variantes": ["IEPJ-EMLA/LPSP", "ITR-EMLA"], "explicacion": "Enviar itinerario, servicios y billetes electrónicos según corresponda.", "confianza": "verbatim" }
+  ]
+}

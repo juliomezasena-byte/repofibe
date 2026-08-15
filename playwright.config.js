@@ -21,7 +21,7 @@ export default defineConfig({
       use: { browserName: 'chromium' },
     },
   ],
-  webServer: {
+  ...(process.env.E2E_EXTERNAL_SERVER ? {} : { webServer: {
     // scripts/e2e-server.js fuerza VITE_E2E_MOCK_AUTH vía child_process.spawn
     // (env real de Node, no sintaxis de shell) — webServer.env de Playwright
     // no propagaba de forma confiable a través del "&&" en este entorno.
@@ -37,5 +37,6 @@ export default defineConfig({
     // interrupción y puede ocultar cambios del simulador.
     reuseExistingServer: false,
     timeout: 120000, // el build de vite corre dentro de este presupuesto
-  },
+    gracefulShutdown: { signal: 'SIGTERM', timeout: 1000 },
+  }}),
 });

@@ -1,0 +1,33 @@
+{
+  "id": "facturas-latam",
+  "titulo": "Facturas LATAM #3122",
+  "aerolinea": "IB",
+  "categoria": "postventa",
+  "resumen": "Orientar solicitudes de factura para billetes Iberia emitidos en mercados LATAM y ofrecer recibo de itinerario cuando no aplica factura.",
+  "aplicaSolo": "Billetes emitidos por Iberia en México, Colombia, Guatemala, República Dominicana o Perú.",
+  "advertencias": [
+    { "nivel": "critico", "texto": "México, Colombia, Guatemala y República Dominicana: el pasajero solicita la factura en la web, en Tus vuelos → Petición de facturas.", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "No proporcionar ventadirectalatam@iberia.com para facturas de México; el manual lo marca como error crítico.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "La factura no está disponible hasta pasadas 72 horas desde la compra y tiene como límite el último día del mes siguiente.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "Perú: solo Call Center y el RUC debió incluirse al comprar. Sin RUC original no se puede entregar factura después.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "Otros países: no se genera factura; ofrecer recibo de itinerario.", "confianza": "verbatim" }
+  ],
+  "fuente": { "documento": "IberiaNet Lite — #3122 FACTURAS", "tipo": "manual-oficial-interno", "recibido": "2026-08-12", "confianzaGlobal": "verbatim" },
+  "reglasPais": [
+    { "pais": "MX", "canal": "web", "ruta": "Tus vuelos → Petición de facturas", "notas": "Solo billetes emitidos en MXN; si DOI < 30 días y falla, cambiar navegador/verificar conexión; persistiendo, enviar pantallazos a servis.ibpagos@iberia.es." },
+    { "pais": "CO", "canal": "web", "ruta": "Tus vuelos → Petición de facturas" },
+    { "pais": "GT", "canal": "web", "ruta": "Tus vuelos → Petición de facturas" },
+    { "pais": "DO", "canal": "web", "ruta": "Tus vuelos → Petición de facturas" },
+    { "pais": "PE", "canal": "call-center", "requisito": "RUC incluido en la compra" },
+    { "pais": "OTROS", "canal": "recibo-itinerario", "requisito": "No se genera factura" }
+  ],
+  "pasos": [
+    { "n": 1, "sistema": "generalidades", "proceso": "Identificar país y responsabilidad del billete", "comando": null, "explicacion": "Confirmar que es billete Iberia y el país de solicitud.", "confianza": "verbatim", "esBloqueante": true },
+    { "n": 2, "sistema": "iberia.com", "proceso": "Orientar solicitud web", "comando": null, "explicacion": "Para MX, CO, GT y DO: Tus vuelos → Petición de facturas. No prometer emisión inmediata.", "confianza": "verbatim", "condicional": "MX-CO-GT-DO" },
+    { "n": 3, "sistema": "call-center", "proceso": "Verificar factura de Perú", "comando": null, "explicacion": "Solo si el RUC se incluyó en la compra; usar FZ-PP, FZ-NI o FZ-RUC según documento.", "confianza": "verbatim", "condicional": "PE" },
+    { "n": 3.1, "sistema": "amadeus", "proceso": "Agregar elemento fiscal al billete", "comando": "FZ-{tipoDocumento}", "variantes": ["FZ-PP", "FZ-NI", "FZ-RUC"], "explicacion": "Elemento obligatorio para el billete en Perú.", "confianza": "verbatim", "condicional": "PE" },
+    { "n": 3.2, "sistema": "amadeus", "proceso": "Agregar elemento fiscal al EMD", "comando": "TMI/M{numeroTSM}/FE-{tipoDocumento}", "variantes": ["TMI/M#/FE-PP", "TMI/M#/FE-NI", "TMI/M#/FE-RUC"], "explicacion": "Elemento fiscal obligatorio para EMD de Perú.", "confianza": "verbatim", "condicional": "PE" },
+    { "n": 4, "sistema": "amadeus/resiber", "proceso": "Ofrecer recibo cuando no aplica factura", "comando": "DTR:TN 075-{numeroTicket},EML/{correo}", "variantes": ["DEMR:DN 075-{numeroEMD},EML/{correo}"], "explicacion": "Para otros países, enviar recibo de itinerario o EMD; no llamarlo factura.", "confianza": "verbatim", "condicional": "OTROS" },
+    { "n": 5, "sistema": "iberia.com", "proceso": "Escalar incidencia de México", "comando": null, "explicacion": "Si DOI < 30 días en MXN y falla tras cambiar navegador/verificar conexión, enviar pantallazos a servis.ibpagos@iberia.es. Pagos con dos formas siempre dan error y no se modifican; respuesta estimada 14–45 días.", "confianza": "verbatim", "condicional": "MX" }
+  ]
+}

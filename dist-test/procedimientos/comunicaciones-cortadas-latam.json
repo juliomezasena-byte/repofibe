@@ -1,0 +1,28 @@
+{
+  "id": "comunicaciones-cortadas-latam",
+  "titulo": "Comunicaciones cortadas LATAM (#3134)",
+  "aerolinea": "IB",
+  "categoria": "reembolso",
+  "resumen": "Gestionar una compra web con cobro retenido y sin billete emitido, evitando duplicar solicitudes y recopilando la información para Back Office.",
+  "aplicaSolo": "Compra web fallida con cobro en moneda de LATAM y sin emisión de billete.",
+  "advertencias": [
+    { "nivel": "critico", "texto": "Antes de crear nada, comprobar que no exista una solicitud previa de reembolso o confirmación.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "Si hay dudas sobre la verificación, consultar con un coach para evitar reprocesos.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "El caso debe contener toda la información para que Back Office evalúe reembolso o emisión.", "confianza": "verbatim" }
+  ],
+  "fuente": {
+    "documento": "IberiaNet Lite — #3134 COMUNICACIONES CORTADAS LATAM",
+    "tipo": "manual-oficial-interno",
+    "recibido": "2026-08-12",
+    "confianzaGlobal": "verbatim"
+  },
+  "pasos": [
+    { "n": 1, "sistema": "backoffice", "proceso": "Verificar que no exista solicitud previa", "comando": null, "explicacion": "Confirmar que no se haya creado ya un caso de reembolso o confirmación.", "confianza": "verbatim", "esBloqueante": true },
+    { "n": 2, "sistema": "backoffice", "proceso": "Recopilar monto y moneda", "comando": null, "explicacion": "Solicitar el monto cobrado y la moneda del pago.", "confianza": "verbatim", "esBloqueante": true },
+    { "n": 3, "sistema": "backoffice", "proceso": "Recopilar fecha del cobro", "comando": null, "explicacion": "Solicitar la fecha exacta del cobro.", "confianza": "verbatim", "esBloqueante": true },
+    { "n": 4, "sistema": "backoffice", "proceso": "Recopilar número de autorización", "comando": null, "explicacion": "Solicitar el número de autorización de la transacción.", "confianza": "verbatim", "esBloqueante": true },
+    { "n": 5, "sistema": "resiber", "proceso": "Buscar código de reserva si el cliente no lo tiene", "comando": "RT/{apellido}/IB1323/{fecha}", "explicacion": "Buscar el código de reserva en Resiber con apellido, vuelo y fecha.", "confianza": "verbatim", "opcional": true },
+    { "n": 6, "sistema": "backoffice", "proceso": "Confirmar objetivo del cliente", "comando": null, "explicacion": "Preguntar si desea reembolso o confirmar la compra.", "confianza": "verbatim", "esBloqueante": true },
+    { "n": 7, "sistema": "backoffice", "proceso": "Crear caso para evaluación", "comando": null, "explicacion": "Si cumple los requisitos, crear correctamente el caso para que Back Office evalúe el reembolso o la emisión. No prometer un resultado antes de la evaluación.", "confianza": "verbatim", "esBloqueante": true }
+  ]
+}

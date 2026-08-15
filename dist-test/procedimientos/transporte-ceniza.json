@@ -1,0 +1,20 @@
+{
+  "id": "transporte-ceniza",
+  "titulo": "Transporte de ceniza #3125",
+  "aerolinea": "IB",
+  "categoria": "servicios",
+  "resumen": "Orientar el transporte de cenizas cremadas como equipaje de mano y la documentación necesaria.",
+  "aplicaSolo": "Transporte de cenizas cremadas en vuelos Iberia.",
+  "advertencias": [
+    { "nivel": "alto", "texto": "La urna debe ser apropiada, estar cubierta y disimulada y contar con empaquetado antirrotura.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "Llevar certificado de defunción y certificado de incineración; pueden solicitarlos en el aeropuerto de origen.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "En viajes internacionales, consultar al Consulado del país de destino por requisitos locales.", "confianza": "verbatim" }
+  ],
+  "fuente": { "documento": "IberiaNet Lite — #3125 TRANSPORTE DE CENIZA", "tipo": "manual-oficial-interno", "recibido": "2026-08-12", "confianzaGlobal": "verbatim" },
+  "pasos": [
+    { "n": 1, "sistema": "generalidades", "proceso": "Confirmar que se transporta como equipaje de mano", "comando": null, "explicacion": "Iberia permite transportar cenizas cremadas como equipaje de mano.", "confianza": "verbatim" },
+    { "n": 2, "sistema": "generalidades", "proceso": "Verificar urna y embalaje", "comando": null, "explicacion": "La urna debe estar cubierta, disimulada y protegida contra rotura.", "confianza": "verbatim", "esBloqueante": true },
+    { "n": 3, "sistema": "generalidades", "proceso": "Verificar documentos", "comando": null, "explicacion": "Confirmar certificado de defunción y certificado de incineración; recomendar llevarlos durante el viaje.", "confianza": "verbatim", "esBloqueante": true },
+    { "n": 4, "sistema": "consulado", "proceso": "Revisar requisitos del destino internacional", "comando": null, "explicacion": "Si el viaje es internacional, recomendar consultar al Consulado del país de destino.", "confianza": "verbatim", "condicional": "internacional" }
+  ]
+}

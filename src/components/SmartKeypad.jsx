@@ -1,7 +1,7 @@
 import React from 'react';
 import { Delete, CornerDownLeft, CornerLeftDown } from 'lucide-react';
 
-export const SmartKeypad = ({ onKeyPress, onBackspace, onSubmit, onNewline, hideVerbs = false }) => {
+export const SmartKeypad = ({ onKeyPress, onBackspace, onSubmit, onNewline, hideVerbs = false, disabled = false }) => {
   const symbols = ['/', '-', '*', '(', ')', ',', '.'];
   // Comandos agrupados por capítulo del manual (mapa mental del flujo).
   const groups = [
@@ -27,6 +27,8 @@ export const SmartKeypad = ({ onKeyPress, onBackspace, onSubmit, onNewline, hide
             className="keypad-btn"
             onClick={() => onKeyPress(sym)}
             title={`Insertar ${sym}`}
+            aria-label={`Insertar ${sym}`}
+            disabled={disabled}
           >
             {sym}
           </button>
@@ -36,6 +38,8 @@ export const SmartKeypad = ({ onKeyPress, onBackspace, onSubmit, onNewline, hide
           className="keypad-btn space-btn"
           onClick={() => onKeyPress(' ')}
           title="Espacio"
+          aria-label="Insertar espacio"
+          disabled={disabled}
         >
           ␣ ESP
         </button>
@@ -43,6 +47,7 @@ export const SmartKeypad = ({ onKeyPress, onBackspace, onSubmit, onNewline, hide
         <button
           className="keypad-btn"
           onClick={onNewline}
+          disabled={disabled}
           title="Nueva línea (bajar sin enviar)"
           aria-label="Nueva línea"
         >
@@ -52,6 +57,7 @@ export const SmartKeypad = ({ onKeyPress, onBackspace, onSubmit, onNewline, hide
         <button
           className="keypad-btn"
           onClick={onBackspace}
+          disabled={disabled}
           title="Borrar"
           aria-label="Borrar"
         >
@@ -61,6 +67,7 @@ export const SmartKeypad = ({ onKeyPress, onBackspace, onSubmit, onNewline, hide
         <button
           className="keypad-btn enter-btn"
           onClick={onSubmit}
+          disabled={disabled}
           title="Enviar comando"
           aria-label="Enviar comando"
         >
@@ -82,6 +89,8 @@ export const SmartKeypad = ({ onKeyPress, onBackspace, onSubmit, onNewline, hide
                   className="keypad-btn verb-btn"
                   onClick={() => onKeyPress(verb)}
                   title={`Insertar ${verb}`}
+                  aria-label={`Insertar ${verb}`}
+                  disabled={disabled}
                 >
                   {verb}
                 </button>

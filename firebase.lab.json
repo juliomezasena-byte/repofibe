@@ -1,0 +1,36 @@
+{
+  "hosting": {
+    "site": "yntibia-tutor-lab",
+    "public": "build",
+    "cleanUrls": true,
+    "trailingSlash": false,
+    "ignore": [
+      "firebase.json",
+      "firebase.lab.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "redirects": [
+      {
+        "source": "/",
+        "destination": "/landing.html",
+        "type": 301
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "/convocatoria",
+        "destination": "/convocatoria.html"
+      },
+      {
+        "source": "/convocatoria/",
+        "destination": "/convocatoria.html"
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
+

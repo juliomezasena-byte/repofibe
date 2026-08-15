@@ -1,0 +1,289 @@
+{
+  "profile": "resiber",
+  "version": "1.0.0",
+  "name": "Resiber Profile (host propio de Iberia)",
+  "sistema": "resiber",
+  "fuente": {
+    "documento": "IberiaNet Lite — #3593 \"9.4 TRANSACCIONES UTILES\"",
+    "tipo": "manual-oficial-interno",
+    "recibido": "2026-08-08",
+    "confianzaGlobal": "verbatim",
+    "nota": "Primer catálogo de comandos de Resiber que entra al repo. Cierra el bloqueante nº1 del cuaderno: hasta ahora los comandos de Resiber solo los teníamos por resúmenes del bot EverGPT."
+  },
+  "notasDelSistema": [
+    {
+      "titulo": "La tecla Ñ es un prefijo de comando",
+      "texto": "Resiber usa la Ñ para guardar y confirmar. Si el teclado no la tiene, se saca con ALT + 165. Es un detalle de teclado real que ninguna documentación genérica de GDS menciona.",
+      "confianza": "verbatim"
+    },
+    {
+      "titulo": "El sufijo \",A\" para registros pasados",
+      "texto": "En las búsquedas (DTR:CN, DTR: FF, DTR: NI, DTR: PP) se añade \",A\" cuando el vuelo YA PASÓ.",
+      "confianza": "verbatim"
+    },
+    {
+      "titulo": "PNRC: es el puente Resiber → Amadeus",
+      "texto": "PNRC:{PNR} crea una copia del PNR para Amadeus. Confirma el flujo de dos sistemas: se trabaja en Resiber y se pasa a Amadeus.",
+      "confianza": "verbatim"
+    },
+    {
+      "titulo": "⚠️ Discrepancia de dos puntos entre manuales oficiales",
+      "texto": "Este manual (#3593) escribe DTR:TN y DEMR:DN CON dos puntos. El manual de emisión (#3058 paso 22) los escribe DTR TN y DEMR DN CON ESPACIO. Ambos son fuentes oficiales. Una captura real del terminal muestra '>DTR:TN 0752533334760' — con dos puntos. Se toma la forma con dos puntos como principal y la de espacio como variante, PERO conviene confirmarlo con el instructor.",
+      "confianza": "verbatim"
+    }
+  ],
+  "commands": [
+    {
+      "code": "DTR:CN",
+      "category": "Busqueda",
+      "name": "Acceder a PNR inactivo",
+      "description": "Acceder a los códigos PNR que ya no están activos. Colocar \",A\" si el vuelo ya pasó.",
+      "syntax": ["DTR:CN {pnr}", "DTR:CN {pnr},A"],
+      "examples": ["DTR:CN HDFJHDF"],
+      "confianza": "verbatim"
+    },
+    {
+      "code": "DTR:TN",
+      "category": "Billetes",
+      "name": "Abrir TKT",
+      "description": "Abre el billete electrónico por su número.",
+      "syntax": ["DTR:TN {numeroBillete}"],
+      "variantes": ["DTR TN {numeroBillete}"],
+      "examples": ["DTR:TN 075-XXXX", "DTR:TN 0752533334760"],
+      "confianza": "verbatim",
+      "nota": "Ver la discrepancia de dos puntos en notasDelSistema."
+    },
+    {
+      "code": "DTR:TN ...,EML/",
+      "category": "Billetes",
+      "name": "Enviar TKT electrónico por correo",
+      "description": "Envía el billete electrónico al correo indicado.",
+      "syntax": ["DTR:TN {numeroBillete},EML/{correo}"],
+      "examples": ["DTR:TN 075-1234567890,EML/CORREO"],
+      "confianza": "verbatim"
+    },
+    {
+      "code": "DTR:T",
+      "category": "Billetes",
+      "name": "Verificar TAX",
+      "description": "Verifica los impuestos del billete.",
+      "syntax": ["DTR:T"],
+      "examples": ["DTR:T"],
+      "confianza": "verbatim"
+    },
+    {
+      "code": "DTR:H",
+      "category": "Billetes",
+      "name": "Abrir histórico del TKT",
+      "description": "Muestra el histórico del billete. Es donde aparece el número de reembolso RFT.",
+      "syntax": ["DTR:H"],
+      "examples": ["DTR:H"],
+      "confianza": "verbatim"
+    },
+    {
+      "code": "DTR:X",
+      "category": "Billetes",
+      "name": "Volver a abrir el TKT",
+      "description": "Reabre el billete tras haber navegado a otra pantalla.",
+      "syntax": ["DTR:X"],
+      "examples": ["DTR:X"],
+      "confianza": "verbatim"
+    },
+    {
+      "code": "DTR: FF",
+      "category": "Busqueda",
+      "name": "Buscar por viajero frecuente",
+      "description": "Busca desde Resiber usando el número de viajero frecuente. Colocar \",A\" si ya pasó.",
+      "syntax": ["DTR: FF {numeroViajeroFrecuente}", "DTR: FF {numeroViajeroFrecuente},A"],
+      "examples": ["DTR: FF 0011225566"],
+      "confianza": "verbatim"
+    },
+    {
+      "code": "DTR: NI",
+      "category": "Busqueda",
+      "name": "Buscar por DNI",
+      "description": "Busca desde Resiber usando el DNI. Colocar \",A\" si ya pasó.",
+      "syntax": ["DTR: NI {dni}", "DTR: NI {dni},A"],
+      "examples": ["DTR: NI 77555968P"],
+      "confianza": "verbatim"
+    },
+    {
+      "code": "DTR: PP",
+      "category": "Busqueda",
+      "name": "Buscar por pasaporte",
+      "description": "Busca desde Resiber usando el pasaporte. Colocar \",A\" si ya pasó.",
+      "syntax": ["DTR: PP {pasaporte}", "DTR: PP {pasaporte},A"],
+      "examples": ["DTR: PP 75896589F"],
+      "confianza": "verbatim"
+    },
+    {
+      "code": "DEMR:DN",
+      "category": "EMD",
+      "name": "Abrir EMD",
+      "description": "Abre el EMD por su número.",
+      "syntax": ["DEMR:DN {numeroEMD}"],
+      "variantes": ["DEMR DN {numeroEMD}"],
+      "examples": ["DEMR:DN 075-55XX"],
+      "confianza": "verbatim"
+    },
+    {
+      "code": "DEMR:DN ...,EML/",
+      "category": "EMD",
+      "name": "Enviar EMD electrónico por correo",
+      "description": "Envía el EMD al correo indicado.",
+      "syntax": ["DEMR:DN {numeroEMD},EML/{correo}"],
+      "examples": ["DEMR:DN 075-1234567890,EML/CORREO"],
+      "confianza": "verbatim"
+    },
+    {
+      "code": "DEMR:H",
+      "category": "EMD",
+      "name": "Abrir histórico del EMD",
+      "description": "Muestra el histórico del EMD.",
+      "syntax": ["DEMR:H"],
+      "examples": ["DEMR:H"],
+      "confianza": "verbatim"
+    },
+    {
+      "code": "RT/",
+      "category": "Reserva",
+      "name": "Buscar reserva",
+      "description": "Busca la reserva por apellido, vuelo y fecha.",
+      "syntax": ["RT/{apellido}/{vuelo}/{fecha}"],
+      "examples": ["RT/BONILLA/IB125/22MAR"],
+      "confianza": "verbatim",
+      "trampa": "En Amadeus RT redisplaya el PNR activo; en Resiber RT/ es una BÚSQUEDA con parámetros. Mismo prefijo, función distinta."
+    },
+    {
+      "code": "RTA",
+      "category": "Reserva",
+      "name": "Volver a la reserva",
+      "description": "Regresa a la reserva.",
+      "syntax": ["RTA"],
+      "examples": ["RTA"],
+      "confianza": "verbatim"
+    },
+    {
+      "code": "RTC",
+      "category": "Reserva",
+      "name": "Histórico de la reserva",
+      "description": "Muestra el histórico de la reserva.",
+      "syntax": ["RTC"],
+      "examples": ["RTC"],
+      "confianza": "verbatim"
+    },
+    {
+      "code": "RSD:",
+      "category": "Asientos",
+      "name": "Ver mapa de asientos",
+      "description": "Muestra el mapa de asientos en Resiber para la línea de vuelo indicada.",
+      "syntax": ["RSD:{lineaVuelo}"],
+      "examples": ["RSD:3"],
+      "confianza": "verbatim"
+    },
+    {
+      "code": "PNRC:",
+      "category": "Interoperabilidad",
+      "name": "Crear copia de PNR para Amadeus",
+      "description": "Crea una copia del PNR para trabajarlo en Amadeus. Es el puente entre los dos sistemas.",
+      "syntax": ["PNRC:{pnr}"],
+      "examples": ["PNRC:HSDJH"],
+      "confianza": "verbatim"
+    },
+    {
+      "code": "NP",
+      "category": "Navegacion",
+      "name": "Página siguiente",
+      "description": "Avanza a la página siguiente. Equivale a F5.",
+      "syntax": ["NP"],
+      "variantes": ["F5"],
+      "examples": ["NP"],
+      "confianza": "verbatim"
+    },
+    {
+      "code": "PB",
+      "category": "Navegacion",
+      "name": "Página principal",
+      "description": "Vuelve a la página principal. Equivale a F6.",
+      "syntax": ["PB"],
+      "variantes": ["F6"],
+      "examples": ["PB"],
+      "confianza": "verbatim"
+    },
+    {
+      "code": "XE",
+      "category": "Edicion",
+      "name": "Borrar SR para hacer PNCP",
+      "description": "Borra el SR de la línea indicada, paso previo para hacer PNCP.",
+      "syntax": ["XE{linea}"],
+      "examples": ["XE7"],
+      "confianza": "verbatim",
+      "trampa": "Mismo código que en Amadeus (XE borra elemento), pero aquí el manual lo documenta específicamente para preparar el PNCP."
+    },
+    {
+      "code": "INT",
+      "category": "Edicion",
+      "name": "Agregar notas",
+      "description": "Agrega notas a la reserva.",
+      "syntax": ["INT"],
+      "examples": ["INT"],
+      "confianza": "verbatim"
+    },
+    {
+      "code": "ÑI",
+      "category": "Guardado",
+      "name": "Guardar",
+      "description": "Guarda. La Ñ se saca con ALT + 165 si el teclado no la tiene.",
+      "syntax": ["ÑI"],
+      "examples": ["ÑI"],
+      "confianza": "verbatim"
+    },
+    {
+      "code": "ÑIK",
+      "category": "Guardado",
+      "name": "Confirmar",
+      "description": "Confirma. La Ñ se saca con ALT + 165.",
+      "syntax": ["ÑIK"],
+      "examples": ["ÑIK"],
+      "confianza": "verbatim"
+    },
+    {
+      "code": "ÑK",
+      "category": "Guardado",
+      "name": "Guardar en Resiber para hacer PNCP",
+      "description": "Guarda en Resiber como paso previo al PNCP. La Ñ se saca con ALT + 165.",
+      "syntax": ["ÑK"],
+      "examples": ["ÑK"],
+      "confianza": "verbatim"
+    },
+    {
+      "code": "BSL/",
+      "category": "Disponibilidad",
+      "name": "Ver disponibilidad / overbooking",
+      "description": "Ver disponibilidad en la fecha del vuelo. Se usa para ver OVER BOOKING o saber si se puede forzar.",
+      "syntax": ["BSL/{vuelo}/{fecha}"],
+      "examples": ["BSL/IB1234/22MAR"],
+      "confianza": "verbatim"
+    },
+    {
+      "code": "BSK/",
+      "category": "Disponibilidad",
+      "name": "Ver capacidad de mascota en cabina",
+      "description": "Ver disponibilidad en la fecha del vuelo. Se usa para ver la capacidad de mascota en cabina.",
+      "syntax": ["BSK/{vuelo}/{fecha}"],
+      "examples": ["BSK/IB1234/26MAR"],
+      "confianza": "verbatim",
+      "nota": "Conecta con el procedimiento de servicios adicionales: antes de pedir un PETC hay que comprobar aquí que quede sitio."
+    },
+    {
+      "code": "ITP:/",
+      "category": "Envios",
+      "name": "Enviar itinerario",
+      "description": "Envía el itinerario al correo indicado.",
+      "syntax": ["ITP:/{pnr}/{correo}"],
+      "examples": ["ITP:/ABC123/EMAIL"],
+      "confianza": "verbatim",
+      "nota": "Coincide con lo documentado en #3058 paso 22 (ITP:/RESERVA/EMAIL)."
+    }
+  ]
+}

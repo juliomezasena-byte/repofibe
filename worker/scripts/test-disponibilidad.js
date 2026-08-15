@@ -60,6 +60,29 @@ const final = await responderCoachPublico({
 comprobar('salta la AN ya pegada', final.paso?.n, 2);
 comprobar('propone exactamente SS 3 J 1', final.paso?.comando, 'SS 3 J 1');
 
+console.log('\n--- CONVERSACIÓN LIBRE: NO ES UN IVR ---');
+const textoLinea = await responderCoachPublico({
+  consulta: 'quiero vender la línea 1',
+  caso: { intencion: 'emision', pasajeros: { ADT: 2, CHD: 1, INF: 1, plazas: 3, total: 4 }, pantallas: [AN_MADBOG] },
+  conIA: false
+}, {});
+comprobar('entiende una respuesta escrita', textoLinea.decision?.respuestaExtraida?.id, 'lineaVuelo');
+comprobar('guarda la línea entendida', textoLinea.decision?.respuestasActivas?.lineaVuelo, '1|3');
+comprobar('pasa a preguntar la clase', textoLinea.decision?.siguientePregunta?.id, 'clase');
+
+const textoClase = await responderCoachPublico({
+  consulta: 'la J está bien',
+  caso: {
+    intencion: 'emision',
+    pasajeros: textoLinea.decision.pasajerosActivos,
+    pantallas: [AN_MADBOG],
+    respuestas: { lineaVuelo: textoLinea.decision.respuestasActivas.lineaVuelo }
+  },
+  conIA: false
+}, {});
+comprobar('entiende la clase escrita', textoClase.decision?.respuestaExtraida?.id, 'clase');
+comprobar('llega al paso manual sin botones', textoClase.paso?.comando, 'SS 3 J 1');
+
 console.log('\n' + '='.repeat(50));
 console.log(`Resultados: ${pasados} pasados, ${fallos} fallidos.`);
 console.log('='.repeat(50) + '\n');

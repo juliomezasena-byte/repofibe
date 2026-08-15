@@ -1,0 +1,180 @@
+{
+  "id": "reemision-equipaje-emd",
+  "titulo": "Reemisión de Equipaje (EMD) — Resiber y Amadeus",
+  "aerolinea": "IB",
+  "categoria": "equipaje",
+  "resumen": "Procedimiento oficial #3106 de IberiaNet Lite para la reemisión/remisión de EMDs de equipaje (XBAG / C0IJ) tanto en Resiber (consola WEMD) como en Amadeus (TMI/EXCH, FO, FP-O/CCVI+).",
+  "advertencias": [
+    {
+      "nivel": "critico",
+      "texto": "ANTES DE INICIAR EN AMADEUS: Recuerda eliminar los TSM anteriores con TMX/ALL.",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "critico",
+      "texto": "PRO TIP: Verificar siempre el valor del EMD original antes de procesar la remisión.",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "alto",
+      "texto": "RESIBER CONSOLA WEMD: El tipo de servicio para equipaje interlineal es C0IJ INTERLINE EXCESS BAGGAGE. En FP se incluye O/MS-TT y el valor Total 0.00 si no hay diferencia.",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "alto",
+      "texto": "AMADEUS CONEXIÓN FO Y TMI: El FO del EMD se construye con el formato TMI/MTSM/FO-075-EMD M# POI DOI / IOI. La forma de pago a coste 0 usa TMI/M1/FP-O/CCVI+.",
+      "confianza": "verbatim"
+    }
+  ],
+  "fuente": {
+    "documento": "IberiaNet Lite — #3106 \"1. REMISION DE EQUIPAJES\"",
+    "tipo": "manual-oficial-interno",
+    "fecha": "2026-08-08",
+    "recibido": "2026-08-08",
+    "confianzaGlobal": "verbatim",
+    "nota": "Transcripción 100% fiel del manual oficial #3106. Define la operativa en Resiber (WEMD, DTR TN, DEMR DN) y en Amadeus (EWD/EMD, FXH/R, FXG/R, TMI/EXCH, FO, FP-O/CCVI+, TTM1)."
+  },
+  "pasos": [
+    {
+      "n": 1,
+      "sistema": "resiber",
+      "proceso": "FASE RESIBER — 1. Buscar EMDs OPEN en el billete anterior",
+      "comando": "DTR TN 075-2531234567",
+      "plantilla": "DTR TN {numeroTicket}",
+      "explicacion": "Busca los EMDs OPEN que estarán en el billete anterior (el cual aparecerá en EXCH).",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 2,
+      "sistema": "resiber",
+      "proceso": "FASE RESIBER — 2. Verificar el valor y estatus de cada EMD",
+      "comando": "DEMR DN 0754013668261",
+      "plantilla": "DEMR DN {numeroEMD}",
+      "explicacion": "Muestra el estatus de los cupones y el valor pagado originalmente por el servicio.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 3,
+      "sistema": "resiber",
+      "proceso": "FASE RESIBER — 3. Ingresar a la consola WEMD",
+      "comando": "WEMD: 075-2000635369",
+      "plantilla": "WEMD: {numeroTicketOpen}",
+      "explicacion": "Ingresa a la consola WEMD. Dentro de la máscara busca la lista de servicio, marca X y da INTRO.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 4,
+      "sistema": "resiber",
+      "proceso": "FASE RESIBER — 4. Seleccionar el tipo de servicio",
+      "comando": null,
+      "explicacion": "Seleccionar C0IJ INTERLINE EXCESS BAGGAGE marcando con una X.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 5,
+      "sistema": "resiber",
+      "proceso": "FASE RESIBER — 5. Verificar y cargar los campos de la máscara WEMD",
+      "comando": null,
+      "explicacion": "Tipo de servicio: C0IJ · PC: 1PC · RMK: Motivo de la remisión · Segmentos: Marcar X en los cupones del nuevo billete · FARE: Importe pagado originalmente · FP: O/MS-TT · OI: EMD original marcando cupón (M12...) · Total: 0.00 (si no hay diferencia).",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 6,
+      "sistema": "resiber",
+      "proceso": "FASE RESIBER — 6. Verificar el billete con EMDs asociados y enviar",
+      "comando": "DTR TN 075-2531234567",
+      "variantes": ["ITP:/RESERVA/EMAIL", "DTR TN 075-2534567890,EML/EMAIL", "DEMR DN 075-2534567890,EML/EMAIL"],
+      "explicacion": "Verificar billete y enviar itinerario / billetes / EMDs.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 7,
+      "sistema": "amadeus",
+      "proceso": "FASE AMADEUS — PRO TIP: Eliminar TSM anteriores",
+      "comando": "TMX/ALL",
+      "explicacion": "Elimina todas las máscaras TSM previas antes de iniciar la reemisión.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 8,
+      "sistema": "amadeus",
+      "proceso": "FASE AMADEUS — 1. Leer EMDs originales",
+      "comando": "EWD/EMD075-454545445",
+      "plantilla": "EWD/EMD{numeroEMD}",
+      "explicacion": "Ingresa al EMD original y copia: número de EMD, POI, DOI, IOI y número de cupón desde el que se hará la revalidación (M#).",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 9,
+      "sistema": "amadeus",
+      "proceso": "FASE AMADEUS — 2. Solicitar el servicio de equipaje",
+      "comando": "SR XBAG/S2,3/P1",
+      "variantes": ["SR XBAG/S2,3"],
+      "explicacion": "Solicita el servicio XBAG para el/los pasajeros y segmentos elegidos.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 10,
+      "sistema": "amadeus",
+      "proceso": "FASE AMADEUS — 3. Cotizar a histórico",
+      "comando": "FXH/L14/R,11MAR26,UP",
+      "plantilla": "FXH/L{lineaSsr}/R,{DOI},UP",
+      "explicacion": "L14 = línea del SSR XBAG · 11MAR26 = fecha de emisión del DOI.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 11,
+      "sistema": "amadeus",
+      "proceso": "FASE AMADEUS — 4. Guardar la cotización a histórico (crear TSM)",
+      "comando": "FXG/L14/R,11MAR26,UP",
+      "plantilla": "FXG/L{lineaSsr}/R,{DOI},UP",
+      "explicacion": "Guarda el TSM cotizado a histórico. Guardamos con ER y confirmamos con ERK.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 12,
+      "sistema": "amadeus",
+      "proceso": "FASE AMADEUS — 5. Colocar el TSM en modo reemisión",
+      "comando": "TMI/EXCH/M2",
+      "plantilla": "TMI/EXCH/M{numeroTsm}",
+      "explicacion": "M2 = número del TSM. Coloca la máscara en estado EXCH.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 13,
+      "sistema": "amadeus",
+      "proceso": "FASE AMADEUS — 6. Crear el FO (linking) para el EMD",
+      "comando": "TMI/M3/FO-075-5551234567M1MAD11MAR26/023045",
+      "plantilla": "TMI/M{numeroTsm}/FO-075-{numeroEmd}M{cupon}{POI}{DOI}/{IOI}",
+      "explicacion": "M3 = TSM · 075-5551234567 = número EMD · M1 = cupón OPEN · MAD = POI · 11MAR26 = DOI · 023045 = IOI.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 14,
+      "sistema": "amadeus",
+      "proceso": "FASE AMADEUS — 7. Agregar forma de pago a coste 0",
+      "comando": "TMI/M1/FP-O/CCVI+",
+      "plantilla": "TMI/M{numeroTsm}/FP-O/CCVI+/",
+      "explicacion": "Agrega la forma de pago original a coste cero para el EMD reemitido.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 15,
+      "sistema": "amadeus",
+      "proceso": "FASE AMADEUS — 8. Emitir el EMD reemitido",
+      "comando": "TTM1/M1/RT",
+      "plantilla": "TTM1/M{numeroTsm}/RT",
+      "explicacion": "Emisión final del EMD de equipaje reemitido.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 16,
+      "sistema": "amadeus",
+      "proceso": "FASE AMADEUS — 9. Enviar documentos",
+      "comando": "IBP-EMLA/LPSP",
+      "variantes": ["IEPJ-EMLA/LPSP", "ITR-EMLA"],
+      "explicacion": "Envío de itinerario, servicios y billetes en Amadeus.",
+      "confianza": "verbatim"
+    }
+  ]
+}

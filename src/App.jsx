@@ -1,19 +1,19 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { TerminalSquare, BookOpen, Brain, Layout, Volume2, VolumeX, ShieldCheck, Home, Bot } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { TerminalSquare, BookOpen, Brain, Layout, Volume2, VolumeX, ShieldCheck, Home, Bot, PlayCircle } from 'lucide-react';
 import { DslParser } from './engine/DslParser';
 import { PnrStateMachine } from './engine/PnrStateMachine';
 import { ResponseGenerator } from './engine/ResponseGenerator';
 import { EvaluationEngine } from './engine/EvaluationEngine';
 import { AppProvider } from './context/AppContext';
-import { Routes, Route, NavLink, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Routes, Route, NavLink, Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Menu } from './pages/Menu';
 import { Simulator } from './pages/Simulator';
 import { Roleplay } from './pages/Roleplay';
-import { Tutor } from './pages/Tutor';
 import { Theory } from './pages/Theory';
 import { IberiaExam } from './pages/IberiaExam';
 import { SecurityExam } from './pages/SecurityExam';
 import { LearningGuide } from './pages/LearningGuide';
+import { ManualCatalog, PracticeHub, ProcedureRoute, ScenarioRoute, TutorRoute, RouteNotFound } from './pages/PracticeRoutes';
 import { LoginScreen } from './components/LoginScreen';
 import { auth } from './lib/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -22,6 +22,9 @@ import { useAudio } from './hooks/useAudio';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useLearningProgress } from './hooks/useLearningProgress';
 import { getDailyPlan, recordScenarioCompletion } from './lib/learningPath';
+import { createProcedureSession, createScenarioSession, transitionSession, readSafeSessionSnapshot, writeSafeSessionSnapshot } from './lib/exerciseSession';
+import { getExerciseById } from './lib/procedureExercises';
+import { checkInterpretation, getDefinitionForProcedure, getInteractiveDefinition, getPreflightDefinition } from './lib/interactiveExercises';
 
 export function App() {
   const [profileConfig, setProfileConfig] = useState(null);
@@ -31,6 +34,13 @@ export function App() {
   const [scenarios, setScenarios] = useState([]);
   const [curriculum, setCurriculum] = useState({ version: 1, phases: [], nodes: [] });
   const [activeScenarioId, setActiveScenarioId] = useState('scenario-1');
+  const [exerciseSession, setExerciseSession] = useState(null);
+  const [sessionHydrated, setSessionHydrated] = useState(false);
+  const [sessionRecovered, setSessionRecovered] = useState(false);
+  const [safeSnapshot] = useState(() => readSafeSessionSnapshot());
+  const [preflightAnswer, setPreflightAnswer] = useState(null);
+  const [pendingInterpretation, setPendingInterpretation] = useState(null);
+  const [interpretationResult, setInterpretationResult] = useState(null);
   const [history, setHistory] = useState([]);
   const [examMode, setExamMode] = useState('practice'); // 'practice' | 'exam' | 'delivered'
   const location = useLocation();
@@ -63,7 +73,7 @@ export function App() {
     // (import.meta.env.VITE_*), no en runtime — a diferencia de un flag de
     // localStorage, un usuario no puede activarlo desde DevTools en
     // producción porque el build de producción nunca define esta variable.
-    if (import.meta.env.VITE_E2E_MOCK_AUTH === '1') {
+    if (import.meta.env.MODE === 'test' || import.meta.env.VITE_E2E_MOCK_AUTH === '1') {
       setIsAuthenticated(true);
       setAuthLoading(false);
       return;
@@ -173,6 +183,51 @@ export function App() {
     return scenarios.find((s) => s.id === activeScenarioId) || scenarios[0];
   }, [scenarios, activeScenarioId]);
 
+  useEffect(() => {
+    if (sessionHydrated || !scenarios.length) return;
+    const routeScenarioId = location.pathname.match(/^\/ejercicios\/([^/]+)/)?.[1] || null;
+    const routeProcedureId = location.pathname.match(/^\/manuales\/([^/]+)/)?.[1] || null;
+    const routeScenario = routeScenarioId ? scenarios.find((scenario) => scenario.id === routeScenarioId) : null;
+    const routeProcedure = routeProcedureId ? getExerciseById(routeProcedureId) : null;
+
+    if (routeScenario) {
+      setActiveScenarioId(routeScenario.id);
+      setExerciseSession(createScenarioSession(routeScenario));
+      setSessionHydrated(true);
+      return;
+    }
+    if (routeProcedure) {
+      setExerciseSession(createProcedureSession(routeProcedure, { station: routeProcedure.station || 'manual' }));
+      setSessionHydrated(true);
+      return;
+    }
+    const restoredScenario = safeSnapshot?.kind === 'scenario'
+      ? scenarios.find((scenario) => scenario.id === (safeSnapshot.scenarioId || safeSnapshot.exerciseId))
+      : null;
+    const restoredProcedure = safeSnapshot?.kind === 'procedure'
+      ? getExerciseById(safeSnapshot.procedureId || safeSnapshot.exerciseId)
+      : null;
+
+    if (restoredScenario) {
+      setActiveScenarioId(restoredScenario.id);
+      setExerciseSession(createScenarioSession(restoredScenario, { mode: safeSnapshot.mode }));
+      setSessionRecovered(true);
+    } else if (restoredProcedure) {
+      setExerciseSession(createProcedureSession(restoredProcedure, {
+        station: safeSnapshot.station,
+        mode: safeSnapshot.mode
+      }));
+      setSessionRecovered(true);
+    } else if (activeScenario) {
+      setExerciseSession(createScenarioSession(activeScenario));
+    }
+    setSessionHydrated(true);
+  }, [activeScenario, location.pathname, scenarios, safeSnapshot, sessionHydrated]);
+
+  useEffect(() => {
+    if (exerciseSession) writeSafeSessionSnapshot(exerciseSession);
+  }, [exerciseSession]);
+
   const dailyPlan = useMemo(
     () => getDailyPlan(scenarios, curriculum, learningProgress),
     [scenarios, curriculum, learningProgress]
@@ -190,8 +245,13 @@ export function App() {
 
   // Manejar cambio de escenario: cancela cualquier examen en curso.
   const handleSelectScenario = (scenarioId) => {
+    const nextScenario = scenarios.find((s) => s.id === scenarioId);
     setActiveScenarioId(scenarioId);
-    cargarEstadoInicial(scenarios.find((s) => s.id === scenarioId));
+    setExerciseSession(nextScenario ? createScenarioSession(nextScenario) : null);
+    setPreflightAnswer(null);
+    setPendingInterpretation(null);
+    setInterpretationResult(null);
+    cargarEstadoInicial(nextScenario);
     setExamMode('practice');
     setExamStartTs(null);
     setExamResult(null);
@@ -199,6 +259,53 @@ export function App() {
 
   const handleResetScenario = () => {
     cargarEstadoInicial(activeScenario);
+    if (activeScenario) setExerciseSession(createScenarioSession(activeScenario));
+    setPreflightAnswer(null);
+    setPendingInterpretation(null);
+    setInterpretationResult(null);
+  };
+
+  const handleSetPracticeMode = useCallback((mode) => {
+    if (!['guided', 'free', 'exam'].includes(mode)) return;
+    setExerciseSession((current) => current
+      ? { ...current, mode, status: mode === 'free' ? 'ready' : current.status }
+      : current);
+    if (mode !== 'exam') {
+      setExamMode('practice');
+      setExamStartTs(null);
+      setExamResult(null);
+    }
+  }, []);
+
+  const handleUpdatePracticeSession = useCallback((patch) => {
+    if (!patch || typeof patch !== 'object') return;
+    setExerciseSession((current) => current ? { ...current, ...patch } : current);
+  }, []);
+
+  const handleStartProcedureExercise = (procedure) => {
+    const linkedScenario = scenarios.find((scenario) =>
+      scenario.procedimientoId === procedure?.procedimientoId ||
+      scenario.procedimientoId === procedure?.id
+    );
+
+    // Cuando el manual ya tiene un escenario evaluable, ambos accesos deben
+    // aterrizar en la misma sesión y semilla del simulador.
+    if (linkedScenario) {
+      handleSelectScenario(linkedScenario.id);
+      return createScenarioSession(linkedScenario);
+    }
+
+    // Los manuales no terminales (factura, MEDA, escalamiento, etc.) viven en
+    // una estación manual. No se cambia silenciosamente el PNR del terminal.
+    const session = createProcedureSession(procedure, { station: procedure?.station || 'manual' });
+    setExerciseSession(session);
+    setPreflightAnswer({ optionId: 'procedure', correct: true });
+    setPendingInterpretation(getDefinitionForProcedure(procedure));
+    setInterpretationResult(null);
+    setExamMode('practice');
+    setExamStartTs(null);
+    setExamResult(null);
+    return session;
   };
 
   // PRÁCTICA <-> EXAMEN. Activar examen reinicia el PNR y arranca el cronómetro.
@@ -208,10 +315,12 @@ export function App() {
       setExamStartTs(Date.now());
       setExamResult(null);
       setExamMode('exam');
+      setExerciseSession((current) => current ? { ...current, mode: 'exam', currentStep: 'ready' } : current);
     } else {
       setExamMode('practice');
       setExamStartTs(null);
       setExamResult(null);
+      setExerciseSession((current) => current ? { ...current, mode: 'practice' } : current);
     }
   };
 
@@ -225,6 +334,32 @@ export function App() {
 
   // Ejecución de comandos ingresados en la Terminal
   const handleExecuteCommand = (rawCommand) => {
+    if (
+      exerciseSession?.kind === 'scenario' &&
+      exerciseSession?.mode === 'guided' &&
+      examMode !== 'exam' &&
+      !preflightAnswer?.correct
+    ) {
+      const output = 'ANTES DE ESCRIBIR, RESUELVE LA DECISION DEL CASO EN EL PANEL DE MISION.';
+      setHistory((prev) => [...prev, { command: rawCommand, output, isError: true, hint: 'Responde primero la pregunta Piensa antes de escribir.' }]);
+      playSound('error');
+      return;
+    }
+    if (
+      pendingInterpretation &&
+      !interpretationResult?.correct &&
+      exerciseSession?.mode === 'guided' &&
+      examMode !== 'exam'
+    ) {
+      const output = 'ANTES DE CONTINUAR, INTERPRETA LA ÚLTIMA RESPUESTA DEL SISTEMA EN EL PANEL DE MISIÓN.';
+      setHistory((prev) => [...prev, { command: rawCommand, output, isError: true, hint: 'Responde la pregunta de interpretación.' }]);
+      return;
+    }
+    if (exerciseSession?.kind === 'procedure' && exerciseSession.station !== 'amadeus') {
+      const output = 'ESTE CASO SE RESUELVE EN EL MANUAL / SISTEMA INDICADO. LA TERMINAL NO ES LA SUPERFICIE DE ESTE PASO.';
+      setHistory((prev) => [...prev, { command: rawCommand, output, isError: true, hint: 'Vuelve al paso Ahora del procedimiento.' }]);
+      return;
+    }
     playSound('key'); // Sonido de tipeo (simulando Enter)
     
     const parseResult = dslParser.parse(rawCommand);
@@ -257,6 +392,11 @@ export function App() {
     
     if (!processResult.success) {
       playSound('error');
+      setPendingInterpretation(null);
+      setInterpretationResult(null);
+    } else if (examMode !== 'exam') {
+      setPendingInterpretation(getInteractiveDefinition(rawCommand, { success: true }));
+      setInterpretationResult(null);
     }
 
     setHistory((prev) => [
@@ -268,6 +408,9 @@ export function App() {
         hint: !processResult.success ? getHintFromEval() : null
       }
     ]);
+    setExerciseSession((current) => current
+      ? transitionSession(current, { type: 'command_executed', command: rawCommand, output })
+      : current);
 
     // Notificar la ejecución a los componentes suscritos (ej: TutorPanel)
     try {
@@ -277,11 +420,56 @@ export function App() {
     } catch {}
   };
 
+  const handleSubmitPreflight = (optionId) => {
+    const definition = getPreflightDefinition(activeScenario);
+    const option = definition?.options.find((item) => item.id === optionId);
+    // El primer ejercicio de la ruta siempre empieza por disponibilidad. El
+    // fallback evita dejar la compuerta cerrada si el catálogo aún está
+    // terminando de hidratarse en el mismo render que pintó la tarjeta.
+    const correct = option ? !!option.correct : optionId === 'availability';
+    setPreflightAnswer({ optionId, correct });
+    if (correct) {
+      setExerciseSession((current) => current
+        ? transitionSession(current, { type: 'brief_viewed' })
+        : current);
+    }
+  };
+
+  const handleSubmitInterpretation = (optionId) => {
+    const result = checkInterpretation(pendingInterpretation, optionId);
+    setInterpretationResult(result);
+    setExerciseSession((current) => current
+      ? transitionSession(current, {
+        type: 'interpretation_submitted',
+        correct: result.correct,
+        feedback: result.feedback
+      })
+      : current);
+  };
+
+  const handleContinueAfterInterpretation = () => {
+    if (!interpretationResult?.correct) return;
+    setPendingInterpretation(null);
+    setInterpretationResult(null);
+  };
+
   // Resultado de la evaluación del progreso del escenario
   const evaluationResult = useMemo(() => {
     if (!activeScenario) return null;
     return evalEngine.evaluate(activeScenario, pnrFsm.getState());
   }, [activeScenario, history, evalEngine, pnrFsm]);
+
+  useEffect(() => {
+    if (!evaluationResult || !exerciseSession || exerciseSession.kind !== 'scenario') return;
+    setExerciseSession((current) => {
+      if (!current || current.exerciseId !== activeScenario?.id) return current;
+      if (evaluationResult.completed && current.currentStep !== 'complete') {
+        return transitionSession(current, { type: 'completed', evaluation: evaluationResult });
+      }
+      if (current.evaluation === evaluationResult) return current;
+      return { ...current, evaluation: evaluationResult };
+    });
+  }, [evaluationResult, exerciseSession, activeScenario]);
 
   useEffect(() => {
     if (!evaluationResult?.completed || examMode !== 'practice' || !activeScenarioId) {
@@ -386,6 +574,12 @@ export function App() {
             >
               <Home size={14} /> Inicio
             </NavLink>
+            <NavLink
+              to="/practicar"
+              className={({ isActive }) => `seg-btn ${isActive ? 'seg-active' : ''}`}
+            >
+              <PlayCircle size={14} /> Practicar
+            </NavLink>
             {/* El tutor es el camino recomendado, pero solo se llegaba a él
                 desde el hero del menú: si te ibas, desaparecía. */}
             <NavLink
@@ -448,19 +642,34 @@ export function App() {
         scenarios, curriculum, learningProgress, dailyPlan, dailyScenarioId,
         activeScenarioId, history, examMode, examStartTs, examResult,
         terminalRef, activeScenario, evaluationResult, chipStatus,
-        handleSelectScenario, handleResetScenario, handleToggleExam,
-        handleDeliver, handleExecuteCommand
+        exerciseSession,
+        sessionRecovered,
+        preflightAnswer,
+        pendingInterpretation, interpretationResult,
+        handleSelectScenario, handleResetScenario, handleSetPracticeMode, handleUpdatePracticeSession, handleToggleExam,
+        handleStartProcedureExercise, handleDeliver, handleExecuteCommand,
+        handleSubmitPreflight, handleSubmitInterpretation, handleContinueAfterInterpretation
       }}>
         <Routes>
           <Route path="/" element={<Menu />} />
+          <Route path="/practicar" element={<PracticeHub />} />
+          <Route path="/ejercicios" element={<LearningGuide />} />
+          <Route path="/ejercicios/:scenarioId" element={<ScenarioRoute />} />
+          <Route path="/manuales" element={<ManualCatalog />} />
+          <Route path="/manuales/:procedureId" element={<ProcedureRoute />} />
           <Route path="/simulador" element={<Simulator />} />
+          <Route path="/simulador/libre" element={<Simulator freeMode />} />
           <Route path="/roleplay" element={<Roleplay />} />
-          <Route path="/tutor" element={<Tutor />} />
-          <Route path="/guia" element={<LearningGuide />} />
+          <Route path="/tutor" element={<Navigate to="/tutor/guiado" replace />} />
+          <Route path="/tutor/libre" element={<TutorRoute mode="free" />} />
+          <Route path="/tutor/guiado" element={<TutorRoute mode="guided" />} />
+          <Route path="/guia" element={<Navigate to="/ejercicios" replace />} />
           <Route path="/teoria" element={<Theory />} />
-          <Route path="/examen-iberia" element={<IberiaExam />} />
-          <Route path="/examen-seguridad" element={<SecurityExam />} />
-          <Route path="*" element={<Menu />} />
+          <Route path="/examen-iberia" element={<Navigate to="/examen/iberia" replace />} />
+          <Route path="/examen/iberia" element={<IberiaExam />} />
+          <Route path="/examen-seguridad" element={<Navigate to="/examen/seguridad" replace />} />
+          <Route path="/examen/seguridad" element={<SecurityExam />} />
+          <Route path="*" element={<RouteNotFound type="ruta" backTo="/practicar" />} />
         </Routes>
       </AppProvider>
     </div>

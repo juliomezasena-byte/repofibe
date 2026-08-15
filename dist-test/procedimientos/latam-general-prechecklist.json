@@ -1,0 +1,129 @@
+{
+  "id": "latam-general-prechecklist",
+  "titulo": "LATAM General — antes de iniciar CUALQUIER proceso",
+  "aerolinea": "IB",
+  "categoria": "generalidades",
+  "resumen": "Checklist obligatorio de 5 pasos que precede a emisión, reemisión, reembolsos y servicios en mercados LATAM.",
+  "aplicaSolo": "Mercado LATAM. NO aplica Brasil.",
+  "advertencias": [
+    { "nivel": "critico", "texto": "PASOS OBLIGATORIOS ANTES DE INICIAR CUALQUIER PROCESO: Identificar origen (Avaya/Salesforce) -> Abrir reserva (RT+PNR) -> Filtro Natiba (Localizador + Apellido) -> Ticket (SR TKNE/FA/FHE) -> Responsabilidad (DNA 075, DTR TN/H, .PV/IOI) -> Estado (HK/O).", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "Siempre ofrecer como PRIMERA opción reserva ON HOLD.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "En caso de emitir por el Call Center, informar de los Gastos de Gestión.", "confianza": "verbatim" },
+    { "nivel": "medio", "texto": "Todos los gastos de gestión están publicados en la página web.", "confianza": "verbatim" }
+  ],
+  "fuente": {
+    "documento": "IberiaNet Lite — #3056 \"1. LATAM GENERAL\" + Checklist de Verificación Previa a la Llamada",
+    "tipo": "manual-oficial-interno",
+    "recibido": "2026-08-11",
+    "confianzaGlobal": "verbatim",
+    "nota": "Enriquecido con el procedimiento de Verificación Adicional Previa a la Llamada (Natiba, DNA, DTR TN/H)."
+  },
+  "pasos": [
+    {
+      "n": 1,
+      "sistema": "salesforce",
+      "proceso": "Identificar origen de la llamada",
+      "comando": null,
+      "explicacion": "Mediante Avaya (IATA de la ciudad / +00) o Salesforce.",
+      "confianza": "verbatim",
+      "esBloqueante": true
+    },
+    {
+      "n": 1.1,
+      "sistema": "amadeus",
+      "proceso": "Abrir reserva en RESIBER / AMADEUS",
+      "comando": "RT {PNR}",
+      "explicacion": "Transacción RT seguida del PNR de la reserva.",
+      "confianza": "verbatim",
+      "esBloqueante": true
+    },
+    {
+      "n": 1.2,
+      "sistema": "natiba",
+      "proceso": "Filtro de seguridad obligatorio",
+      "comando": null,
+      "explicacion": "Ingresar desde Natiba solicitando Código de reserva (PNR) y Apellido del pasajero.",
+      "confianza": "verbatim",
+      "esBloqueante": true
+    },
+    {
+      "n": 1.3,
+      "sistema": "amadeus",
+      "proceso": "Localizar el ticket y verificar responsabilidad",
+      "comando": "DNA 075",
+      "variantes": ["DTR TN 075-...", "DTR H", ".PV/IOI"],
+      "explicacion": "Buscar SR TKNE, FA o FHE. Verificar placa 075 con DNA 075. Verificar si es pasajero directo o de agencia con DTR TN 075-... / DTR H.",
+      "confianza": "verbatim",
+      "esBloqueante": true
+    },
+    {
+      "n": 1.4,
+      "sistema": "amadeus",
+      "proceso": "Verificar estado de plazas y cupones",
+      "comando": null,
+      "explicacion": "Verificar estado de plazas en HK y cupones en O (OPEN). Solo si se cumple con todo, proceder con el manual respectivo.",
+      "confianza": "verbatim",
+      "esBloqueante": true
+    },
+    {
+      "n": 2,
+      "sistema": "amadeus",
+      "proceso": "Ingresar al PID correspondiente",
+      "comando": null,
+      "explicacion": "Para que coticemos en la moneda correcta.",
+      "confianza": "verbatim",
+      "esBloqueante": true,
+      "nota": "El manual no da el comando de cambio de PID. Ver la tabla de oficinas de emisión por país en gastos-gestion-latam.json."
+    },
+    {
+      "n": 3,
+      "sistema": "amadeus",
+      "proceso": "Ofrecer reserva ON HOLD como primera opción",
+      "comando": null,
+      "explicacion": "Siempre ofrecer como primera opción reserva ON HOLD.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 4,
+      "sistema": "iberianet",
+      "proceso": "Informar los Gastos de Gestión",
+      "comando": null,
+      "explicacion": "En caso de emitir por el Call Center, informar de los Gastos de Gestión.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 5,
+      "sistema": "amadeus",
+      "proceso": "Primera emisión desde el Call Center — autorización de Coach",
+      "comando": "RMACCNOONHOLD",
+      "variantes": ["RMAUTORIZADA EMISION POR COACH XXX", "RM*EMISION POR (MOTIVO DEL ERROR O INCIDENCIA)"],
+      "explicacion": "Se debe solicitar AUTORIZACION de un Coach y agregar los tres campos al PNR.",
+      "confianza": "verbatim"
+    }
+  ],
+  "arbolManual": {
+    "nota": "Estructura de la base de conocimiento LATAM en IberiaNet, según la navegación del propio manual.",
+    "raiz": "#3043 · 0.2 LATAM (Hispanoamérica — no aplica Brasil)",
+    "hijos": [
+      { "id": "#3056", "titulo": "1. LATAM GENERAL", "hijos": 5, "tenemos": true },
+      { "id": "#3058", "titulo": "1. EMISION", "hijos": 7, "tenemos": true },
+      { "id": "#3059", "titulo": "2. REMISION", "hijos": 2, "tenemos": false },
+      { "id": "#3060", "titulo": "3. REEMBOLSOS", "hijos": 9, "tenemos": false },
+      { "id": "#3061", "titulo": "4. SERVICIOS", "hijos": 7, "tenemos": false },
+      { "id": "#3062", "titulo": "5. (sin nombre capturado)", "hijos": null, "tenemos": false },
+      { "id": "#3063", "titulo": "ON HOLD 72 HRS", "hijos": 1, "tenemos": false },
+      { "id": "#3064", "titulo": "2. DESCUENTOS PANAMA", "hijos": 0, "tenemos": false },
+      { "id": "#3065", "titulo": "3. DESCUENTOS ECUADOR", "hijos": 0, "tenemos": false },
+      { "id": "#3066", "titulo": "4. ASOCIAR CHILD", "hijos": 0, "tenemos": false },
+      { "id": "#3067", "titulo": "5. ASOCIAR INFANTE", "hijos": 0, "tenemos": false },
+      { "id": "#3133", "titulo": "6. RESERVAS Y GASTO GESTION COLOMBIA", "hijos": 0, "tenemos": false },
+      { "id": "#3134", "titulo": "7. COMUNICACIONES CORTADAS LATAM", "hijos": 0, "tenemos": false },
+      { "id": "#3592", "titulo": "9.3 SPLIT", "hijos": 0, "tenemos": true }
+    ]
+  },
+  "huecosConocidos": [
+    "El comando para cambiar de PID no está en el manual.",
+    "Falta el nombre del manual #3062.",
+    "De la rama LATAM tenemos 3 de al menos 14 manuales."
+  ]
+}

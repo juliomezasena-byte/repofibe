@@ -81,10 +81,8 @@ body {
    para reducir la carga cognitiva (TDAH). Si navega con teclado (Tab) hacia
    el Tutor, el terminal pierde el foco y el panel vuelve a aparecer, evitando
    Trampas de Teclado (Keyboard Traps). ¡Cero re-renders en React! */
-.app-container:has(.cmd-input:focus) .sidebar-panel {
-  opacity: 0.25;
-  filter: grayscale(80%);
-}
+/* Las tres superficies del tutor permanecen visibles: terminal, manual y
+   coach. Ocultarlas al enfocar el input convertía la guía en un IVR ciego. */
 
 /* =========================================================
    CAPA 4: ARQUITECTURA IDIOT-PROOF (CLASES UTILITARIAS)
@@ -254,6 +252,101 @@ body {
   gap: 12px;
   flex: 1;
   min-height: 0;
+  min-width: 0;
+}
+
+.main-layout > * {
+  min-width: 0;
+}
+
+.tutor-workspace {
+  display: grid;
+  grid-template-columns: minmax(280px, .78fr) minmax(420px, 1.22fr);
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+
+.tutor-terminal-space,
+.procedure-space,
+.tutor-coach-space {
+  min-width: 0;
+  min-height: 0;
+}
+
+.tutor-terminal-space { display: flex; }
+.tutor-terminal-space > .terminal-wrapper { flex: 1; }
+
+.procedure-space {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  overflow-y: auto;
+  color: var(--text-light);
+  background: #f8fafc;
+  border: 1px solid #dbe3ec;
+  border-radius: var(--radius-md);
+}
+.procedure-space-kicker { color: #2563eb; font: 700 .68rem var(--font-mono); letter-spacing: .08em; }
+.procedure-space h2 { color: #0f172a; font-size: 1rem; line-height: 1.3; }
+.procedure-space-hint { color: #475569; font-size: .78rem; line-height: 1.45; }
+.procedure-space-step { display: grid; gap: 8px; padding: 12px; background: #fff; border: 1px solid #cbd5e1; border-left: 3px solid #2563eb; border-radius: 6px; }
+.procedure-space-step span { color: #2563eb; font: 700 .7rem var(--font-mono); }
+.procedure-space-step strong { color: #0f172a; font-size: .86rem; line-height: 1.35; }
+.procedure-space-step small { color: #64748b; font: 600 .68rem var(--font-mono); }
+.procedure-space-step code { padding: 8px; color: #d1fae5; background: #020617; border-radius: 4px; font: .78rem var(--font-mono); overflow-wrap: anywhere; }
+.procedure-space-empty { padding: 12px; color: #64748b; background: #fff; border: 1px dashed #94a3b8; border-radius: 6px; font-size: .8rem; line-height: 1.45; }
+.tutor-mission-card {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-top: 3px solid #0284c7;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, .06);
+}
+.tutor-mission-kicker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #0369a1;
+  font: 800 .68rem var(--font-mono);
+  letter-spacing: .06em;
+}
+.tutor-mission-card h3 { margin: 0; color: #0f172a; font-size: .98rem; line-height: 1.3; }
+.tutor-mission-objective,
+.tutor-mission-hint { display: flex; gap: 7px; align-items: flex-start; margin: 0; color: #334155; font-size: .78rem; line-height: 1.45; }
+.tutor-mission-objective svg { flex: 0 0 auto; color: #0284c7; margin-top: 2px; }
+.tutor-mission-objective strong,
+.tutor-mission-hint strong { display: block; color: #0f172a; font-size: .72rem; margin-bottom: 2px; }
+.tutor-mission-route { padding-top: 9px; border-top: 1px solid #e2e8f0; color: #334155; font-size: .76rem; line-height: 1.4; }
+.tutor-mission-route > strong { color: #0f172a; font-size: .74rem; }
+.tutor-mission-route ol { margin: 6px 0 0; padding-left: 1.25rem; }
+.tutor-mission-route li + li { margin-top: 4px; }
+.tutor-mission-hint { padding: 8px; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 6px; }
+.tutor-mission-hint svg { flex: 0 0 auto; color: #0284c7; margin-top: 2px; }
+.tutor-mission-footer { display: grid; gap: 8px; padding-top: 2px; color: #64748b; font-size: .68rem; }
+.tutor-mission-start { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 9px 10px; border: 0; border-radius: 6px; background: #0284c7; color: #fff; font-size: .76rem; font-weight: 800; cursor: pointer; }
+.tutor-mission-start:hover { background: #0369a1; }
+.tutor-coach-space { display: flex; flex-direction: column; gap: 8px; }
+.tutor-coach-space > .tutor-panel { flex: 1; }
+.tutor-space-label { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 0 2px; color: #64748b; font-size: .68rem; }
+.tutor-space-label span { color: #0369a1; font: 800 .66rem var(--font-mono); letter-spacing: .07em; }
+.tutor-space-label strong { font-size: .72rem; font-weight: 600; }
+
+@media (max-width: 1180px) {
+  .tutor-workspace { grid-template-columns: minmax(250px, .72fr) minmax(360px, 1.28fr); }
+}
+
+@media (max-width: 868px) {
+  .tutor-workspace { grid-template-columns: 1fr; overflow: visible; }
+  /* En móvil el caso acompaña a la terminal: primero vemos el contexto,
+     después operamos y luego recibimos la explicación completa. Así la
+     terminal no queda como una pantalla negra aislada al abrir Tutor. */
+  .procedure-space { order: 1; max-height: none; padding: 12px; gap: 8px; }
+  .tutor-coach-space { order: 2; min-height: 480px; }
 }
 
 @media (max-width: 868px) {
@@ -302,6 +395,22 @@ body {
     justify-content: center;
   }
 
+  /* El menú conserva todos sus destinos, pero se desplaza horizontalmente
+     dentro de su propia caja en teléfonos estrechos. */
+  .brand-section { width: 100%; justify-content: center; }
+
+  .seg-control {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    justify-content: flex-start;
+    scrollbar-width: none;
+  }
+
+  .seg-control::-webkit-scrollbar { display: none; }
+
+  .seg-btn { flex: 0 0 auto; }
+
   .brand-title {
     font-size: 0.95rem;
     white-space: nowrap;
@@ -310,10 +419,32 @@ body {
   .terminal-header {
     font-size: 0.7rem;
     gap: 8px;
+    overflow: hidden;
   }
 
   .terminal-header > div {
     white-space: nowrap;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .terminal-window-controls {
+    flex: 0 0 auto;
+  }
+
+  .terminal-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .terminal-status-badge {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .terminal-prompt-bar,
+  .smart-keypad {
+    overflow: hidden;
   }
 
   /* Ningún control del header toca el borde físico ni se corta */
@@ -353,6 +484,21 @@ body {
   /* El keypad de comandos queda como UNA fila deslizable (no se expande a
      varias filas): en desktop hay teclado físico y el terminal necesita el
      alto. Antes el flex-wrap lo hacía de 3 filas y aplastaba la pantalla. */
+  .keypad-row.keypad-actions {
+    flex-wrap: nowrap;
+  }
+
+  .keypad-row.keypad-actions .keypad-btn {
+    min-width: 34px;
+    min-height: 36px;
+    padding: 6px 8px;
+    font-size: .78rem;
+  }
+
+  .keypad-row.keypad-actions .space-btn {
+    min-width: 72px;
+  }
+
   .keypad-row.keypad-verbs {
     flex-wrap: nowrap;
     overflow-x: auto;
@@ -389,6 +535,21 @@ body {
   box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.15), 0 10px 15px -5px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   position: relative;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* La terminal contiene varias superficies desplazables (salida y teclado),
+   pero ninguna debe agrandar la columna ni provocar scroll de toda la página. */
+.terminal-inner,
+.terminal-header,
+.terminal-screen,
+.terminal-prompt-bar,
+.smart-keypad {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .terminal-header {
@@ -402,6 +563,7 @@ body {
   font-size: 0.8rem;
   color: #94a3b8;
   letter-spacing: 0.03em;
+  min-width: 0;
 }
 
 .terminal-window-controls {
@@ -573,6 +735,7 @@ body {
   padding: 10px 14px;
   gap: 10px;
   position: relative;
+  min-width: 0;
 }
 
 /* Cursor de bloque CRT: solo con input vacío (placeholder visible).
@@ -618,6 +781,7 @@ body {
 
 .cmd-input {
   flex: 1;
+  min-width: 0;
   background: transparent;
   border: none;
   outline: none;
@@ -658,11 +822,14 @@ body {
   padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
   background: #0b121b;
   border-top: 1px solid var(--border-color);
+  min-width: 0;
 }
 
 .keypad-row {
   display: flex;
   gap: 6px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 /* Símbolos + acciones: siempre visibles (los más usados al escribir comandos) */
@@ -673,6 +840,9 @@ body {
 /* Verbos: fila deslizable horizontal, agrupados por capítulo del manual */
 .keypad-row.keypad-verbs {
   overflow-x: auto;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   -webkit-overflow-scrolling: touch;
   padding-bottom: 2px;
   gap: 12px;
@@ -1589,12 +1759,12 @@ body {
 
 /* Iconos 3D integrados en tarjetas */
 .menu-card-3d-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
+  width: 60px;
+  height: 60px;
+  border-radius: 14px;
   object-fit: cover;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 5px 14px rgba(15, 23, 42, 0.12);
+  border: 1px solid #e2e8f0;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -1792,8 +1962,15 @@ body {
 .tut-pregunta { display: grid; gap: 0.5rem; }
 .tut-pregunta-texto { font-weight: 600; margin: 0; color: var(--text-light); }
 .tut-pregunta-porque { margin: 0; font-size: 0.76rem; color: var(--text-muted); }
+.tut-pregunta-libre { margin: 0; padding: 8px 10px; border-left: 3px solid var(--color-tutor); background: rgba(129, 140, 248, .08); color: var(--text-muted); font-size: .76rem; line-height: 1.45; }
 .tut-opciones { display: grid; gap: 0.4rem; }
 .tut-opciones .quiz-big-btn { text-align: left; font-size: 0.82rem; }
+
+.tut-assistant-mode { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; padding: 7px 0 9px; border-bottom: 1px solid var(--border-color); }
+.tut-assistant-mode-label { flex-basis: 100%; color: var(--text-muted); font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.tut-assistant-mode-btn { display: inline-flex; align-items: center; gap: 5px; padding: 5px 8px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card); color: var(--text-muted); font-size: .72rem; font-weight: 700; cursor: pointer; }
+.tut-assistant-mode-btn:hover { border-color: var(--color-tutor); color: var(--text-light); }
+.tut-assistant-mode-btn.activo { border-color: var(--color-tutor); background: rgba(129, 140, 248, .16); color: var(--color-tutor); }
 
 /* Pegar una pantalla real */
 .tut-pegar { display: grid; gap: 0.4rem; }
@@ -2541,3 +2718,871 @@ body {
   color: #ffffff;
 }
 
+/* Pratika: el contraste de trabajo es claro; solo la terminal es oscura. */
+:root {
+  --bg-dark: #f4f7fb;
+  --bg-card: #ffffff;
+  --text-light: #0f172a;
+  --text-muted: #475569;
+  --border-color: #d7dee8;
+  --border-light-top: 1px solid #e2e8f0;
+  --color-tutor: #2563eb;
+  --crt-green: #15803d;
+  --crt-red: #b91c1c;
+  --crt-cyan: #0369a1;
+  --crt-amber: #b45309;
+}
+
+body { background: #f4f7fb; color: #0f172a; }
+.app-header { background: #ffffff; box-shadow: 0 6px 20px rgba(15, 23, 42, .06); }
+.seg-control { background: #eef2f7; }
+.seg-btn:hover, .seg-btn.seg-active { color: #0f172a; }
+.seg-btn.seg-active { background: #ffffff; box-shadow: 0 1px 4px rgba(15, 23, 42, .12); }
+.ghost-btn:hover, .ghost-btn:active { color: #1d4ed8; background: #eff6ff; }
+.sidebar-panel { background: #ffffff; box-shadow: 0 8px 24px rgba(15, 23, 42, .08); }
+.tutor-panel { color: #0f172a; }
+.tut-chat { background: #f8fafc; }
+.tut-burbuja-coach { background: #ffffff; color: #0f172a; border-color: #cbd5e1; }
+.tut-burbuja-alumno { color: #ffffff; }
+.tut-chat-form input { background: #ffffff; color: #0f172a; }
+.tut-chat-enviar { color: #ffffff; }
+.tut-paso { background: #ffffff; border-color: #cbd5e1; }
+.tut-explicacion, .tut-aviso { color: #475569; }
+.tut-form input, .tut-pegar textarea { background: #f8fafc; color: #0f172a; }
+.tut-leido strong { color: #166534; }
+
+/* No degradar la superficie operativa: la terminal sigue siendo TSC. */
+.terminal-wrapper {
+  --bg-dark: #0a0a0a;
+  --bg-card: #151515;
+  --text-light: #ededed;
+  --text-muted: #a1a1a1;
+  --border-color: rgba(255, 255, 255, .1);
+  --crt-green: #00ff66;
+  --crt-red: #f31260;
+  --crt-cyan: #00e5ff;
+  --crt-amber: #f5a524;
+}
+
+/* NavegaciÃ³n: una barra limpia y alineada, sin una pastilla azul dominante. */
+@media (min-width: 869px) {
+  .app-header {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 24px;
+  }
+
+  .header-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .seg-control {
+    justify-self: end;
+    background: #ffffff;
+    border-color: #d7dee8;
+  }
+
+  .seg-btn.seg-active {
+    background: #eef6ff;
+    color: #1d4ed8;
+    box-shadow: none;
+  }
+}
+
+.seg-control {
+  background: #ffffff;
+  border-color: #d7dee8;
+}
+
+.seg-btn { color: #64748b; }
+.seg-btn:hover { color: #1e3a8a; background: #f8fafc; }
+.seg-btn.seg-active {
+  background: #eef6ff;
+  color: #1d4ed8;
+  box-shadow: none;
+}
+
+/* Tutor flotante: el simulador sigue siendo el Ãºnico espacio de ejecuciÃ³n. */
+.assistant-fab {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #1d4ed8;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, .18);
+  font-size: .78rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.assistant-fab:hover { background: #eff6ff; border-color: #60a5fa; }
+
+.assistant-float-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.assistant-float-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: rgba(15, 23, 42, .28);
+  cursor: default;
+  pointer-events: auto;
+}
+
+.assistant-float {
+  position: absolute;
+  top: 84px;
+  right: 24px;
+  bottom: 24px;
+  width: min(440px, calc(100vw - 48px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, .25);
+  pointer-events: auto;
+}
+
+.assistant-float-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px 14px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.assistant-float-kicker {
+  display: block;
+  margin-bottom: 5px;
+  color: #2563eb;
+  font: 800 .64rem var(--font-mono);
+  letter-spacing: .08em;
+}
+
+.assistant-float-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  color: #0f172a;
+  font-size: 1rem;
+}
+
+.assistant-float-header p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: .74rem;
+}
+
+.assistant-float-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+}
+
+.assistant-float-close:hover { color: #1d4ed8; border-color: #93c5fd; background: #eff6ff; }
+
+.assistant-float > .tutor-panel {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 14px 18px 20px;
+}
+
+.assistant-float > .tutor-panel > .panel-title { display: none; }
+
+.assistant-float .tut-chat { max-height: 220px; }
+
+/* El selector de contexto usa el mismo lenguaje neutro que la barra superior. */
+.side-panel-switcher {
+  background: #ffffff;
+  border-color: #d7dee8;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, .05);
+}
+
+.switcher-btn { color: #64748b; }
+.switcher-btn:hover { color: #1e3a8a; background: #f8fafc; }
+.switcher-btn.active {
+  background: #eef6ff;
+  color: #1d4ed8;
+  box-shadow: none;
+}
+
+@media (max-width: 868px) {
+  .assistant-fab {
+    right: 16px;
+    bottom: 16px;
+    width: 48px;
+    height: 48px;
+    min-height: 48px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 50%;
+  }
+
+  .assistant-fab span { display: none; }
+
+  .assistant-float {
+    top: auto;
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+    width: auto;
+    max-height: calc(100dvh - 82px);
+    border-radius: 14px;
+  }
+
+  .assistant-float-header { padding: 13px 14px 12px; }
+  .assistant-float > .tutor-panel { padding: 12px 14px 18px; }
+}
+
+/* Sesión canónica: el alumno ve primero el caso y la acción actual. */
+.now-card {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 13px;
+  border: 1px solid #bfdbfe;
+  border-left: 4px solid #2563eb;
+  border-radius: 8px;
+  background: #eff6ff;
+}
+
+.now-card-kicker {
+  color: #1d4ed8;
+  font: 800 .64rem var(--font-mono);
+  letter-spacing: .08em;
+}
+
+.now-card h2 {
+  color: #0f172a;
+  font-size: .94rem;
+  line-height: 1.3;
+}
+
+.now-card-step {
+  display: grid;
+  gap: 3px;
+  padding-top: 8px;
+  border-top: 1px solid #bfdbfe;
+}
+
+.now-card-step span {
+  color: #2563eb;
+  font: 800 .66rem var(--font-mono);
+  letter-spacing: .06em;
+}
+
+.now-card-step strong {
+  color: #1e293b;
+  font-size: .78rem;
+  line-height: 1.4;
+}
+
+.now-card-command {
+  display: block;
+  padding: 7px 8px;
+  overflow-wrap: anywhere;
+  color: #d1fae5;
+  background: #020617;
+  border-radius: 5px;
+  font: .72rem var(--font-mono);
+}
+
+.station-notice {
+  display: grid;
+  gap: 3px;
+  padding: 9px 11px;
+  border: 1px solid #fde68a;
+  border-left: 3px solid #d97706;
+  border-radius: 7px;
+  background: #fffbeb;
+  color: #78350f;
+  font-size: .72rem;
+  line-height: 1.35;
+}
+
+.station-notice strong { font-size: .74rem; }
+
+.tut-terminal-handoff {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #bfdbfe;
+  border-radius: 7px;
+  background: #eff6ff;
+  color: #334155;
+  font-size: .76rem;
+  line-height: 1.4;
+}
+
+.tut-terminal-handoff p { margin: 0; }
+.tut-terminal-handoff .quiz-big-btn { text-decoration: none; }
+
+.tut-start-card {
+  display: grid;
+  gap: 7px;
+  margin: 0 0 12px;
+  padding: 12px;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  background: #f8fbff;
+}
+
+.tut-start-kicker {
+  color: #2563eb;
+  font: 800 .62rem var(--font-mono);
+  letter-spacing: .08em;
+}
+
+.tut-start-card h2 { color: #0f172a; font-size: .92rem; }
+.tut-start-card p { color: #475569; font-size: .74rem; line-height: 1.4; }
+.tut-start-options { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.tut-start-option {
+  min-height: 36px;
+  padding: 7px 8px;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1e3a8a;
+  font-size: .72rem;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+.tut-start-option:hover { border-color: #2563eb; background: #eff6ff; }
+
+@media (min-width: 869px) {
+  .main-layout { grid-template-columns: minmax(0, 1.55fr) minmax(360px, .85fr); }
+  .simulator-side-panel-wrapper { min-width: 0; }
+  .sidebar-panel { min-height: 0; }
+}
+
+@media (max-width: 868px) {
+  .main-layout { display: flex; flex-direction: column; gap: 10px; }
+  .mobile-mission-context {
+    display: grid;
+    order: 1;
+    gap: 7px;
+    padding: 12px;
+    border: 1px solid #bae6fd;
+    border-radius: 10px;
+    background: #f0f9ff;
+    color: #0f172a;
+  }
+  .mobile-mission-kicker { color: #0369a1; font: 800 0.64rem var(--font-mono); letter-spacing: .07em; }
+  .mobile-mission-context h2 { margin: 0; font-size: .92rem; line-height: 1.3; }
+  .mobile-mission-context > p { margin: 0; color: #475569; font-size: .74rem; line-height: 1.4; }
+  .mobile-mission-decision { display: grid; gap: 7px; padding-top: 5px; }
+  .mobile-mission-decision strong { font-size: .8rem; }
+  .simulator-side-panel-wrapper { order: 3; height: auto; }
+  .main-layout > .terminal-wrapper { order: 2; min-height: 430px; }
+  .simulator-side-panel-wrapper .now-card,
+  .simulator-side-panel-wrapper .decision-card { display: none; }
+  /* En móvil la ruta completa vive en /guia; durante la operación solo deben
+     competir caso, decisión y terminal. */
+  .simulator-side-panel-wrapper .learning-path { display: none; }
+  .now-card { margin-bottom: 8px; }
+  .side-panel-switcher { overflow-x: auto; justify-content: flex-start; }
+  .switcher-btn { flex: 0 0 auto; min-width: 112px; }
+}
+/* Capas pedagógicas: una decisión antes de ejecutar y una interpretación
+   después de leer la salida. La terminal conserva su estética Amadeus; estas
+   tarjetas hacen visible el razonamiento sin crear una segunda terminal. */
+.decision-card,
+.interpretation-card {
+  margin: 12px 0;
+  padding: 14px;
+  border: 1px solid rgba(14, 116, 144, 0.28);
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(239, 250, 252, 0.98), rgba(248, 250, 252, 0.98));
+  color: #0f172a;
+  box-shadow: 0 5px 18px rgba(15, 23, 42, 0.06);
+}
+
+.decision-card h3,
+.interpretation-card h3 {
+  margin: 5px 0 10px;
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.decision-kicker,
+.interpretation-kicker {
+  color: #0e7490;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.decision-options,
+.interpretation-options {
+  display: grid;
+  gap: 7px;
+}
+
+.decision-option,
+.interpretation-option {
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #0f172a;
+  text-align: left;
+  font-size: 0.76rem;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.decision-option:hover,
+.interpretation-option:hover:not(:disabled) {
+  border-color: #0891b2;
+  background: #ecfeff;
+  transform: translateY(-1px);
+}
+
+.decision-option.selected-correct,
+.interpretation-correct {
+  border-color: #16a34a;
+}
+
+.decision-option.selected-wrong {
+  border-color: #dc2626;
+  background: #fff7f7;
+}
+
+.decision-feedback,
+.interpretation-feedback {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 9px 0 0;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.decision-feedback.ok,
+.interpretation-feedback.ok { color: #166534; }
+.decision-feedback.wrong,
+.interpretation-feedback.wrong { color: #991b1b; }
+
+.interpretation-command {
+  display: block;
+  margin: 8px 0;
+  padding: 7px 8px;
+  border-radius: 6px;
+  background: #0f172a;
+  color: #67e8f9;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.72rem;
+}
+
+.interpretation-output {
+  max-height: 130px;
+  overflow: auto;
+  margin: 8px 0;
+  padding: 8px;
+  border-radius: 6px;
+  background: #020617;
+  color: #d1fae5;
+  white-space: pre-wrap;
+  font: 0.67rem/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.interpretation-evidence {
+  margin: 8px 0;
+  font-size: 0.72rem;
+}
+
+.interpretation-evidence-toggle {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #0e7490;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.72rem;
+}
+
+.interpretation-continue {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: #0f766e;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.terminal-learning-gate {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-top: 1px solid #334155;
+  background: #0f172a;
+  color: #bae6fd;
+  font: 0.68rem var(--font-mono);
+  line-height: 1.4;
+}
+.terminal-learning-gate b { color: #22d3ee; white-space: nowrap; }
+.flow-locked {
+  display: grid;
+  gap: 5px;
+  margin: 10px 0;
+  padding: 11px;
+  border: 1px dashed #7dd3fc;
+  border-radius: 8px;
+  background: #f0f9ff;
+  color: #0f172a;
+  font-size: 0.74rem;
+  line-height: 1.4;
+}
+.flow-locked strong { color: #0369a1; }
+.flow-locked span { color: #475569; }
+.mobile-mission-context { display: none; }
+
+.procedure-station {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  color: #e2e8f0;
+}
+
+.procedure-station-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.procedure-station-head h2 {
+  margin-top: 5px;
+  font-size: 0.98rem;
+  line-height: 1.3;
+}
+
+.procedure-brief,
+.procedure-evidence,
+.procedure-decision {
+  padding: 11px;
+  border: 1px solid var(--border-color);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.procedure-label {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--crt-cyan);
+  font: 0.64rem var(--font-mono);
+  letter-spacing: 0.08em;
+}
+
+.procedure-brief p,
+.procedure-station-note {
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+.procedure-section-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 9px;
+  color: var(--text-light);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.evidence-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 7px 0;
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.evidence-row + .evidence-row { border-top: 1px solid rgba(255, 255, 255, 0.06); }
+.evidence-row.checked { color: var(--crt-green); }
+.evidence-row input { margin-top: 2px; accent-color: var(--crt-green); }
+.procedure-decision h3 { margin: 0 0 9px; font-size: 0.83rem; line-height: 1.4; }
+.procedure-station-note { margin: 0; font-size: 0.68rem; }
+
+.inactive-terminal {
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  background: radial-gradient(circle at 50% 30%, #10202b, #05080b 70%);
+  color: #94a3b8;
+  text-align: center;
+  font-family: var(--font-mono);
+}
+
+.inactive-terminal-lights { display: flex; gap: 8px; }
+.inactive-terminal-lights span { width: 10px; height: 10px; border-radius: 50%; background: #334155; }
+.inactive-terminal-lights span:first-child { background: #f87171; }
+.inactive-terminal-copy { max-width: 280px; }
+.inactive-terminal-copy strong { display: block; margin-bottom: 9px; color: var(--crt-cyan); font-size: 0.76rem; }
+.inactive-terminal-copy p { margin-bottom: 6px; color: #e2e8f0; font-size: 0.82rem; line-height: 1.45; }
+.inactive-terminal-copy span { font-size: 0.68rem; line-height: 1.4; }
+
+@media (max-width: 760px) {
+  .inactive-terminal { min-height: 190px; }
+}
+
+@media (max-width: 700px) {
+  .decision-card,
+  .interpretation-card {
+    margin: 10px 0;
+    padding: 12px;
+  }
+
+  .decision-card h3,
+  .interpretation-card h3 {
+    font-size: 0.86rem;
+  }
+}
+
+/* La misión debe preceder a la terminal en móvil. Este override queda al
+   final para evitar que la regla base de visibilidad oculte el contexto. */
+@media (max-width: 868px) {
+  .mobile-mission-context {
+    display: grid;
+  }
+}
+
+/* Centro de práctica: una ruta explícita para que el estudiante no tenga que
+   adivinar si debe entrar al Tutor, a la terminal o a la guía. */
+.practice-hub,
+.manual-catalog {
+  width: min(1120px, calc(100% - 24px));
+  margin: 0 auto;
+  padding: 18px 0 42px;
+}
+
+.practice-hub-hero,
+.manual-catalog-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px 24px;
+  border: 1px solid #bfdbfe;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #eff6ff, #ffffff 62%);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+.practice-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #0369a1;
+  font: 800 0.67rem var(--font-mono);
+  letter-spacing: .08em;
+}
+
+.practice-hub h1,
+.manual-catalog h1 {
+  margin: 8px 0 6px;
+  color: #0f172a;
+  font-size: clamp(1.35rem, 2.2vw, 2rem);
+  line-height: 1.15;
+}
+
+.practice-hub-hero p,
+.manual-catalog-header p {
+  max-width: 710px;
+  margin: 0;
+  color: #475569;
+  font-size: .88rem;
+  line-height: 1.5;
+}
+
+.practice-hub-back {
+  flex: 0 0 auto;
+  padding: 8px 11px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  color: #0f4c81;
+  background: #fff;
+  font-size: .76rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.practice-hub-back:hover,
+.practice-hub-back:focus-visible { border-color: #0284c7; color: #0369a1; outline: 2px solid #bae6fd; outline-offset: 2px; }
+
+.practice-flow-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 14px 0 24px;
+  color: #64748b;
+  font-size: .76rem;
+}
+
+.practice-flow-strip span { display: inline-flex; align-items: center; gap: 6px; }
+.practice-flow-strip strong { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; color: #fff; background: #0284c7; font-size: .7rem; }
+.practice-flow-strip svg { color: #94a3b8; }
+
+.practice-section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 20px 0 10px;
+}
+
+.practice-section-heading h2 { margin: 5px 0 0; color: #0f172a; font-size: 1.05rem; }
+.practice-section-note { color: #0369a1; font-size: .74rem; font-weight: 800; }
+
+.practice-mode-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+
+.practice-mode-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 13px;
+  min-height: 128px;
+  padding: 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  background: #fff;
+  color: inherit;
+  text-decoration: none;
+  box-shadow: 0 5px 14px rgba(15, 23, 42, 0.04);
+  transition: border-color .15s ease, transform .15s ease, box-shadow .15s ease;
+}
+
+.practice-mode-card:hover,
+.practice-mode-card:focus-visible { border-color: #0284c7; box-shadow: 0 9px 20px rgba(2, 132, 199, .12); outline: none; transform: translateY(-1px); }
+.practice-mode-icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 10px; color: #0369a1; background: #e0f2fe; }
+.practice-manuals .practice-mode-icon { color: #047857; background: #dcfce7; }
+.practice-free .practice-mode-icon { color: #7c3aed; background: #ede9fe; }
+.practice-coach .practice-mode-icon { color: #c2410c; background: #ffedd5; }
+.practice-mode-copy { min-width: 0; }
+.practice-mode-copy h3 { margin: 3px 0 5px; color: #0f172a; font-size: .96rem; }
+.practice-mode-copy p { margin: 0; color: #475569; font-size: .76rem; line-height: 1.45; }
+.practice-mode-meta { color: #64748b; font: 700 .63rem var(--font-mono); text-transform: uppercase; letter-spacing: .05em; }
+.practice-mode-arrow { color: #0284c7; }
+
+.practice-secondary { margin-top: 28px; }
+.practice-secondary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.practice-secondary-card { display: flex; align-items: center; gap: 9px; min-width: 0; padding: 12px; border: 1px solid #e2e8f0; border-radius: 9px; color: #334155; background: #fff; text-decoration: none; }
+.practice-secondary-card:hover, .practice-secondary-card:focus-visible { border-color: #93c5fd; outline: 2px solid #dbeafe; outline-offset: 1px; }
+.practice-secondary-card > svg:first-child { flex: 0 0 auto; color: #0369a1; }
+.practice-secondary-card span { display: grid; gap: 3px; min-width: 0; }
+.practice-secondary-card strong { color: #0f172a; font-size: .74rem; }
+.practice-secondary-card small { overflow: hidden; color: #64748b; font-size: .66rem; text-overflow: ellipsis; white-space: nowrap; }
+.practice-secondary-card > svg:last-child { flex: 0 0 auto; margin-left: auto; color: #94a3b8; }
+
+.manual-flow-note { margin: 14px 0 18px; padding: 11px 13px; border: 1px dashed #7dd3fc; border-radius: 9px; color: #334155; background: #f0f9ff; font-size: .78rem; }
+.manual-flow-note strong { color: #0369a1; }
+.manual-category-list { display: grid; gap: 20px; }
+.manual-category { padding: 16px; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; }
+.manual-category-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.manual-category-heading h2 { margin: 0; color: #0f172a; font-size: 1rem; }
+.manual-category-heading span { color: #64748b; font-size: .72rem; }
+.manual-exercise-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
+.manual-exercise-card { display: grid; gap: 7px; min-width: 0; padding: 13px; border: 1px solid #cbd5e1; border-radius: 9px; color: inherit; background: #f8fafc; text-align: left; cursor: pointer; }
+.manual-exercise-card:hover, .manual-exercise-card:focus-visible { border-color: #0284c7; background: #fff; outline: 2px solid #bae6fd; outline-offset: 1px; }
+.manual-exercise-topline { display: flex; justify-content: space-between; color: #0369a1; font: 700 .64rem var(--font-mono); text-transform: uppercase; }
+.manual-exercise-topline small { color: #64748b; font-weight: 600; }
+.manual-exercise-card strong { color: #0f172a; font-size: .8rem; line-height: 1.3; }
+.manual-exercise-card p { display: -webkit-box; min-height: 2.8em; margin: 0; overflow: hidden; color: #475569; font-size: .7rem; line-height: 1.4; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.manual-exercise-action { display: inline-flex; align-items: center; gap: 4px; color: #0369a1; font-size: .72rem; font-weight: 800; }
+
+@media (max-width: 900px) {
+  .practice-secondary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .manual-exercise-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 640px) {
+  .practice-hub, .manual-catalog { width: min(100% - 16px, 560px); padding-top: 10px; }
+  .practice-hub-hero, .manual-catalog-header { display: grid; gap: 14px; padding: 17px; }
+  .practice-hub h1, .manual-catalog h1 { font-size: 1.35rem; }
+  .practice-flow-strip { justify-content: flex-start; gap: 6px; overflow-x: auto; padding-bottom: 2px; white-space: nowrap; }
+  .practice-mode-grid, .manual-exercise-grid, .practice-secondary-grid { grid-template-columns: 1fr; }
+  .practice-mode-card { min-height: 108px; }
+  .practice-section-heading { align-items: flex-start; display: grid; gap: 5px; }
+  .manual-category { padding: 12px; }
+}
+/* P1/P2: estados explícitos de ruta y modos de práctica. */
+.route-state {
+  width: min(720px, calc(100% - 32px));
+  margin: 48px auto;
+  padding: 32px;
+  border: 1px solid var(--border-color, #dbe4ef);
+  border-radius: 14px;
+  background: var(--bg-card, #fff);
+  color: #0f172a;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, .08);
+}
+.route-state h1 { margin: 8px 0; font-size: clamp(1.25rem, 3vw, 1.8rem); }
+.route-state p { color: #64748b; line-height: 1.55; }
+.route-state-loading { border-left: 4px solid #0284c7; }
+.route-state-error { border-left: 4px solid #dc2626; }
+.practice-primary-action { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; padding: 10px 14px; border-radius: 8px; background: #0f172a; color: #fff; text-decoration: none; }
+.session-recovered-banner { width: min(1120px, calc(100% - 32px)); margin: 10px auto 0; padding: 9px 12px; border: 1px solid #bae6fd; border-radius: 8px; background: #f0f9ff; color: #075985; font-size: .78rem; }
+.terminal-learning-gate { display: grid; gap: 3px; padding: 12px 14px; border-top: 1px solid #334155; background: #0f172a; color: #cbd5e1; }
+.terminal-learning-gate strong { color: #67e8f9; font: 800 .72rem var(--font-mono); letter-spacing: .04em; }
+.terminal-learning-gate b { color: #fbbf24; font: 800 .68rem var(--font-mono); }
+.terminal-learning-gate span { font-size: .72rem; }
+.free-mode-note { display: grid; gap: 5px; margin: 10px 0; padding: 12px; border: 1px solid #bbf7d0; border-radius: 8px; background: #f0fdf4; color: #166534; }
+.free-mode-note strong { font: 800 .7rem var(--font-mono); }
+.free-mode-note span { font-size: .78rem; line-height: 1.45; }

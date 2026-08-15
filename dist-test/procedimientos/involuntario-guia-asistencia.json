@@ -1,0 +1,96 @@
+{
+  "id": "involuntario-guia-asistencia",
+  "titulo": "Cambios involuntarios — guía de asistencia por ventana (>48h y <48h)",
+  "aerolinea": "IB",
+  "categoria": "reemision",
+  "resumen": "Qué hacer y qué decir según la ventana temporal: VENTANA COMERCIAL (>48 h) se resuelve por web/call center; VENTANA OPERATIVA (<48 h) exige verificar la incidencia fuera de la reserva y puede escalarse a supervisor.",
+  "advertencias": [
+    { "nivel": "critico", "texto": "NO RE-UBICAR EN CABINAS DIFERENTES. La re-acomodación mantiene al pasajero en su misma cabina (Business / Turista Premium / Turista Económica).", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "En VENTANA OPERATIVA (<48 h) puede que el cambio NO se vea reflejado en la reserva (sin TK ni UN). Hay que verificarlo fuera: Web (Estado de Vuelos), GD (MADIB0500 y MADIB0296) o con el supervisor.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "Si no es posible realizar el cambio por alguna razón, escálalo a un Supervisor, que valorará la mejor alternativa para resolverlo.", "confianza": "verbatim" }
+  ],
+  "fuente": {
+    "documento": "manual/Cambios involutarios/ (6 capturas) — \"Guía de asistencia Cambios de Vuelos involuntarios\" + diagrama de cabinas AGOSTO 2024. Corresponde a los hijos #3636 (VENTANA OPERATIVA <48HRS) y #3637 (VENTANA COMERCIAL) de #3129.",
+    "tipo": "material-formacion-interno",
+    "recibido": "2026-08-08",
+    "confianzaGlobal": "verbatim",
+    "nota": "Complementa la matriz de derechos de _involuntario-matriz-derechos.json (#3129): aquella dice QUÉ puede pedir el pasajero, esta dice CÓMO atenderle y con qué palabras."
+  },
+  "tiposDeAfectacion": {
+    "confianza": "verbatim",
+    "lista": ["TK", "UN+TK", "CANCELACIÓN", "DOWNGRADING", "PÉRDIDA CONEXIÓN"],
+    "nota": "⚠️ DOWNGRADING aparece aquí pero NO está en la matriz de derechos de #3129, que solo cubre cambio de hora, cambio de número de vuelo y cancelación/pérdida de conexión. Falta saber a qué da derecho un downgrading."
+  },
+  "pasos": [
+    { "n": 0, "sistema": "natiba", "proceso": "Filtro de seguridad", "comando": null, "explicacion": "APELLIDO + PNR.", "confianza": "verbatim", "esBloqueante": true },
+
+    { "n": 1, "sistema": "amadeus", "proceso": "⚖️ Determinar la VENTANA — ¿faltan más o menos de 48 h para el vuelo?", "comando": null, "explicacion": "Más de 48 h → VENTANA COMERCIAL (pasos 2-4). Menos de 48 h → VENTANA OPERATIVA (pasos 5-8). El procedimiento cambia por completo.", "confianza": "verbatim", "esBloqueante": true },
+
+    { "n": 2, "sistema": "amadeus", "proceso": "[>48h COMERCIAL] Confirmar que el vuelo sufrió una afectación", "comando": "RHA", "explicacion": "Confirma que el vuelo ha sufrido: TK, UN+TK, CANCELACIÓN, DOWNGRADING o PÉRDIDA DE CONEXIÓN.", "confianza": "verbatim" },
+    { "n": 3, "sistema": "iberianet", "proceso": "[>48h COMERCIAL] Guiar al cliente para que acepte el cambio por la web", "comando": null, "explicacion": "Ayúdale con su localizador a encontrar fácilmente en la web si su reserva está afectada por un cambio/cancelación. La aceptación del cambio se hace por WEB o CALL CENTER.", "confianza": "verbatim" },
+    { "n": 4, "sistema": "amadeus", "proceso": "[>48h COMERCIAL] Si el cliente no puede o no desea hacerlo por la web", "comando": null, "explicacion": "Ofrécele las alternativas disponibles que más le convengan, según la matriz de derechos (#3129).", "confianza": "verbatim" },
+
+    { "n": 5, "sistema": "amadeus", "proceso": "[<48h OPERATIVA] Verificar si el vuelo está afectado", "comando": "RHA", "explicacion": "Puede que NO veas reflejado en la reserva el cambio (TK, UN, etc).", "confianza": "verbatim" },
+    { "n": 6, "sistema": "iberianet", "proceso": "[<48h OPERATIVA] Si la reserva no lo refleja, verificar fuera", "comando": null, "explicacion": "Verifica la incidencia en la Web (Estado de Vuelos), en el GD (MADIB0500 y MADIB0296) o consulta con el supervisor para confirmar el cambio.", "confianza": "verbatim", "esBloqueante": true },
+    { "n": 7, "sistema": "amadeus", "proceso": "[<48h OPERATIVA] Verificar condiciones y ofrecer alternativas", "comando": null, "explicacion": "Verificamos que cumple las condiciones para el cambio (consultar la Guía para asistir clientes para Cambios Involuntarios) y ofrecemos las alternativas disponibles en cuanto a los vuelos.", "confianza": "verbatim" },
+    { "n": 8, "sistema": "salesforce", "proceso": "[<48h OPERATIVA] Escalar si no es posible el cambio", "comando": null, "explicacion": "Si no es posible realizar el cambio por alguna razón, escálalo a un Supervisor, que valorará la mejor alternativa para resolverlo.", "confianza": "verbatim" }
+  ],
+  "argumentarios": {
+    "confianza": "verbatim",
+    "nota": "Textos literales del material. Se usan tal cual.",
+    "ventanaComercial": [
+      { "momento": "Apertura", "texto": "Queremos ofrecerle nuestras disculpas por el cambio en su vuelo con destino [ciudad] ya que ha sufrido modificaciones (cambio/cancelación). Entendemos que esto puede causarle molestias y queremos ayudarle a encontrar la mejor solución posible." },
+      { "momento": "Antes de revisar opciones", "texto": "Voy a revisar todas las opciones disponibles para ofrecerle la mejor alternativa. Un momento, por favor." }
+    ],
+    "ventanaOperativa": [
+      { "momento": "Apertura", "texto": "Antes que nada, queremos ofrecerle nuestras disculpas por este cambio inesperado en su vuelo. Entendemos perfectamente que esto puede alterar sus planes por lo que le pedimos disculpas en nombre de la compañía." },
+      { "momento": "Al escalar a supervisor", "texto": "Para garantizarle la mejor alternativa, vamos a revisar su caso y le contactaremos lo antes posible. Agradecemos su paciencia y comprensión y le reiteramos nuestras disculpas." }
+    ]
+  },
+  "comoLeerElHistoricoRHA": {
+    "confianza": "verbatim",
+    "nota": "Capturas reales del terminal MAD905. Los códigos van todos en la MISMA COLUMNA, a la izquierda.",
+    "codigos": [
+      { "codigo": "OS", "significado": "Segmento creado al inicio con la reserva" },
+      { "codigo": "AS", "significado": "Segmento agregado" },
+      { "codigo": "CS", "significado": "Estatus del segmento cambiado" },
+      { "codigo": "XS", "significado": "Segmento eliminado" },
+      { "codigo": "RF-", "significado": "Línea de referencia/firma; no es un segmento" }
+    ],
+    "leerUnCambioDeHora": {
+      "ejemplo": "007/013 TC/IB7263 N 20JAN 5 BGABOG TK2 1420 1514/ 1354 1450",
+      "interpretacion": "El primer par de horas (1420 1514) es la NUEVA HORA. El par que va DESPUÉS de la barra (1354 1450) es la HORA ORIGINAL.",
+      "porQueImporta": "El desfase entre ambas es lo que decide la fila de la matriz de derechos. Leerlo al revés cambia lo que le ofreces al pasajero."
+    },
+    "leerUnaCancelacion": {
+      "ejemplo": "013/022 CS/IB 494 S 21NOV 1 MADEAS UN1 1600 1705/TK\n    022 AS/IB 506 S 21NOV 1 MADEAS TK1 1155 1300/TK",
+      "interpretacion": "La línea CS con UN1 es el VUELO CANCELADO. La línea AS con TK1 es la OPCIÓN DE VUELO que el sistema agendó automáticamente.",
+      "porQueImporta": "Cuando un vuelo se cancela, el sistema suele proponer ya una alternativa. Hay que localizarla antes de buscar otra a mano."
+    }
+  },
+  "reglaDeCabinas": {
+    "confianza": "verbatim",
+    "titulo": "NO RE-UBICAR EN CABINAS DIFERENTES",
+    "fuente": "Diagrama de cabinas AGOSTO 2024 del mismo material",
+    "mapa": [
+      { "cabina": "BUSINESS", "clases": ["J", "C", "D", "R", "I", "U"] },
+      { "cabina": "TURISTA PREMIUM", "clases": ["W", "E", "T", "P"] },
+      { "cabina": "TURISTA ECONOMICA", "clases": ["Y", "B", "H", "K", "M", "L", "V", "S", "N", "Q", "O", "A", "G", "X"] }
+    ],
+    "nota": "SEGUNDA fuente independiente que confirma el mapa de _gama-tarifas-cabinas.json (#3590). Ambas coinciden exactamente, incluidas las clases en rojo (U · P · G · X) y la ausencia de F y Z — que sí aparecen en la pantalla AN real. La discrepancia F/Z sigue abierta, pero ahora con dos manuales contra una pantalla."
+  },
+  "huecosConocidos": [
+    "A qué da derecho un DOWNGRADING: aparece como tipo de afectación pero no está en la matriz de #3129.",
+    "Qué son exactamente MADIB0500 y MADIB0296 (¿colas? ¿oficinas? ¿pantallas del GD?) y cómo se consultan.",
+    "La 'Guía para asistir clientes para Cambios Involuntarios' que el propio material referencia y que no tenemos.",
+    "Qué hacer si el vuelo está a menos de 48 h Y la incidencia no aparece en ninguna de las tres vías de verificación."
+  ],
+  "capturas": [
+    "manual/Cambios involutarios/WhatsApp Image 2026-08-08 at 12.54.01.jpeg",
+    "manual/Cambios involutarios/WhatsApp Image 2026-08-08 at 12.54.17.jpeg",
+    "manual/Cambios involutarios/WhatsApp Image 2026-08-08 at 12.54.32.jpeg",
+    "manual/Cambios involutarios/WhatsApp Image 2026-08-08 at 12.54.50.jpeg",
+    "manual/Cambios involutarios/WhatsApp Image 2026-08-08 at 12.55.19.jpeg",
+    "manual/Cambios involutarios/WhatsApp Image 2026-08-08 at 12.55.37.jpeg"
+  ]
+}

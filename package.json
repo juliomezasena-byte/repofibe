@@ -12,9 +12,11 @@
     "test:learning": "node scripts/test-learning-path.js",
     "test:seed": "node scripts/test-seed-pnr.js",
     "test:session": "node scripts/test-exercise-session.js",
+    "test:interactive": "node scripts/test-interactive-exercises.js",
     "bot:build": "node scripts/construir-bot-hyntibia.mjs",
     "bot:test": "node scripts/construir-bot-hyntibia.mjs && node scripts/test-bot-hyntibia.js && node scripts/test-bot-navegador.mjs",
-    "test:e2e": "playwright test"
+    "build:e2e": "npm run build -- --mode test --outDir dist-test",
+    "test:e2e": "node scripts/run-e2e.mjs"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",

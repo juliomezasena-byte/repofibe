@@ -12,9 +12,9 @@ GEMINI_MODEL = "gemini-2.5-flash"
 DAILY_QUOTA = "20"
 MAX_TURNS = "8"
 ALLOWED_ORIGIN = "https://simulador-3362613.web.app"
+PUBLIC_ALLOWED_ORIGINS = "https://hyntibia.com.co,https://simulador-3362613.web.app"
 # El coach público de hyntibia (sin login, tras la clave). Los topes acotan la
 # factura de Gemini pase lo que pase: por IP y un techo global diario.
-PUBLIC_DAILY_IP_CAP = "40"
 PUBLIC_DAILY_GLOBAL_CAP = "400"
 # El hash de la clave (el mismo que está en la página): filtra escáneres que no
 # han abierto la landing. No es una cerradura; el tope es la protección real.

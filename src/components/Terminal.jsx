@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { SmartKeypad } from './SmartKeypad';
 
-export const Terminal = forwardRef(({ onExecuteCommand, history, hideVerbs = false, missionComplete = false }, ref) => {
+export const Terminal = forwardRef(({ onExecuteCommand, history, hideVerbs = false, missionComplete = false, canExecuteCommand = true, blockedMessage = '' }, ref) => {
   const screenRef = useRef(null);
   const inputRef = useRef(null);
   const [inputVal, setInputVal] = useState('');
@@ -64,10 +64,12 @@ export const Terminal = forwardRef(({ onExecuteCommand, history, hideVerbs = fal
   // Enviar: cada línea no vacía se ejecuta como un comando en secuencia
   // (permite pegar/escribir un flujo entero y correrlo de una vez).
   const submitCommand = () => {
+    if (!canExecuteCommand) return;
     if (!inputVal.trim()) return;
     const lineas = inputVal.split('\n').map((l) => l.trim()).filter(Boolean);
-    lineas.forEach((linea) => onExecuteCommand(linea));
-    setInputVal('');
+    const [first, ...rest] = lineas;
+    onExecuteCommand(first);
+    setInputVal(rest.join('\n'));
     if (inputRef.current) inputRef.current.style.height = 'auto';
   };
 
@@ -164,8 +166,16 @@ export const Terminal = forwardRef(({ onExecuteCommand, history, hideVerbs = fal
           autoCorrect="off"
           autoCapitalize="characters"
           spellCheck="false"
+          disabled={!canExecuteCommand}
         />
       </form>
+
+      {!canExecuteCommand && (
+        <div className="terminal-learning-gate" role="status" aria-live="polite">
+          <strong>TERMINAL EN ESPERA</strong>
+          <b>PRÓXIMO PASO</b><span>{blockedMessage}</span>
+        </div>
+      )}
 
       {showTip && lastErrorCmd && (
         <div 
@@ -188,6 +198,7 @@ export const Terminal = forwardRef(({ onExecuteCommand, history, hideVerbs = fal
         onSubmit={submitCommand}
         onNewline={handleNewline}
         hideVerbs={hideVerbs}
+        disabled={!canExecuteCommand}
       />
       </div>
     </div>

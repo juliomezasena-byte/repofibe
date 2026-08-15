@@ -1,0 +1,209 @@
+{
+  "id": "ejercicio-split-servicios-complejo",
+  "titulo": "Ejercicio Maestro — Reserva 4 Pax (2 ADT + 1 CHD + 1 INF), 2 SPLITs y Servicios por PNR",
+  "aerolinea": "IB",
+  "categoria": "ejercicio-practica",
+  "resumen": "Escenario completo de práctica: creación de reserva inicial de 4 pasajeros (2 ADT, 1 CHD, 1 INF asociado), separación en 3 PNRs mediante 2 SPLITs y adición de servicios específicos (UMNR, silla de ruedas, equipaje especial, equipaje adicional, mascota en cabina, comida, asiento, corrección de nombre y mascota en bodega) en cada reserva resultante.",
+  "advertencias": [
+    {
+      "nivel": "critico",
+      "texto": "El INFANTE NO ocupa plaza. Una reserva de 2 ADT + 1 CHD + 1 INF requiere SS 3 plazas (no 4). La venta de 4 plazas daría error EXCEEDS NAMES.",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "critico",
+      "texto": "El SPLIT es un proceso IRREVERSIBLE. Tras ejecutar EF + ER, los PNRs quedan permanentemente separados.",
+      "confianza": "verbatim"
+    },
+    {
+      "nivel": "alto",
+      "texto": "En la reserva de CHD solo, al agregar UMNR y silla de ruedas (WCHR), Amadeus requiere SR mientras que Resiber requiere SSR.",
+      "confianza": "derivado",
+      "nota": "Matriz de prefijos SR (Amadeus) vs SSR (Resiber) corroborada en servicios-adicionales.json."
+    }
+  ],
+  "fuente": {
+    "documento": "Ejercicio práctico del estudiante pegado en chat (07AGO26)",
+    "tipo": "material-formacion-interno",
+    "fecha": "2026-08-07",
+    "recibido": "2026-08-07",
+    "confianzaGlobal": "verbatim",
+    "nota": "Ejercicio diseñado para evaluar el dominio conjunto de Venta inicial, SPLIT progresivo (SP/EF/ER) y adición de servicios especiales por PNR."
+  },
+  "pasos": [
+    {
+      "n": 1,
+      "sistema": "amadeus",
+      "proceso": "FASE 1: Reserva Inicial — Buscar disponibilidad",
+      "comando": "AN 15MAR MADBOG",
+      "plantilla": "AN {fecha} {origen}{destino}",
+      "explicacion": "Muestra vuelos disponibles para Madrid a Bogotá en fecha 15MAR.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 2,
+      "sistema": "amadeus",
+      "proceso": "Reserva Inicial — Vender plazas (2 ADT + 1 CHD = 3 plazas)",
+      "comando": "SS 3 A 1",
+      "plantilla": "SS 3 {clase} {linea}",
+      "explicacion": "3 plazas en clase A de la línea 1. El infante no ocupa plaza física.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 3,
+      "sistema": "amadeus",
+      "proceso": "Reserva Inicial — Nombres (2 ADT, 1 INF asociado, 1 CHD)",
+      "comando": "NM1 GARCIA/CARLOS MR",
+      "explicacion": "Línea 1: Primer adulto. Luego agregar ADT2+INF en Línea 2 y CHD en Línea 3.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 3.1,
+      "sistema": "amadeus",
+      "proceso": "Nombres — Adulto 2 con Infante asociado",
+      "comando": "NM1 LOPEZ/ANA MRS (INFLOPEZ/LUIS/10JAN25)",
+      "explicacion": "Línea 2: Adulto con infante asociado. SIN barra extra tras INF.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 3.2,
+      "sistema": "amadeus",
+      "proceso": "Nombres — Child (Niño)",
+      "comando": "NM1 MARTINEZ/SOFIA(CHD/15FEB18)",
+      "explicacion": "Línea 3: Niño con fecha de nacimiento en formato DDMMMYY.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 4,
+      "sistema": "amadeus",
+      "proceso": "Reserva Inicial — Contacto, tiempo límite, cotización y guardado",
+      "comando": "AP+ 34600000000",
+      "explicacion": "Teléfono de contacto. Seguido de APE-, TKXL 16MAR/2300, FXX/FF-OPTIMA/RINADCH y ER.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 5,
+      "sistema": "amadeus",
+      "proceso": "FASE 2: SPLIT 1 — Separar al CHD (Pasajero 3) a un nuevo PNR",
+      "comando": "SP 3",
+      "explicacion": "Selecciona la línea 3 (Child MARTINEZ/SOFIA) para separar al PNR de Reserva 2.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 6,
+      "sistema": "amadeus",
+      "proceso": "SPLIT 1 — Crear nuevo PNR y guardar",
+      "comando": "EF",
+      "explicacion": "Genera el nuevo PNR ASSOCIATE (Reserva 2: 1 CHD). Seguido de ER.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 7,
+      "sistema": "amadeus",
+      "proceso": "SPLIT 2 — En el PNR PARENT (2 ADT + 1 INF), separar al ADT solo (Pasajero 1)",
+      "comando": "SP 1",
+      "explicacion": "Selecciona la línea 1 (Adulto GARCIA/CARLOS) para separar a la Reserva 3.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 8,
+      "sistema": "amadeus",
+      "proceso": "SPLIT 2 — Crear nuevo PNR y guardar",
+      "comando": "EF",
+      "explicacion": "Genera el PNR ASSOCIATE (Reserva 3: 1 ADT solo). Seguido de ER. El PNR original queda con Reserva 1: 1 ADT + 1 INF.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 9,
+      "sistema": "amadeus",
+      "proceso": "FASE 3: Reserva 2 (CHD) — Agregar UMNR (Menor No Acompañado)",
+      "comando": "SR UMNR IB NN1-UM08",
+      "variantes": ["SSR UMNR IB NN1 UM08"],
+      "explicacion": "Amadeus usa SR UMNR. Resiber usa SSR UMNR con edad UM08.",
+      "confianza": "derivado",
+      "nota": "Prefijo SR en Amadeus vs SSR en Resiber corroborado en servicios-adicionales.json."
+    },
+    {
+      "n": 10,
+      "sistema": "amadeus",
+      "proceso": "Reserva 2 (CHD) — Agregar Silla de Ruedas (WCHR)",
+      "comando": "SR WCHR/S1/P1",
+      "variantes": ["SSR WCXX/S1/P1"],
+      "explicacion": "WCHR = Ramp wheelchair. Amadeus usa SR, Resiber usa SSR WCXX.",
+      "confianza": "derivado",
+      "nota": "Corroborado en servicios-adicionales.json."
+    },
+    {
+      "n": 11,
+      "sistema": "amadeus",
+      "proceso": "Reserva 2 (CHD) — Agregar Equipaje Especial (Bicicleta / Esquí SPEQ)",
+      "comando": "SR SPEQ - ESQUI 21X50X130 13KG/S1/P1",
+      "variantes": ["SR BIKE IB NN1"],
+      "explicacion": "Equipaje deportivo o especial. Seguido de ER para guardar.",
+      "confianza": "derivado",
+      "nota": "Corroborado en servicios-adicionales.json."
+    },
+    {
+      "n": 12,
+      "sistema": "amadeus",
+      "proceso": "FASE 4: Reserva 3 (SOLO ADULTO) — Agregar Equipaje Adicional (XBAG)",
+      "comando": "IU IB NN1 XBAG MAD/P1",
+      "explicacion": "Solicita XBAG. Cotizar con FXH/L1-2, crear TSM con FXG/L1-2, registrar FP y emitir EMD con TTM1/M1/RT.",
+      "confianza": "derivado",
+      "nota": "Flujo de equipaje adicional documentado en servicios-adicionales.json."
+    },
+    {
+      "n": 13,
+      "sistema": "amadeus",
+      "proceso": "Reserva 3 (SOLO ADULTO) — Agregar Mascota en Cabina (PETC)",
+      "comando": "SR PETC IB NN1 DOG HUSKY 5KG DIM 45X35X25/S1/P1",
+      "variantes": ["SSR PETC IB NN1 MADBOG 123 Y 15MAR 1 DOG HUSKY 5KG DIM45X35X25CM/P1"],
+      "explicacion": "Mascota en cabina (PETC) con raza, peso y dimensiones del contenedor.",
+      "confianza": "derivado",
+      "nota": "Corroborado en servicios-adicionales.json."
+    },
+    {
+      "n": 14,
+      "sistema": "amadeus",
+      "proceso": "Reserva 3 (SOLO ADULTO) — Agregar Comida Especial (VGML / SPML)",
+      "comando": "SR VGML",
+      "variantes": ["SSR VGML IB NN1/S1/P1"],
+      "explicacion": "VGML = Vegetarian Meal. Seguido de ER para guardar.",
+      "confianza": "derivado",
+      "nota": "Corroborado en servicios-adicionales.json."
+    },
+    {
+      "n": 15,
+      "sistema": "amadeus",
+      "proceso": "FASE 5: Reserva 1 (ADULTO CON INFANTE) — Asignar Asiento",
+      "comando": "ST/24A/P1",
+      "explicacion": "Asigna el asiento 24A para el adulto (el infante viaja en regazo o cuna BSCT).",
+      "confianza": "derivado",
+      "nota": "Sintaxis estándar ST/asiento/Ppasajero en Amadeus."
+    },
+    {
+      "n": 16,
+      "sistema": "amadeus",
+      "proceso": "Reserva 1 (ADULTO CON INFANTE) — Corrección de Nombre (NU)",
+      "comando": "NU 1LOPEZ/ANA MRS",
+      "explicacion": "Transacción NU para corregir el elemento de nombre si aplica error tipográfico.",
+      "confianza": "derivado",
+      "nota": "Flujo de corrección de nombre documentado en docs/fuentes/INDICE-MANUALES-FALTANTES.md (IBEX 23)."
+    },
+    {
+      "n": 17,
+      "sistema": "amadeus",
+      "proceso": "Reserva 1 (ADULTO CON INFANTE) — Agregar Mascota en Bodega (AVIH)",
+      "comando": "SR AVIH IB NN1 DOG HUSKY 25KG DIM 80X60X60/S1/P1",
+      "variantes": ["SSR AVIH IB NN1 DOG HUSKY 25KG DIM 80X60X60/S1/P1"],
+      "explicacion": "AVIH = Mascota en bodega. Seguido de ER para guardar.",
+      "confianza": "derivado",
+      "nota": "Corroborado en servicios-adicionales.json y mascota-en-bodega-avih.json."
+    }
+  ],
+  "resultadoEsperado": {
+    "reserva1": "1 ADT + 1 INF (ANA + LUIS) con asiento 24A, corrección de nombre NU y mascota en bodega AVIH.",
+    "reserva2": "1 CHD (SOFIA) con UMNR, silla de ruedas WCHR y equipaje deportivo SPEQ.",
+    "reserva3": "1 ADT (CARLOS) con equipaje adicional XBAG, mascota en cabina PETC y comida vegetariana VGML."
+  }
+}

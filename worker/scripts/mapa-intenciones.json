@@ -1,0 +1,452 @@
+{
+  "agregar-docs": {
+    "significado": "Agregar los datos de documentación del pasajero (pasaporte, fecha de nacimiento, visa, Known Traveller, dirección/país de residencia) al PNR mediante los elementos DOCS/DOCA/DOCO (APIS).",
+    "comoLoDiceUnNovato": [
+      "necesito meterle el pasaporte al pasajero",
+      "hay que agregar los datos del documento en la reserva",
+      "me piden cargar el APIS del cliente",
+      "el pasajero no tiene los docs cargados, hay que ponerlos",
+      "toca agregar la fecha de nacimiento y el pasaporte del bebe",
+      "me falta poner la visa y el numero de global entry",
+      "cargar la direccion de destino y el pais de residencia",
+      "el sistema pide los DOCS obligatorios antes de emitir"
+    ],
+    "trampas": [
+      "Se confunde con correcion-de-nombre porque ambos tocan datos del pasajero, pero aquí NO se cambia el nombre, solo se agregan documentos.",
+      "Aparece como paso dentro de emision (DOCS obligatorio), pero como intención propia es cuando el cliente solo quiere completar/actualizar la documentación.",
+      "'agregar la visa' puede sonar a un trámite migratorio, pero aquí es solo cargar el dato en el PNR."
+    ],
+    "noConfundirCon": [
+      "correcion-de-nombre porque agregar el pasaporte no es corregir cómo está escrito el nombre.",
+      "emision porque cargar documentos no implica cobrar ni emitir el billete."
+    ]
+  },
+  "transporte-ceniza": {
+    "significado": "Orientar al cliente que quiere transportar cenizas de una cremación: se llevan como equipaje de mano, con urna protegida y certificados de defunción e incineración.",
+    "comoLoDiceUnNovato": [
+      "el señor quiere viajar con las cenizas de un familiar",
+      "va a llevar una urna con las cenizas del difunto",
+      "como hace para transportar restos cremados en el avion",
+      "quiere subir las cenizas de la mamá, se pueden llevar en cabina?",
+      "me preguntan por los papeles para viajar con una urna",
+      "lleva cenizas humanas, que requisitos necesita",
+      "puede meter la urna en el equipaje de mano?"
+    ],
+    "trampas": [
+      "Se puede confundir con comidas-equipajes-especiales o servicio porque menciona 'equipaje', pero es un caso puntual con sus propios requisitos documentales.",
+      "El cliente puede plantearlo como duda de aduana/documentos, pero la gestión es informativa, no una emisión ni un servicio SSR."
+    ],
+    "noConfundirCon": [
+      "comidas-equipajes-especiales porque las cenizas no son equipaje deportivo ni una comida especial.",
+      "servicio porque no se solicita un SSR ni se cobra un EMD, solo se informa."
+    ]
+  },
+  "casos-meda": {
+    "significado": "Gestionar un caso médico (MEDA): pasajero con oxígeno, hospitalización, escolta, equipo médico o riesgo de empeorar, que puede requerir valoración/autorización médica mediante INCAD.",
+    "comoLoDiceUnNovato": [
+      "el pasajero está enfermo y necesita valoración médica para volar",
+      "viaja con oxigeno, hay que hacer el MEDA?",
+      "el cliente sale del hospital y quiere volar",
+      "necesita llevar un equipo medico conectado en el vuelo",
+      "va enyesado, puede viajar?",
+      "me toca mandar el INCAD para que lo evalue el medico",
+      "el pasajero requiere escolta medica o camilla",
+      "está delicado de salud y no sé si lo dejan abordar"
+    ],
+    "trampas": [
+      "Se confunde con pmr-silla-de-ruedas: MEDA es condición médica que requiere valoración; PMR es solo movilidad reducida (silla de ruedas) sin enfermedad.",
+      "El cliente puede pedir 'una silla de ruedas' pero mencionar que está enfermo/con oxígeno: si hay condición médica, es MEDA.",
+      "Nunca se guarda el diagnóstico en el PNR; el novato podría querer anotarlo, pero eso es error."
+    ],
+    "noConfundirCon": [
+      "pmr-silla-de-ruedas porque una silla de ruedas sin condición médica NO es un caso MEDA.",
+      "servicio porque MEDA implica valoración/autorización médica, no un simple SSR."
+    ]
+  },
+  "formas-pago-latam": {
+    "significado": "Informar qué formas de pago, monedas, cuotas y franquicias aplican en un mercado LATAM y validar la tarjeta del cliente contra las reglas del país (incluye avisar del PCC).",
+    "comoLoDiceUnNovato": [
+      "con qué tarjetas puede pagar el cliente",
+      "puede pagar a cuotas o diferido?",
+      "el señor pregunta si acepta su tarjeta para pagar el vuelo",
+      "cuánto es el mínimo para pagar con tarjeta en méxico",
+      "que monedas se pueden cobrar en este país",
+      "quiere saber las opciones de pago que tiene",
+      "acepta pago en dolares o solo en moneda local?",
+      "hay que decirle que tiene PCC para el cobro"
+    ],
+    "trampas": [
+      "Se confunde con facturas-latam: uno es CÓMO paga (medios de pago) y otro es el comprobante fiscal DESPUÉS de pagar.",
+      "Se confunde con emision porque el pago es parte de emitir, pero aquí solo se informa/valida el medio de pago, no se emite.",
+      "Se confunde con emision-colombia-cop/descuentos si el cliente mezcla 'pagar' con 'precio del vuelo'."
+    ],
+    "noConfundirCon": [
+      "facturas-latam porque las formas de pago no son la factura fiscal.",
+      "emision porque informar cómo se paga no es cobrar ni emitir el billete."
+    ]
+  },
+  "emision-reservas-on-hold": {
+    "significado": "Emitir/cobrar una reserva que ya está ON HOLD (registrar titular, tomar datos de tarjeta, forma de pago del EMD/billete y emitir dentro del plazo).",
+    "comoLoDiceUnNovato": [
+      "el cliente ya tiene la reserva guardada y ahora quiere pagar",
+      "tengo un on hold y toca emitirlo",
+      "vengo a cobrar una reserva que quedó en espera",
+      "el pasajero llamó para terminar de pagar su reserva pendiente",
+      "hay que emitir el billete de una reserva que ya estaba on hold",
+      "ya tiene el localizador, solo falta el cobro y la emision",
+      "me pasan un on hold para finalizar el pago"
+    ],
+    "trampas": [
+      "Se confunde con on-hold-72h: aquí la reserva YA existe y se va a COBRAR; en on-hold-72h recién se CREA la reserva en espera.",
+      "Se confunde con emision (primera emisión) porque ambas emiten, pero aquí no se cotiza ni se arma la reserva desde cero.",
+      "El novato puede decir 'emitir on hold' para las dos cosas (crear el hold o cobrarlo)."
+    ],
+    "noConfundirCon": [
+      "on-hold-72h porque crear la reserva en espera no es lo mismo que cobrar una ya existente.",
+      "emision porque no se busca vuelo ni se arma el PNR desde cero, ya está hecho."
+    ]
+  },
+  "on-hold-72h": {
+    "significado": "Crear una reserva ON HOLD (dejarla en espera con límite de tiempo, típicamente 72h) cotizando, guardando el PNR y dejándola lista para pago posterior, sin emitir todavía.",
+    "comoLoDiceUnNovato": [
+      "el cliente quiere dejar la reserva apartada y pagar despues",
+      "hazme un on hold para que lo piense",
+      "quiere congelar el precio por unas horas",
+      "dejar la reserva en espera 72 horas sin pagar",
+      "guardar el cupo sin emitir todavia",
+      "que le aparten los puestos y luego paga",
+      "necesito bloquear la tarifa mientras decide"
+    ],
+    "trampas": [
+      "Se confunde con emision-reservas-on-hold: aquí se CREA el hold; allá se COBRA un hold ya creado.",
+      "Se confunde con emision porque ambas cotizan, pero en on-hold NO se emite ni se cobra.",
+      "El límite '72h' a veces se dice como 48h o 24h; sigue siendo dejar la reserva en espera."
+    ],
+    "noConfundirCon": [
+      "emision-reservas-on-hold porque apartar la reserva no es cobrar una que ya estaba apartada.",
+      "emision porque en on-hold no se llega a emitir el billete."
+    ]
+  },
+  "comunicaciones-cortadas-latam": {
+    "significado": "Caso LATAM en que se cobró al cliente pero la comunicación/transacción se cortó: se recopilan monto, moneda, fecha y autorización, y se crea un caso para que Back Office decida reembolso o confirmación de compra.",
+    "comoLoDiceUnNovato": [
+      "le cobraron pero se cayó el sistema y no sabe si se emitió",
+      "se cortó la llamada/la pagina en pleno pago y quedó cobrado",
+      "al cliente le pasaron la tarjeta pero no salió el billete",
+      "hubo un cobro pero la transaccion se interrumpió",
+      "pagó y no le llegó nada, se colgó el sistema",
+      "quiere saber si le reembolsan o le confirman la compra que se cortó",
+      "se descontó la plata pero no hay reserva emitida"
+    ],
+    "trampas": [
+      "Se confunde con reembolso porque el resultado PUEDE ser un reembolso, pero aquí el objetivo aún no está definido (puede terminar en emisión/confirmación).",
+      "Se confunde con facturas-latam si el cliente reclama por un cobro que no ve reflejado.",
+      "No se debe prometer reembolso ni emisión: solo se crea el caso."
+    ],
+    "noConfundirCon": [
+      "reembolso porque el cliente quizá quiera CONFIRMAR la compra, no que le devuelvan el dinero.",
+      "emision porque no se emite en el momento; lo evalúa Back Office."
+    ]
+  },
+  "facturas-latam": {
+    "significado": "Gestionar la solicitud de factura fiscal LATAM: orientar la petición web por país, casos especiales de Perú (RUC), recibo cuando no aplica factura, y escalar incidencias (México).",
+    "comoLoDiceUnNovato": [
+      "el cliente necesita la factura de su vuelo",
+      "pide factura electronica con su RUC",
+      "quiere el comprobante fiscal de la compra",
+      "cómo saca la factura de méxico que no le sale en la web",
+      "necesita factura para su empresa",
+      "me piden la factura con datos fiscales",
+      "no le llega la factura, hay que escalarla"
+    ],
+    "trampas": [
+      "Se confunde con formas-pago-latam: la factura es el comprobante DESPUÉS de pagar, no cómo se paga.",
+      "El cliente puede pedir 'recibo' y 'factura' como sinónimos, pero no todos los países emiten factura fiscal.",
+      "Se confunde con reembolso si el cliente cree que necesita la factura para pedir devolución."
+    ],
+    "noConfundirCon": [
+      "formas-pago-latam porque la factura no es un medio de pago.",
+      "reembolso porque pedir la factura no es pedir la devolución del dinero."
+    ]
+  },
+  "generalidades-latam": {
+    "significado": "Pasos previos obligatorios de cualquier gestión LATAM: identificar origen de la llamada, abrir la reserva, filtro de seguridad, localizar el ticket, verificar responsabilidad (placa 075) y el estado de plazas (HK) y cupones (OPEN).",
+    "comoLoDiceUnNovato": [
+      "cómo empiezo a atender una reserva de latam",
+      "qué reviso antes de tocar cualquier gestión",
+      "el filtro de seguridad y verificar la placa del billete",
+      "abrir la reserva y confirmar que el billete es de iberia",
+      "checar que las plazas esten HK y los cupones open",
+      "en que oficina cotizo segun el pais",
+      "los pasos generales antes de emitir o cambiar"
+    ],
+    "trampas": [
+      "Se confunde con cualquier proceso específico (emision, cambio) porque es el preámbulo de todos ellos.",
+      "El novato puede describir el filtro de seguridad como si fuera la gestión en sí.",
+      "Se confunde con emision-colombia-cop/descuentos porque menciona 'oficina de emisión' y 'moneda'."
+    ],
+    "noConfundirCon": [
+      "emision porque verificar la reserva no es cotizar ni emitir.",
+      "cambio porque revisar estado de cupones no es aún modificar el vuelo."
+    ]
+  },
+  "emision-colombia-cop": {
+    "significado": "Emisión LATAM específica de Colombia (oficina BOG, cobro en COP): cotizar, aplicar gastos de gestión por rangos de tarifa, convertir penalidad a COP y emitir.",
+    "comoLoDiceUnNovato": [
+      "hay que emitir un billete en colombia en pesos",
+      "cotizar y cobrar en COP desde bogotá",
+      "emision para un cliente colombiano",
+      "el vuelo se paga en pesos colombianos, cuánto es el gasto de gestion",
+      "convertir la penalidad a pesos para colombia",
+      "sacar el billete por la oficina de bogota",
+      "emitir en moneda local colombiana"
+    ],
+    "trampas": [
+      "Se confunde con emision (general) y con descuento-panama/ecuador: todos emiten, pero cambia el país/moneda y la tabla de gastos.",
+      "Se confunde con emision-latam por ser el mismo flujo pero anclado a Colombia/COP.",
+      "El novato puede decir solo 'emitir' sin mencionar que es Colombia."
+    ],
+    "noConfundirCon": [
+      "descuento-panama porque Panamá no es Colombia y aplica descuento país, no solo moneda.",
+      "emision porque este caso está atado a la oficina y moneda de Colombia."
+    ]
+  },
+  "descuento-panama": {
+    "significado": "Emisión con descuento país de Panamá (#3064): cotizar aplicando el descuento de adulto mayor/jubilado (RCD) y emitir en la oficina/moneda de Panamá.",
+    "comoLoDiceUnNovato": [
+      "el cliente en panamá tiene descuento de jubilado",
+      "aplica descuento de tercera edad en panamá",
+      "emitir con la tarifa rebajada para adulto mayor panameño",
+      "descuento pais para un pensionado de panamá",
+      "el señor es jubilado en panamá, tiene rebaja",
+      "cotizar con el descuento de panama"
+    ],
+    "trampas": [
+      "Se confunde con descuento-ecuador: mismo tipo de gestión pero otro país y otros tipos de descuento.",
+      "Se confunde con emision porque es una emisión, pero con descuento país específico.",
+      "El descuento de adulto mayor de Panamá no es acumulable con otros."
+    ],
+    "noConfundirCon": [
+      "descuento-ecuador porque Ecuador maneja discapacidad y joven además de adulto mayor.",
+      "emision porque aquí aplica un descuento país que la emisión general no contempla."
+    ]
+  },
+  "descuento-ecuador": {
+    "significado": "Emisión con descuentos país de Ecuador (#3065): cotizar aplicando descuento por discapacidad (RDIS), joven 12-24 (RZZ) o adulto mayor +65 (RCD), con flujo especial ON HOLD para discapacidad (CONADIS).",
+    "comoLoDiceUnNovato": [
+      "el cliente ecuatoriano tiene descuento por discapacidad",
+      "aplica descuento de joven en ecuador",
+      "descuento de tercera edad para pasajero de ecuador",
+      "tiene carnet del conadis, hay que darle su rebaja",
+      "cotizar con descuento de discapacidad y dejar on hold",
+      "el muchacho tiene entre 12 y 24, le va el descuento joven",
+      "emitir con descuento pais ecuador"
+    ],
+    "trampas": [
+      "Se confunde con descuento-panama: mismo esquema, distinto país y tipos de descuento (Ecuador tiene discapacidad y joven).",
+      "El caso de discapacidad tiene ON HOLD como último paso (CONADIS), distinto de una emisión inmediata.",
+      "Se confunde con casos-meda si el cliente menciona 'discapacidad' pensando en condición médica, pero aquí es descuento tarifario."
+    ],
+    "noConfundirCon": [
+      "descuento-panama porque Panamá solo maneja el descuento de adulto mayor/jubilado.",
+      "casos-meda porque el descuento por discapacidad NO es una valoración médica para volar."
+    ]
+  },
+  "cambio": {
+    "significado": "Rama general de CAMBIO DE VUELO: modificar fecha/ruta/clase de un billete ya emitido (voluntario automático o manual, involuntario por afectación), cobrando diferencia de tarifa, penalidad y gasto de gestión cuando aplica.",
+    "comoLoDiceUnNovato": [
+      "el cliente quiere cambiar la fecha del vuelo",
+      "necesita adelantar/atrasar el viaje",
+      "quiere volar otro día distinto al que compró",
+      "le cancelaron el vuelo y hay que reubicarlo",
+      "quiere cambiar la ruta, ahora sale de otra ciudad",
+      "modificar el vuelo que ya tiene emitido",
+      "le movieron el vuelo por la aerolinea, cambio involuntario",
+      "quiere cambiarse a otro vuelo y pagar la diferencia"
+    ],
+    "trampas": [
+      "Se confunde con correcion-de-nombre: cambiar el NOMBRE del pasajero NO es cambiar el VUELO.",
+      "Se confunde con reembolso: si el cliente quiere que le DEVUELVAN dinero (no volar), es reembolso, no cambio.",
+      "Se confunde con emision: cambio modifica un billete existente; emisión crea uno nuevo.",
+      "Se confunde con servicio si el cliente solo quiere cambiar el asiento (eso es servicio, no cambio de vuelo)."
+    ],
+    "noConfundirCon": [
+      "correcion-de-nombre porque cambiar el nombre no es cambiar el vuelo.",
+      "reembolso porque cambiar el vuelo no es devolver el dinero.",
+      "emision porque no se emite un billete nuevo, se modifica el existente."
+    ]
+  },
+  "emision": {
+    "significado": "Rama general de EMISIÓN (primera venta): buscar disponibilidad, cotizar, crear el PNR con nombres/contacto, cobrar y emitir un billete nuevo (incluye reserva espejo para placas no 075).",
+    "comoLoDiceUnNovato": [
+      "el cliente quiere comprar un vuelo nuevo",
+      "hay que emitir un billete desde cero",
+      "vender un pasaje madrid bogotá",
+      "cotizar y cobrar un boleto nuevo",
+      "el pasajero quiere reservar y pagar de una vez",
+      "sacarle el billete al cliente",
+      "hacer una reserva nueva y emitirla"
+    ],
+    "trampas": [
+      "Se confunde con on-hold-72h/emision-reservas-on-hold: emisión general cobra de una; on hold aparta o cobra después.",
+      "Se confunde con las emisiones país (colombia-cop, descuentos): si mencionan país/moneda/descuento, va a la etiqueta específica.",
+      "Se confunde con cambio: emitir es un billete nuevo, no modificar uno existente."
+    ],
+    "noConfundirCon": [
+      "cambio porque emitir es crear un billete nuevo, no modificar uno emitido.",
+      "emision-colombia-cop porque si el caso especifica Colombia/COP va a esa etiqueta más precisa."
+    ]
+  },
+  "split": {
+    "significado": "Separar (dividir) uno o varios pasajeros de una reserva a un PNR nuevo (generar SPLIT), típicamente para gestionar a un pasajero por separado.",
+    "comoLoDiceUnNovato": [
+      "hay que separar a un pasajero de la reserva",
+      "sacar al niño a otra reserva aparte",
+      "dividir el PNR porque uno viaja distinto",
+      "necesito partir la reserva en dos",
+      "separar a dos pasajeros a un localizador nuevo",
+      "hacer un split de la reserva",
+      "que uno de los pasajeros quede en otro código"
+    ],
+    "trampas": [
+      "Se confunde con maestro-split: split simple separa pasajeros; el maestro es el ejercicio complejo con varios splits y muchos servicios.",
+      "Se confunde con cambio si el cliente quiere separar a alguien porque va a cambiarle el vuelo (son gestiones distintas).",
+      "El novato puede decir 'dividir' pensando en dividir el pago, no la reserva."
+    ],
+    "noConfundirCon": [
+      "maestro-split porque el split simple no incluye la gestión avanzada de múltiples servicios/ancillaries.",
+      "cambio porque separar pasajeros no es modificar el vuelo."
+    ]
+  },
+  "maestro-split": {
+    "significado": "Ejercicio maestro/avanzado: reserva de varios pasajeros con múltiples SPLITs y gestión de muchos servicios (ancillaries) repartidos entre los PNR resultantes. Es un caso de práctica integral, no una gestión atómica.",
+    "comoLoDiceUnNovato": [
+      "el ejercicio grande de los dos splits con todos los servicios",
+      "el super ejercicio maestro de la reserva de 4 pasajeros",
+      "el caso completo con varios splits y ancillaries",
+      "el reto de dividir la reserva y agregar todos los servicios",
+      "practicar el flujo completo de split mas servicios",
+      "el ejercicio maestro de division multiple"
+    ],
+    "trampas": [
+      "Se confunde con split: el maestro es un caso de práctica integral con MUCHOS servicios; el split simple solo separa.",
+      "Se confunde con servicio porque incluye muchos SSR, pero el foco es el ejercicio completo de splits + ancillaries.",
+      "Es más un escenario de entrenamiento que una petición real de cliente."
+    ],
+    "noConfundirCon": [
+      "split porque el maestro añade gestión avanzada de múltiples ancillaries tras varios splits.",
+      "servicio porque no es un solo servicio, es el ejercicio integral que los combina."
+    ]
+  },
+  "correcion-de-nombre": {
+    "significado": "Corregir el nombre/apellido mal escrito de un pasajero en el PNR y su billete (transacción NU + reemisión de la máscara), sin cambiar el vuelo.",
+    "comoLoDiceUnNovato": [
+      "el nombre está mal escrito",
+      "hay una letra mal en el apellido",
+      "cambiarle el nombre al pasajero",
+      "se equivocaron escribiendo el nombre",
+      "el pasajero se llama distinto a como quedó en la reserva",
+      "hay que corregir el apellido que quedó mal",
+      "pusieron mal el nombre del bebé",
+      "el nombre tiene un error de dedo, toca arreglarlo"
+    ],
+    "trampas": [
+      "Se confunde con cambio: cambiar el NOMBRE no es cambiar el VUELO, aunque el novato diga 'cambiar'.",
+      "Se confunde con agregar-docs: corregir el nombre no es cargar el pasaporte, aunque ambos toquen datos del pasajero.",
+      "No es un cambio de titular: se corrige un error tipográfico del mismo pasajero, no se pone a otra persona."
+    ],
+    "noConfundirCon": [
+      "cambio porque cambiar el nombre del pasajero no es cambiar el vuelo.",
+      "agregar-docs porque corregir el nombre no es agregar el pasaporte ni la visa."
+    ]
+  },
+  "pmr-silla-de-ruedas": {
+    "significado": "Solicitar el servicio de pasajero con movilidad reducida (silla de ruedas: WCHR/WCHS/WCHC) segmento por segmento, dejándolo confirmado.",
+    "comoLoDiceUnNovato": [
+      "el pasajero necesita silla de ruedas",
+      "es una persona con movilidad reducida",
+      "pide asistencia para caminar hasta el avion",
+      "no puede desplazarse solo, necesita silla",
+      "solicitar el servicio de silla de ruedas para el señor",
+      "el cliente usa silla de ruedas, hay que ponerle el servicio",
+      "necesita ayuda de movilidad en el aeropuerto"
+    ],
+    "trampas": [
+      "Se confunde con casos-meda: silla de ruedas SIN condición médica es PMR; con oxígeno/enfermedad es MEDA.",
+      "Se confunde con servicio (rama general): PMR tiene etiqueta propia, no va como 'servicio' genérico.",
+      "El novato puede pedir 'asistencia' de forma vaga (podría ser perro de asistencia, que es servicio)."
+    ],
+    "noConfundirCon": [
+      "casos-meda porque la silla de ruedas por sí sola no requiere valoración médica.",
+      "servicio porque la silla de ruedas tiene su propia intención específica."
+    ]
+  },
+  "comidas-equipajes-especiales": {
+    "significado": "Solicitar comidas especiales (vegetariana, sin gluten, etc.) y/o equipaje especial/deportivo (bici, esquí – SPEQ) segmento por segmento en el PNR.",
+    "comoLoDiceUnNovato": [
+      "el cliente quiere una comida vegetariana en el vuelo",
+      "pide menu especial sin gluten",
+      "necesita comida para diabetico a bordo",
+      "quiere llevar la bicicleta como equipaje deportivo",
+      "va a viajar con los esquis, equipaje especial",
+      "solicitar comida especial para el pasajero",
+      "lleva tabla de surf, equipaje deportivo"
+    ],
+    "trampas": [
+      "Se confunde con servicio/equipaje-adicional: equipaje especial (bici/esquí, SPEQ) NO es equipaje adicional por peso (XBAG, que va en servicio).",
+      "Una 'comida especial' médica no es un caso MEDA; sigue siendo comida especial.",
+      "El novato puede decir 'equipaje especial' para referirse a mascota o silla, que van en otras intenciones."
+    ],
+    "noConfundirCon": [
+      "servicio porque el equipaje adicional por peso (XBAG) y las mascotas van en la rama servicio, no aquí.",
+      "casos-meda porque una comida por dieta no es una valoración médica."
+    ]
+  },
+  "reembolso": {
+    "significado": "Rama general de REEMBOLSO: devolver el dinero de un billete/servicio no usado, verificando responsabilidad, estado (OPEN), vigencia (DOI ≤18 meses), penalidades, y creando el caso (o enviando a cola en IBEX).",
+    "comoLoDiceUnNovato": [
+      "el cliente quiere que le devuelvan el dinero",
+      "pide reembolso del vuelo que no va a usar",
+      "quiere la plata de vuelta del billete",
+      "quiere que le devuelvan lo que pagó por el cambio",
+      "cancelar y que le regresen el dinero",
+      "solicita devolución porque ya no viaja",
+      "quiere reembolso del billete de iberia express",
+      "no va a volar y quiere recuperar su dinero"
+    ],
+    "trampas": [
+      "Se confunde con cambio: 'quiere que le devuelvan el dinero del cambio' es REEMBOLSO, no cambio.",
+      "Se confunde con comunicaciones-cortadas-latam: si el cobro se cortó, ese es su caso propio (aún indefinido).",
+      "Se confunde con facturas-latam si el cliente cree que necesita factura para el reembolso."
+    ],
+    "noConfundirCon": [
+      "cambio porque devolver el dinero no es modificar el vuelo.",
+      "comunicaciones-cortadas-latam porque un reembolso normal no es el caso de cobro interrumpido."
+    ]
+  },
+  "servicio": {
+    "significado": "Rama general de SERVICIOS/ancillaries: solicitar y/o cobrar servicios adicionales como asientos, equipaje adicional por peso (XBAG/EMD), mascotas (PETC/AVIH), perro de asistencia (SVAN), menor no acompañado (UMNR), reemisión de EMD y demás SSR por Amadeus/Resiber.",
+    "comoLoDiceUnNovato": [
+      "el cliente quiere escoger asiento",
+      "necesita pagar equipaje adicional por peso",
+      "viaja con el perro en cabina, la mascota",
+      "lleva el gato en bodega",
+      "el niño viaja solo, menor no acompañado",
+      "viaja con perro de asistencia",
+      "hay que cobrarle una maleta extra y emitir el EMD",
+      "reemitir el EMD del equipaje",
+      "agregarle un servicio a la reserva"
+    ],
+    "trampas": [
+      "Se confunde con pmr-silla-de-ruedas y comidas-equipajes-especiales, que tienen etiqueta propia y NO van aquí.",
+      "Equipaje adicional por peso (XBAG) va en servicio, pero equipaje deportivo/especial (bici/esquí) va en comidas-equipajes-especiales.",
+      "Mascota que es 'perro de asistencia' (SVAN) es servicio pero distinto de mascota normal (PETC/AVIH).",
+      "Se confunde con cambio si el cliente quiere cambiar de asiento (asiento es servicio, no cambio de vuelo)."
+    ],
+    "noConfundirCon": [
+      "pmr-silla-de-ruedas porque la silla de ruedas tiene su propia intención.",
+      "comidas-equipajes-especiales porque comidas y equipaje deportivo tienen etiqueta propia.",
+      "cambio porque escoger o cambiar asiento no es cambiar el vuelo."
+    ]
+  }
+}

@@ -1,0 +1,143 @@
+{
+  "id": "reembolso-iberia-general",
+  "titulo": "Reembolso Iberia — condiciones generales y creación del caso",
+  "aerolinea": "IB",
+  "categoria": "reembolsos",
+  "resumen": "Validaciones obligatorias antes de tramitar un reembolso de billete 075 (Iberia), verificación de casos en Salesforce (#3068) y creación del caso para evaluación del BO.",
+  "aplicaSolo": "Billetes 075- (IBERIA). Si es 060- es Iberia Express y aplica OTRO procedimiento.",
+  "advertencias": [
+    { "nivel": "critico", "texto": "ESTE MANUAL SOLO APLICA PARA BILLETES 075- (IBERIA).", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "REGLA DE ORO DE MONTO: NUNCA informar el monto exacto del reembolso al cliente. El BO es quien calcula y aprueba el importe final.", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "RESPONSABILIDAD AGENCIAS: Si el billete fue emitido por una agencia (incluso si fue reemitido por Iberia), la agencia debe realizar el reembolso. Iberia NO reembolsa billetes de agencias.", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "ESTADO Y VIGENCIA: El billete debe estar en estado OPEN FOR USE (O) y la fecha de solicitud no debe superar los 18 meses desde el DOI (1 año para Compromiso de Calidad).", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "FORMA DE PAGO: En ningún caso se reembolsará a una tarjeta o cuenta distinta. Siempre se reembolsará a la misma tarjeta con la que se realizó el pago original.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "TIEMPOS DE TRAMITACIÓN: Procesamiento por Back Office en 72 horas. Reflejo en cuenta bancaria en 7 días o según el ciclo bancario del cliente.", "confianza": "verbatim" }
+  ],
+  "fuente": {
+    "documento": "manual/reembolso  latinoamerica/ (2 capturas) + CONDICIONES GENERALES pegadas por el usuario",
+    "tipo": "material-formacion-interno",
+    "fecha": "2024-06",
+    "recibido": "2026-08-07",
+    "confianzaGlobal": "verbatim",
+    "nota": "Título del material: 'REEMBOLSOS LATAM GENERAL — JUNIO, 2024'. OJO: el bot interno EverGPT respondió que NO tiene este documento en su base — o sea, este material es una fuente que el bot corporativo desconoce."
+  },
+  "pasos": [
+    {
+      "n": 1,
+      "sistema": "natiba",
+      "proceso": "Acceder a la reserva",
+      "comando": null,
+      "explicacion": "Para ingresar a la reserva SIEMPRE debemos intentarlo primero desde Natiba, solicitando Código de reserva (PNR) y apellido del pasajero. Con esto aseguramos el filtro de seguridad.",
+      "entrada": [
+        "APELLIDO DEL PASAJERO",
+        "LOCALIZADOR (PNR)"
+      ],
+      "confianza": "verbatim"
+    },
+    {
+      "n": 2,
+      "sistema": "amadeus",
+      "proceso": "COMPROBAR RESPONSABILIDAD — oficina de emisión PV/IATA",
+      "comando": "PV/IOI",
+      "plantilla": "PV/{oficina}",
+      "explicacion": "Verifica la responsabilidad de emisión del TKT. Consultar si el PNR pertenece a una agencia o a Iberia. Si es de agencia —incluso si el billete fue reemitido por Iberia— la agencia debe realizar el reembolso. Iberia no reembolsa billetes de agencias: el cliente debe contactar a la agencia emisora.",
+      "confianza": "verbatim",
+      "esBloqueante": true,
+      "nota": "HUECO CERRADO (08AGO26): el manual #3593 \"9.4 TRANSACCIONES UTILES\" documenta PV = 'VERIFICAR RESPONSABILIDAD DE EMISION DE TKT', ejemplo PV/IOI. El manual de reembolsos pedía el paso sin dar la transacción."
+    },
+    {
+      "n": 3,
+      "sistema": "amadeus",
+      "proceso": "ESTADO DEL BILLETE",
+      "comando": null,
+      "explicacion": "El estado del billete debe ser \"OPEN FOR USE\" (O).",
+      "confianza": "verbatim",
+      "esBloqueante": true
+    },
+    {
+      "n": 4,
+      "sistema": "amadeus",
+      "proceso": "VIGENCIA DEL BILLETE",
+      "comando": null,
+      "explicacion": "El DOI (fecha de emisión original) respecto a la fecha de solicitud no debe superar 18 MESES de vigencia.",
+      "confianza": "verbatim",
+      "esBloqueante": true
+    },
+    {
+      "n": 5,
+      "sistema": "iberianet",
+      "proceso": "PENALIZACIÓN Y GASTOS DE GESTIÓN",
+      "comando": null,
+      "explicacion": "Informar y documentar la penalización y los gastos de gestión que se aplicarán, ya que serán deducidos del reembolso.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 6,
+      "sistema": "amadeus",
+      "proceso": "Si el reembolso es por CONDICIONES DE TARIFA — cotizar",
+      "comando": "FQP",
+      "variantes": [
+        "FQD"
+      ],
+      "explicacion": "Hacer FQP / FQD o cotización a histórico, y elegir la opción que contenga el FAREBASIS correcto.",
+      "confianza": "derivado",
+      "nota": "Viene del resumen de EverGPT citando 'dia. 345', no del documento original. El uso de FQP/FQD sí está corroborado por docs/NOTAS_IBERIA_PROMPT2.md. CONFIRMAR la sintaxis exacta."
+    },
+    {
+      "n": 7,
+      "sistema": "amadeus",
+      "proceso": "Consultar condiciones de tarifa / penalidad",
+      "comando": "FQN 02 * PE",
+      "plantilla": "FQN {lineaTarifa} * PE",
+      "explicacion": "02 = línea de tarifa elegida · PE = constante. Muestra las condiciones de la tarifa cotizada, incluida la penalización.",
+      "confianza": "verbatim",
+      "nota": "DISCREPANCIA CERRADA (08AGO26). Tres fuentes coinciden en el asterisco: #3058 paso 5 (\"FQN 02 * PE\"), docs/MANUAL_CAMBIO_VOLUNTARIO_SIN_SEGMENTO.md (\"FQN02*PE\") y el usuario, agente Iberia en activo (\"el FQN SIEMPRE va con *, es para mirar la penalidad\"). El \"FQN01PE\" del bot EverGPT y el \"FQN02PE\" de #3121/#3113 son erratas de transcripcion."
+    },
+    {
+      "n": 8,
+      "sistema": "salesforce",
+      "proceso": "Crear el caso de reembolso",
+      "comando": null,
+      "explicacion": "Si la solicitud cumple con los requisitos, crea el caso de reembolso para que sea evaluado por el BO y se pueda realizar el reembolso.",
+      "confianza": "verbatim"
+    },
+    {
+      "n": 9,
+      "sistema": "salesforce",
+      "proceso": "Reembolsos PARCIALES — qué decirle al cliente",
+      "comando": null,
+      "explicacion": "Transmite al cliente la comprensión de la situación y la disposición para crear el caso. Enfatiza que el área especializada revisará la solicitud y determinará el monto final del reembolso.",
+      "confianza": "verbatim"
+    }
+  ],
+  "reglasNegocio": [
+    {
+      "id": "plazos",
+      "texto": "El reembolso se realizará en 72 horas por parte del BO, pero se verá reflejado en la cuenta bancaria del cliente de 7 días a el ciclo bancario del cliente.",
+      "confianza": "verbatim"
+    },
+    {
+      "id": "remisiones-escenario-1",
+      "texto": "Si el billete tiene remisiones se consideran las condiciones de tarifa del TKT OPEN. Escenario 1: la tarifa original es reembolsable pero la remisión NO lo es → NO se aplica reembolso de la tarifa original.",
+      "confianza": "verbatim"
+    },
+    {
+      "id": "remisiones-escenario-2",
+      "texto": "Escenario 2: la tarifa original NO es reembolsable pero la remisión SÍ lo es → solo se genera reembolso en base al cambio.",
+      "confianza": "verbatim"
+    },
+    {
+      "id": "forma-de-pago",
+      "texto": "En ningún caso se reembolsará a una tarjeta o cuenta distinta. Siempre a la misma tarjeta del pago original.",
+      "confianza": "verbatim"
+    }
+  ],
+  "huecosConocidos": [
+    "Falta el comando exacto para leer el estado OPEN FOR USE del billete (paso 3) — probablemente TWD, sin confirmar.",
+    "Falta el procedimiento de pantalla de Salesforce (qué campos rellenar en el caso)."
+  ],
+  "capturas": [
+    "manual/reembolso  latinoamerica/IMG-20240625T125014804.png",
+    "manual/reembolso  latinoamerica/IMG-20250910T115001152.png"
+  ]
+}

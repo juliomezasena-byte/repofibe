@@ -1,0 +1,43 @@
+{
+  "id": "cambio-involuntario-misma-clase-ruta",
+  "titulo": "Cambio involuntario — MISMA clase y ruta (revalidación directa)",
+  "aerolinea": "IB",
+  "categoria": "reemision",
+  "resumen": "Cambio de vuelo cuando se conserva la MISMA CLASE y la MISMA RUTA. Se revalida el billete con TTP/ETRV, sin reemisión ni cobro.",
+  "aplicaSolo": "SOLO cuando la ruta Y la clase se mantienen. Si cambia alguna de las dos, aplica el procedimiento hermano (#3638, cambio-involuntario-diferente-clase-ruta).",
+  "advertencias": [
+    { "nivel": "critico", "texto": "REQUISITO EXCLUSIVO: este procedimiento SOLO se puede realizar siempre y cuando sea la MISMA RUTA y la MISMA CLASE.", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "ELEMENTO FHE: obligatorio asociar el billete al pasajero antes de cambiar vuelos. Para infante se usa FHE INF 075-.../P1 asociando al adulto P1.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "REVALIDACIÓN TTP/ETRV: actualiza el mismo billete con los nuevos vuelos sin necesidad de cotizar penalidad ni generar TST de reemisión.", "confianza": "verbatim" }
+  ],
+  "fuente": {
+    "documento": "IberiaNet Lite — #3639 \"2. MISMA CLASE Y RUTA\" (hermano de #3638)",
+    "tipo": "manual-oficial-interno",
+    "recibido": "2026-08-08",
+    "confianzaGlobal": "verbatim",
+    "nota": "Rescatado el 08AGO26 de cambio-involuntario-clase-ruta.json, donde había sobrescrito por error el contenido de #3638. Ahora cada manual tiene su archivo."
+  },
+  "diferenciaConElHermano": {
+    "confianza": "derivado",
+    "nota": "Comparación hecha al separar los dos archivos; el manual no la enuncia.",
+    "tabla": [
+      { "aspecto": "Cuándo aplica", "mismaClaseYRuta": "Misma ruta Y misma clase", "diferenteClaseORuta": "Cambia la ruta y/o la clase (máx. 250 millas de desvío)" },
+      { "aspecto": "Motor", "mismaClaseYRuta": "TTP/ETRV (revalidación)", "diferenteClaseORuta": "FXI / FXI/SC (cotización involuntaria)" },
+      { "aspecto": "¿Genera TST?", "mismaClaseYRuta": "No", "diferenteClaseORuta": "Sí" },
+      { "aspecto": "Pasos", "mismaClaseYRuta": "9", "diferenteClaseORuta": "19" }
+    ]
+  },
+  "pasos": [
+    { "n": 0, "sistema": "natiba", "proceso": "Filtro de seguridad", "comando": null, "explicacion": "APELLIDO + PNR.", "confianza": "verbatim", "esBloqueante": true },
+    { "n": 1, "sistema": "amadeus", "proceso": "Colocar el TKT en FHE (adulto / child)", "comando": "FHE 075-1422342526/P1", "plantilla": "FHE {numeroBillete}/P{pasajero}", "explicacion": "FHE asocia el billete al pasajero.", "confianza": "verbatim" },
+    { "n": 1.1, "sistema": "amadeus", "proceso": "Colocar el TKT del INFANTE en FHE", "comando": "FHE INF 075-1422342526/P1", "plantilla": "FHE INF {numeroBillete}/P{pasajeroAdulto}", "explicacion": "P1 = número del adulto que va con el infante.", "confianza": "verbatim" },
+    { "n": 2, "sistema": "amadeus", "proceso": "Eliminar el TKT en la línea FA (solo si aplica)", "comando": "XE 14", "plantilla": "XE {lineaFA}", "explicacion": "14 = línea del elemento FA del adulto.", "confianza": "verbatim", "opcional": true },
+    { "n": 3, "sistema": "amadeus", "proceso": "Buscar fechas de vuelo", "comando": "AN 11MAR MADBOG", "variantes": ["AN 11MAR MADBOG * 23OCT", "SN 11MAR MADBOG"], "explicacion": "AN para disponibilidad, SN para todas las clases ofertadas. PRO TIP: MY = día anterior, MN = día siguiente.", "confianza": "verbatim" },
+    { "n": 4, "sistema": "amadeus", "proceso": "Seleccionar plazas EN LA MISMA CLASE ORIGINAL", "comando": "SS 2 A 1", "variantes": ["SS 2 A 1 * S 11", "SS 2 A S 1"], "explicacion": "2 = plazas · A = clase elegida, que DEBE coincidir con la clase original · 1 = línea de vuelo.", "confianza": "verbatim", "esBloqueante": true },
+    { "n": 5, "sistema": "amadeus", "proceso": "Eliminar los segmentos viejos que el cliente ya no va a usar", "comando": "XE 14", "plantilla": "XE {lineaSegmentosViejos}", "explicacion": "14 = línea de los segmentos anteriores.", "confianza": "verbatim" },
+    { "n": 6, "sistema": "amadeus", "proceso": "Revalidar el billete", "comando": "TTP/ETRV/L15/S2-4/E1-2/RT", "plantilla": "TTP/ETRV/L{lineaBillete}/S{segmentosNuevos}/E{cuponesTkt}/RT", "explicacion": "Actualiza el mismo billete con los nuevos vuelos. L15 = línea del billete · S2-4 = nuevos segmentos · E1-2 = cupones.", "confianza": "verbatim" },
+    { "n": 7, "sistema": "amadeus", "proceso": "Abrir el billete y validar que los vuelos sean los correctos", "comando": "TWD/TKT 075-1422342526", "variantes": ["TWD/L16"], "explicacion": "Valida el billete actualizado.", "confianza": "verbatim" },
+    { "n": 8, "sistema": "amadeus", "proceso": "Enviar itinerario y billetes electrónicos", "comando": "IBP-EMLA/LPSP", "variantes": ["IEPJ-EMLA/LPSP", "ITR-EMLA"], "explicacion": "IBP = itinerario · IEPJ = itinerario y servicios · ITR = billetes electrónicos.", "confianza": "verbatim" },
+    { "n": 8.1, "sistema": "resiber", "proceso": "Enviar documentos desde RESIBER", "comando": "ITP:/RESERVA/EMAIL", "variantes": ["DTR TN 075-1234567890,EML/EMAIL", "DEMR DN 075-1234567890,EML/EMAIL"], "explicacion": "Itinerario · billetes electrónicos · EMD.", "confianza": "verbatim" }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "id": "formas-pago-latam",
+  "titulo": "Formas de pago LATAM #3123",
+  "aerolinea": "IB",
+  "categoria": "pagos",
+  "resumen": "Reglas de moneda, cuotas, franquicias y comunicación de PCC por mercado LATAM. No captura datos sensibles de tarjeta.",
+  "aplicaSolo": "Reservas gestionadas en mercados LATAM según país de cobro.",
+  "advertencias": [
+    { "nivel": "critico", "texto": "Siempre informar al pasajero que tiene PCC.", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "La tarjeta, CVV, token PCI y número completo nunca se guardan en ejercicios, PNR ni logs.", "confianza": "derivado" },
+    { "nivel": "alto", "texto": "El texto principal indica Guatemala en USD, mientras el resumen aportado indica GTQ. Se conserva como discrepancia pendiente; no se elige una moneda automáticamente.", "confianza": "discrepancia" }
+  ],
+  "fuente": { "documento": "IberiaNet Lite — #3123 FORMAS DE PAGO", "tipo": "manual-oficial-interno", "recibido": "2026-08-12", "confianzaGlobal": "verbatim-con-discrepancia" },
+  "mercados": [
+    { "pais": "ARGENTINA", "moneda": "ARS", "cuotas": [1], "franquicias": ["AMEX", "MASTERCARD", "VISA"] },
+    { "pais": "CHILE", "moneda": "CLP", "cuotas": [1, 3, 6, 9, 12], "franquicias": ["AMEX", "MASTERCARD", "VISA", "DINERS"] },
+    { "pais": "COLOMBIA", "moneda": "COP", "cuotas": "1-36", "franquicias": ["AMEX", "MASTERCARD", "VISA", "DINERS"] },
+    { "pais": "COSTA RICA", "moneda": "CRC", "cuotas": [1], "franquicias": ["AMEX", "MASTERCARD", "VISA"] },
+    { "pais": "ECUADOR", "moneda": "USD", "cuotas": "3-24 meses", "franquicias": ["AMEX", "MASTERCARD", "VISA", "DINERS"] },
+    { "pais": "EL SALVADOR", "moneda": "USD", "cuotas": [1], "franquicias": ["AMEX", "MASTERCARD", "VISA"] },
+    { "pais": "GUATEMALA", "moneda": "USD", "cuotas": [1], "franquicias": ["AMEX", "MASTERCARD", "VISA"], "discrepanciaResumen": "El resumen dice GTQ; el texto principal dice USD." },
+    { "pais": "HONDURAS", "moneda": "USD", "cuotas": [1], "franquicias": ["AMEX", "MASTERCARD", "VISA"] },
+    { "pais": "MEXICO", "moneda": "MXN", "cuotas": "ver detalle", "franquicias": ["AMEX", "MASTERCARD", "VISA", "DINERS"], "condiciones": "Solo tarjetas emitidas en México y monto mínimo 7.500 MXN." },
+    { "pais": "NICARAGUA", "moneda": "USD", "cuotas": [1], "franquicias": ["AMEX", "MASTERCARD", "VISA"] },
+    { "pais": "PANAMA", "moneda": "USD", "cuotas": [1], "franquicias": ["AMEX", "MASTERCARD", "VISA"] },
+    { "pais": "PERU", "moneda": "USD", "cuotas": [1], "franquicias": ["AMEX", "MASTERCARD", "VISA", "DINERS"] },
+    { "pais": "REPUBLICA DOMINICANA", "moneda": "USD", "cuotas": [1], "franquicias": ["AMEX", "MASTERCARD", "VISA", "DISCOVER", "DINERS"] },
+    { "pais": "URUGUAY", "moneda": "USD", "cuotas": [1], "franquicias": ["AMEX", "MASTERCARD", "VISA", "DINERS"] },
+    { "pais": "VENEZUELA", "moneda": "USD", "cuotas": [1], "franquicias": ["AMEX", "MASTERCARD", "VISA", "DINERS"] }
+  ],
+  "mexicoCuotas": [
+    { "franquicia": "AMEX", "cuotas": [3, 6], "minimo": "7500 MXN", "emisor": "México" },
+    { "franquicia": "MASTERCARD", "cuotas": [3, 6], "minimo": "7500 MXN", "emisor": "Banco Santander" },
+    { "franquicia": "VISA", "cuotas": [3, 6, 9], "minimo": "7500 MXN", "emisor": "Banco Santander" },
+    { "franquicia": "DINERS", "cuotas": [3, 6], "minimo": "7500 MXN", "emisor": "Banco Santander" }
+  ],
+  "pagoSingle": { "descripcion": "Cobro inmediato, aunque aún no exista documento emitido.", "ejemplo": "FP MS-WEB,114949000VU9160450V", "nota": "El cobro permanece en Iberia si se voidea." },
+  "pasos": [
+    { "n": 1, "sistema": "generalidades", "proceso": "Identificar mercado y moneda", "comando": null, "explicacion": "Determinar país de cobro antes de ofrecer cuotas o franquicias.", "confianza": "verbatim", "esBloqueante": true },
+    { "n": 2, "sistema": "pagos", "proceso": "Validar moneda, cuotas y franquicia", "comando": null, "explicacion": "Comparar la tarjeta del cliente con las reglas del país. En México validar emisor y mínimo de 7.500 MXN.", "confianza": "verbatim", "esBloqueante": true },
+    { "n": 3, "sistema": "pagos", "proceso": "Informar PCC", "comando": null, "explicacion": "Informar al pasajero que tiene PCC.", "confianza": "verbatim", "esBloqueante": true },
+    { "n": 4, "sistema": "amadeus", "proceso": "Registrar forma de pago autorizada", "comando": "FP {tramaAutorizadaPCI}", "explicacion": "La trama debe proceder del canal PCI/Travel Pay autorizado. En práctica se usa un token ficticio claramente marcado.", "confianza": "verbatim", "esBloqueante": true }
+  ]
+}

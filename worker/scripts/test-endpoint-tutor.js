@@ -41,7 +41,7 @@ function noContiene(nombre, texto, frag) {
 // ── 0 · El bundle del Worker lleva todos los manuales ───────────
 console.log('\n--- EL BUNDLE ESTÁ COMPLETO ---');
 const enDisco = readFileSync(join(RAIZ, 'public', 'procedimientos', '_sistemas.json'), 'utf8');
-comprobar('lleva los 29 procedimientos', Object.keys(procedimientos).filter((k) => !k.startsWith('_')).length, 29);
+  comprobar('lleva los 41 procedimientos', Object.keys(procedimientos).filter((k) => !k.startsWith('_')).length, 41);
 comprobar('lleva _sistemas para el conmutador', !!procedimientos._sistemas, true);
 comprobar('y el conmutador ":" está dentro', procedimientos._sistemas.conmutadorEntreSistemas.comando, ':');
 void enDisco;
@@ -56,7 +56,7 @@ const iaQueMiente = async () => ({
 });
 
 const split = procedimientos['generar-split'];
-const avance = siguientePaso(split, {});
+const avance = siguientePaso(split, { datos: { numeroPasajero: 1 } });
 const textoIa = await iaQueMiente();
 
 // Así se ensambla en el handler: el comando viene de `avance`, jamás del texto.

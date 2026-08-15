@@ -1,0 +1,26 @@
+{
+  "id": "reserva-espejo",
+  "titulo": "Reserva Espejo — creación manual para billetes placa no 075",
+  "aerolinea": "IB",
+  "categoria": "ticketing",
+  "resumen": "Creación manual de PNR para replicar el itinerario del pasajero cuando el billete es de otra aerolínea y se necesita un PNR activo en Amadeus antes de procesar el cambio involuntario.",
+  "aplicaSolo": "Billetes placa diferente a 075 sin reserva activa en Amadeus.",
+  "advertencias": [
+    { "nivel": "critico", "texto": "USO EXCLUSIVO: Se utiliza cuando el billete es de placa diferente a 075 y se requiere una reserva espejo en el sistema para poder gestionar el cambio involuntario.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "EMISIÓN INMEDIATA TKOK: El tiempo de emisión se fija con TKOK y la forma de pago se procesará inmediatamente vía PCI Pal o Travel Pay autorizada por Coach.", "confianza": "verbatim" }
+  ],
+  "fuente": {
+    "documento": "IberiaNet Lite — #3641 \"1. RESERVA ESPEJO\"",
+    "tipo": "manual-oficial-interno",
+    "recibido": "2026-08-11",
+    "confianzaGlobal": "verbatim"
+  },
+  "pasos": [
+    { "n": 1, "sistema": "amadeus", "proceso": "Buscar fechas de vuelo", "comando": "AN 11MAR MADBOG", "explicacion": "AN fecha ruta. PRO TIP: MY = día anterior, MN = día siguiente.", "confianza": "verbatim" },
+    { "n": 2, "sistema": "amadeus", "proceso": "Seleccionar plazas", "comando": "SS 2 A 1", "variantes": ["SS 2 A S 1"], "explicacion": "SS plazas clase línea.", "confianza": "verbatim" },
+    { "n": 3, "sistema": "amadeus", "proceso": "Agregar nombres de pasajeros", "comando": "NM1 MARTINEZ/PATROCLO", "variantes": ["NM1 ALMANZA/JUAN(CHD/13FEB16)", "NM1 PEREZ/SARA(INFPEREZ/LUCY/01JAN24)", "FFAIB-12345678"], "explicacion": "Adulto, Child con fecha de nacimiento, Adulto + Infante o viajero frecuente Iberia Plus.", "confianza": "verbatim" },
+    { "n": 4, "sistema": "amadeus", "proceso": "Incluir datos de contacto (Correo y Teléfono)", "comando": "APE- AB@AB.COM", "variantes": ["SR CTCE- AB//AB.COM", "AP+ 34 63232323", "SR CTCM- 34 63232323"], "explicacion": "Correo (reemplazando @ por // en Resiber) y teléfono.", "confianza": "verbatim" },
+    { "n": 5, "sistema": "amadeus", "proceso": "Establecer tiempo de emisión y guardar para obtener PNR", "comando": "TKOK", "explicacion": "TKOK para emisión inmediata. Guardar con ER para obtener código de reserva PNR.", "confianza": "verbatim" },
+    { "n": 6, "sistema": "amadeus", "proceso": "Colocar el ticket en FHE", "comando": "FHE 075-1422342526/P1", "variantes": ["FHE INF075-1422342526/P1"], "explicacion": "Asociar el billete original al pasajero. Guardar con ER y proceder al manual de Cambio Involuntario (#3640).", "confianza": "verbatim" }
+  ]
+}

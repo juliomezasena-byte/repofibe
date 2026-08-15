@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "test": "node scripts/sync-procedimientos.mjs && node scripts/test-prompts.js && node scripts/test-quota.js && node scripts/test-auth-claims.js && node scripts/test-arbol.js && node scripts/test-tutor.js && node scripts/test-pantalla.js && node scripts/test-disponibilidad.js && node scripts/test-evaluacion.js && node scripts/test-coach.js && node scripts/test-publico.js && node scripts/test-endpoint-tutor.js",
+    "test": "node scripts/sync-procedimientos.mjs && node scripts/test-prompts.js && node scripts/test-quota.js && node scripts/test-auth-claims.js && node scripts/test-arbol.js && node scripts/test-tutor.js && node scripts/test-pantalla.js && node scripts/test-disponibilidad.js && node scripts/test-evaluacion.js && node scripts/test-coach.js && node scripts/test-publico.js && node scripts/test-gemini-contract.js && node scripts/test-seguridad-pagos.js && node scripts/test-endpoint-tutor.js && node scripts/test-caso.js && node scripts/test-resolver.js && node scripts/test-panama.js && node scripts/test-colombia.js && node scripts/test-nuevos-manuales.js && node scripts/test-manual-audit.js",
     "sync:procedimientos": "node scripts/sync-procedimientos.mjs"
   },
   "devDependencies": {

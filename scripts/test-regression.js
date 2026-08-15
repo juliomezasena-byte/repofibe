@@ -540,13 +540,13 @@ probarTolerancia('SN/AN entrega 3-5 opciones con línea 1..N y cabinas Y/C/J abi
     return ok ? null : 'alguna cabina Y/C/J cerrada (rompería la venta)';
   });
 // Dinamismo real: dos consultas seguidas NO deben ser idénticas.
-probarTolerancia('Dos consultas del mismo tramo dan vuelos distintos', ['AN25NOVBOGMIA'],
+probarTolerancia('Dos consultas del mismo tramo son reproducibles', ['AN25NOVBOGMIA'],
   (r) => {
     const firma = (d) => d.flights.map((f) => f.airline + f.flightNumber + f.departure).join('|');
     const a = firma(r.data);
     fsm.reset();
     const b = firma(fsm.process(parser.parse('AN25NOVBOGMIA'), flights, locations).data);
-    return a !== b ? null : 'las dos consultas fueron idénticas (no es dinámico)';
+    return a === b ? null : 'la misma consulta cambió de vuelos';
   });
 // En varias corridas aparecen escalas y clases cerradas (probabilístico).
 probarTolerancia('Aparecen escalas (stops=1) en varias consultas', ['AN25NOVBOGMIA'],

@@ -1,0 +1,56 @@
+{
+  "id": "on-hold-72h",
+  "titulo": "Reserva ON HOLD 72 horas (#3063)",
+  "aerolinea": "IB",
+  "categoria": "emision",
+  "resumen": "Crear una reserva ON HOLD, cobrar el depósito no reembolsable, crear el EMD y dejar la emisión pendiente por 72 horas.",
+  "aplicaSolo": "Reservas ON HOLD según mercado, moneda, destino y tarifa aplicables.",
+  "advertencias": [
+    { "nivel": "critico", "texto": "El plazo de 72 horas no es prorrogable. Si no se completa el pago, la reserva se cancela y se pierde el depósito inicial.", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "El depósito no es reembolsable si el cliente decide no emitir.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "El precio ON HOLD es por pasajero y depende de radio, país que llama, destino y tarifa.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "El flujo de pago PCI PAL/Travel Pay es un hueco operativo si no se aporta su manual específico; nunca inventar tokens.", "confianza": "hueco" },
+    { "nivel": "alto", "texto": "No mezclar la emisión del EMD del #3063 con la emisión del billete del subproceso #3686; son momentos distintos.", "confianza": "derivado" }
+  ],
+  "fuente": {
+    "documento": "IberiaNet Lite — #3063 ON HOLD 72 HRS",
+    "tipo": "manual-oficial-interno",
+    "recibido": "2026-08-12",
+    "confianzaGlobal": "verbatim"
+  },
+  "tablaPrecios": {
+    "espana": { "largoRadio": "10 EUR", "medioCortoRadio": "5 EUR" },
+    "usa": { "largoRadio": "10 USD", "medioCortoRadio": "5 USD" },
+    "restoPaises": { "largoRadio": "10 GBP", "medioCortoRadio": "5 GBP" }
+  },
+  "pasos": [
+    { "n": 1, "sistema": "amadeus", "proceso": "Buscar fechas solo ida", "comando": null, "plantilla": "AN {fecha} {origen}{destino}", "variantes": ["AN {fechaIda} {origen}{destino} * {fechaVuelta}", "SN {fecha} {origen}{destino}", "MY", "MN"], "explicacion": "AN busca disponibilidad; SN muestra todas las clases; MY día anterior; MN día siguiente.", "confianza": "verbatim" },
+    { "n": 2, "sistema": "amadeus", "proceso": "Seleccionar plazas", "comando": null, "plantilla": "SS {plazas} {clase} {linea}", "variantes": ["SS {plazas} {claseIda} {lineaIda} * {claseVuelta} {lineaVuelta}", "SS {plazas} {claseVuelo1} {claseVuelo2} {linea}"], "explicacion": "Para ida y vuelta se indican ambas clases y líneas. La cantidad de plazas se basa en pasajeros con asiento.", "confianza": "verbatim" },
+    { "n": 3, "sistema": "amadeus", "proceso": "Cotizar vuelos", "comando": null, "plantilla": "FXX/FF-{tarifa}", "variantes": ["FXX/FF-{tarifa}/RCH", "FXX/FF-{tarifa}/RIN", "FXX/FF-{tarifa}/RINADCH"], "explicacion": "Adulto, child, infante o varios tipos. Tarifas: BASIC, OPTIMA, COMFORT, FLEX; PEOPTIMA/PECOMFORT/PEFLEX; BUSOPTIMA/BUSCOMFORT/BUSFLEX.", "confianza": "verbatim" },
+    { "n": 3.1, "sistema": "amadeus", "proceso": "Recotizar si no hay tarifa para RBD", "comando": "FXR/FF-{tarifa}", "explicacion": "Si aparece NO FARES/RBD/CARRIER/PASSENGER TYPE, la tarifa no está disponible para las clases seleccionadas.", "confianza": "verbatim", "condicional": "NO FARES/RBD/CARRIER/PASSENGER TYPE" },
+    { "n": 4, "sistema": "amadeus", "proceso": "Documentar valores informados", "comando": "RM{fecha}*PAX AVDO VALOR TKT {detalleValores}//{iniciales}", "explicacion": "Registrar el valor por ADT, CHD e INF según corresponda.", "confianza": "verbatim" },
+    { "n": 5, "sistema": "amadeus", "proceso": "Buscar condiciones de tarifa", "comando": "FQN {lineaTarifa} * PE", "explicacion": "PE es la constante indicada por el manual.", "confianza": "verbatim" },
+    { "n": 6, "sistema": "amadeus", "proceso": "Documentar condiciones y convertir penalidad", "comando": "RM{fecha}PAX AVDO TKT {condiciones}//{iniciales}", "variantes": ["FQC {valor}USD/{monedaCobro}"], "explicacion": "Si el vuelo sale de Latinoamérica, la penalidad se cobra en USD y se convierte a la moneda cobrada.", "confianza": "verbatim" },
+    { "n": 7, "sistema": "amadeus", "proceso": "Agregar nombres", "comando": null, "plantilla": "NM1 {apellidoAdulto}/{nombreAdulto}", "variantes": ["NM1 {apellidoChild}/{nombreChild}(CHD/{fechaNacimientoChild})", "NM1 {apellidoAdulto}/{nombreAdulto}(INF{apellidoInfante}/{nombreInfante}/{fechaNacimientoInfante})", "FFAIB-{numeroIberiaPlus}"], "explicacion": "El INF va asociado al adulto y no ocupa plaza.", "confianza": "verbatim" },
+    { "n": 8, "sistema": "amadeus", "proceso": "Incluir contacto", "comando": "APE- {email}", "variantes": ["SR CTCE- {emailSSR}", "AP+ {telefono}", "SR CTCM- {telefono}"], "explicacion": "En CTCE se reemplaza @ por //. No inventar datos.", "confianza": "verbatim" },
+    { "n": 9, "sistema": "amadeus", "proceso": "Establecer límite de 72 horas", "comando": "TKTL {fechaLimite}/{horaZulu}", "explicacion": "Fecha y hora Zulu del límite de emisión.", "confianza": "verbatim" },
+    { "n": 10, "sistema": "amadeus", "proceso": "Marcar pago web y guardar", "comando": "OS YY HBFF", "variantes": ["ER"], "explicacion": "Guardar con ER para obtener el código de reserva.", "confianza": "verbatim", "opcional": true },
+    { "n": 11, "sistema": "amadeus", "proceso": "Guardar tarifa cotizada", "comando": null, "plantilla": "FXP/FF-{tarifa}", "variantes": ["FXP/FF-{tarifa}/RCH", "FXP/FF-{tarifa}/RIN", "FXT{opcion}/P{pasajero}", "FXT{opcion1}/P{pasajero1}//{opcion2}/P{pasajero2}"], "explicacion": "Seleccionar una o varias opciones solo cuando el sistema las muestre.", "confianza": "verbatim" },
+    { "n": 12, "sistema": "amadeus", "proceso": "Verificar TST", "comando": "TQT", "variantes": ["TQT/T1", "ER"], "explicacion": "TQT para un tipo de pasajero; TQT/T1 para varios.", "confianza": "verbatim" },
+    { "n": 13, "sistema": "amadeus", "proceso": "Enviar itinerario de la reserva ON HOLD", "comando": "IBP-EMLA/LPSP", "variantes": ["IEPJ-EMLA/LPSP"], "explicacion": "En una reserva ON HOLD este es el último paso del flujo de reserva antes del cobro/emisión posterior.", "confianza": "verbatim" },
+    { "n": 14, "sistema": "amadeus", "proceso": "Crear EMD ON HOLD", "comando": "IU IB NN1 HBFF {origen}/P{pasajero}", "variantes": ["IU IB NN1 HBFF {origen}/P{pasajero}"], "explicacion": "Usar el origen del vuelo y el pasajero.", "confianza": "verbatim" },
+    { "n": 15, "sistema": "amadeus", "proceso": "Añadir elemento SK", "comando": "SK HBFF IB", "explicacion": "Añadir el elemento SK del ON HOLD.", "confianza": "verbatim" },
+    { "n": 16, "sistema": "amadeus", "proceso": "Crear máscara TSM", "comando": "TMC/L{lineaSVC}", "explicacion": "L es la línea del elemento SVC.", "confianza": "verbatim" },
+    { "n": 17, "sistema": "amadeus", "proceso": "Verificar TSM", "comando": "TQM", "variantes": ["TQM/M{numeroTSM}"], "explicacion": "TQM para un tipo de pasajero; TQM/M1 para varios.", "confianza": "verbatim" },
+    { "n": 18, "sistema": "amadeus", "proceso": "Agregar valor al TSM", "comando": "TMI/M{numeroTSM}/FEUR{valor}/CV-{valor}/CR-{vuelo}-{fecha}-{ruta}", "variantes": ["TMI/ALL/FEUR{valor}/CV-{valor}/CR-{vuelo}-{fecha}-{ruta}"], "explicacion": "ALL actualiza todos los TSM. El valor y la referencia del vuelo deben corresponder al caso.", "confianza": "verbatim" },
+    { "n": 19, "sistema": "amadeus", "proceso": "Enviar itinerario final del ON HOLD", "comando": "IBP-EMLA/LPSP", "variantes": ["IEPJ-EMLA/LPSP"], "explicacion": "Es el último paso si la reserva queda solo ON HOLD.", "confianza": "verbatim" },
+    { "n": 20, "sistema": "amadeus", "proceso": "Registrar titular de tarjeta para emisión posterior", "comando": "RMCSY/{nombreTitular}:{apellidoTitular}", "variantes": ["ER"], "explicacion": "Guardar el nombre del titular del nuevo Cyber.", "confianza": "verbatim", "condicional": "emision-dentro-plazo" },
+    { "n": 21, "sistema": "externo", "proceso": "Tomar datos de tarjeta", "comando": null, "explicacion": "Consultar PCI PAL o Travel Pay. El manual no aporta la trama segura; no inventar ni guardar tokens reales.", "confianza": "hueco", "nota": "El manual remite a PCI PAL o Travel Pay, pero no aporta la pantalla ni la transacción para capturar datos. Detén el flujo y confirma con el supervisor; no solicites ni pegues datos de tarjeta aquí.", "condicional": "emision-dentro-plazo" },
+    { "n": 22, "sistema": "amadeus", "proceso": "Agregar forma de pago del TSM", "comando": "TMI/M{numeroTSM}/FP-{tokenPCI}", "variantes": ["FP {tokenPCI} +BF,1/{moneda}{valor}"], "explicacion": "Existen dos sintaxis en las fuentes #3063 y #3686; usar la indicada por la operación y nunca exponer el token.", "confianza": "verbatim", "condicional": "emision-dentro-plazo" },
+    { "n": 23, "sistema": "amadeus", "proceso": "Cargar perfil PCI", "comando": "$$CONFIG:CCTYPE/2", "confianza": "verbatim", "condicional": "emision-dentro-plazo" },
+    { "n": 24, "sistema": "amadeus", "proceso": "Realizar cargo", "comando": "$$PAY", "confianza": "verbatim", "condicional": "emision-dentro-plazo" },
+    { "n": 25, "sistema": "amadeus", "proceso": "Borrar Cyber", "comando": "XE{lineaCyber}", "explicacion": "XE seguido de la línea donde está el Cyber, por ejemplo XE17.", "confianza": "verbatim", "condicional": "emision-dentro-plazo" },
+    { "n": 26, "sistema": "amadeus", "proceso": "Emitir EMD del ON HOLD", "comando": "TTM1/M{numeroTSM}/RT", "variantes": ["TTP1/ET/RT"], "explicacion": "El #3063 indica TTM1/M#/RT para el EMD; el #3686 indica TTP1/ET/RT para emitir el billete. No elegir automáticamente entre ambos sin identificar la operación.", "confianza": "verbatim", "condicional": "emision-dentro-plazo" },
+    { "n": 27, "sistema": "amadeus", "proceso": "Enviar documentación final", "comando": "IBP-EMLA/LPSP", "variantes": ["IEPJ-EMLA/LPSP", "ITR-EMLA"], "explicacion": "Enviar itinerario, servicios o billetes electrónicos según el resultado.", "confianza": "verbatim", "condicional": "emision-dentro-plazo" }
+  ]
+}

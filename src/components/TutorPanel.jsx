@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bot, HelpCircle, ClipboardPaste, CheckCircle2, XCircle, AlertTriangle, ArrowRightLeft, Loader2, FileText, BookOpen, Sparkles, ChevronRight } from 'lucide-react';
+import { Bot, HelpCircle, ClipboardPaste, CheckCircle2, XCircle, AlertTriangle, ArrowRightLeft, Loader2, FileText, BookOpen, Sparkles, ChevronRight, MessageCircle, Target } from 'lucide-react';
 import { pedirPaso } from '../lib/tutorClient';
 import { getExercisesByCategory } from '../lib/procedureExercises';
-import { aEstadoDelMotor } from '../lib/seedPnr';
 import { useAppContext } from '../context/AppContext';
+import { Link } from 'react-router-dom';
 
 const SISTEMAS = {
   amadeus: { nombre: 'Amadeus', clase: 'tut-sis-amadeus' },
@@ -19,12 +19,11 @@ const CONFIANZA = {
   hueco: { texto: 'sin documentar', clase: 'tut-conf-hueco' }
 };
 
-export function TutorPanel() {
-  const { pnrFsm } = useAppContext ? useAppContext() || {} : {};
+export function TutorPanel({ onStateChange = null, routeMode = 'free' }) {
+  const { handleStartProcedureExercise, handleUpdatePracticeSession, terminalRef, exerciseSession } = useAppContext ? useAppContext() || {} : {};
   const [caso, setCaso] = useState({ intencion: null });
   const [respuestas, setRespuestas] = useState({});
   const [estado, setEstado] = useState(null);
-  const [comando, setComando] = useState('');
   const [pantalla, setPantalla] = useState('');
   const [ejercicioActivo, setEjercicioActivo] = useState(null);
   const [mostrarCatalogo, setMostrarCatalogo] = useState(false);
@@ -37,7 +36,12 @@ export function TutorPanel() {
   const [revelado, setRevelado] = useState(false);
   // El hilo de conversación: lo que el alumno escribe en sus palabras y lo que
   // el coach le responde. Es lo que hace que se sienta "hablar con él".
-  const [chat, setChat] = useState([]);
+  const [chat, setChat] = useState([
+    {
+      rol: 'coach',
+      texto: 'Hola. Soy tu tutor de Amadeus e Iberia. Escríbeme el caso con tus palabras o pega la pantalla; identificaré el manual, conservaré el contexto y te diré solo el siguiente paso.'
+    }
+  ]);
   const [mensaje, setMensaje] = useState('');
   // El modo vive en localStorage y lo comparte con /guia. Antes solo se LEÍA
   // aquí y el interruptor estaba en la otra página: si te atascabas a ciegas,
@@ -49,11 +53,24 @@ export function TutorPanel() {
       return 'ciegas';
     }
   });
+  const [assistantMode, setAssistantModeState] = useState(() => {
+    try {
+      return localStorage.getItem('cryptic-assistant-mode-v1') || 'libre';
+    } catch {
+      return 'libre';
+    }
+  });
 
   const cambiarModo = (modo) => {
     setTutorModeState(modo);
     try {
       localStorage.setItem('cryptic-tutor-mode-v1', modo);
+    } catch { /* modo privado: se queda en memoria */ }
+  };
+  const cambiarModoAsistente = (modo) => {
+    setAssistantModeState(modo);
+    try {
+      localStorage.setItem('cryptic-assistant-mode-v1', modo);
     } catch { /* modo privado: se queda en memoria */ }
   };
   // Contador de peticiones: descarta explicaciones que lleguen tarde.
@@ -63,6 +80,10 @@ export function TutorPanel() {
   const pregunta = estado?.decision?.siguientePregunta;
   const sistema = SISTEMAS[paso?.sistema] || null;
   const confianza = CONFIANZA[paso?.confianza] || null;
+
+  useEffect(() => {
+    onStateChange?.(estado);
+  }, [estado, onStateChange]);
 
   const catalogByCat = getExercisesByCategory();
 
@@ -91,10 +112,7 @@ export function TutorPanel() {
     // El seed viene con nombres legibles (flightNumber, bookingClass, from/to)
     // y el motor guarda otros (flight, class, route). Sin traducir, el PNR
     // arrancaba vacío y el renderizador rellenaba con sus valores por defecto.
-    const estadoSemilla = aEstadoDelMotor(ejercicio.seedPnr);
-    if (estadoSemilla && pnrFsm) {
-      pnrFsm.setState(estadoSemilla);
-    }
+    handleStartProcedureExercise?.(ejercicio);
 
     avanzar({ procedimientoId: ejercicio.procedimientoId, reiniciar: true });
   };
@@ -124,7 +142,8 @@ export function TutorPanel() {
           ...(extra.caso || {}),
           respuestas: nuevasRespuestas,
           pantallas: nuevasPantallas,
-          pantalla: extra.salidaTerminal || undefined
+          pantalla: extra.salidaTerminal || undefined,
+          currentStep: extra.reiniciar ? null : (paso?.n ?? null)
         },
         pasoActual: extra.reiniciar ? null : (paso?.n ?? null),
         comandoEscrito: extra.comandoEscrito ?? null,
@@ -141,7 +160,12 @@ export function TutorPanel() {
       // Fase 1: lo determinista. Llega enseguida porque no espera al modelo.
       const datos = await pedirPaso({ ...peticion, conIA: false });
       setEstado(datos);
-      if (extra.comandoEscrito) setComando('');
+      handleUpdatePracticeSession?.({
+        manualStep: datos?.paso?.n ?? null,
+        manualTitle: datos?.paso?.proceso || datos?.paso?.titulo || null,
+        manualSystem: datos?.paso?.sistema || null,
+        manualConfidence: datos?.paso?.confianza || null
+      });
 
       // El worker no guarda estado: si dedujo la intención de lo que escribí,
       // la conservo para reenviarla y que el árbol no me repregunte.
@@ -221,15 +245,36 @@ export function TutorPanel() {
     setPantallas([]);
     setMostrarPegar(false);
     setError(null);
-    setChat([]);
+    setChat([{
+      rol: 'coach',
+      texto: 'Hola. Soy tu tutor de Amadeus e Iberia. Escríbeme el caso con tus palabras o pega la pantalla; identificaré el manual, conservaré el contexto y te diré solo el siguiente paso.'
+    }]);
     setMensaje('');
   }
 
   return (
-    <aside className="sidebar-panel tutor-panel" aria-live="polite">
+    <aside className="sidebar-panel tutor-panel" aria-live="polite" data-route-mode={routeMode}>
       <h2 className="panel-title">
         <Bot size={18} /> Tutor
       </h2>
+
+      <div className="tut-assistant-mode" role="group" aria-label="Modo del tutor">
+        <span className="tut-assistant-mode-label">Como quieres trabajar</span>
+        <button
+          type="button"
+          className={`tut-assistant-mode-btn ${assistantMode === 'libre' ? 'activo' : ''}`}
+          onClick={() => cambiarModoAsistente('libre')}
+        >
+          <MessageCircle size={13} /> Modo libre
+        </button>
+        <button
+          type="button"
+          className={`tut-assistant-mode-btn ${assistantMode === 'mision' ? 'activo' : ''}`}
+          onClick={() => cambiarModoAsistente('mision')}
+        >
+          <Target size={13} /> Mision guiada
+        </button>
+      </div>
 
       {/* El hilo de conversación: lo que le hablas y lo que te responde. Va
           arriba del todo porque es la vía principal — le escribes en tus
@@ -281,12 +326,38 @@ export function TutorPanel() {
         </ol>
       )}
 
+      {!estado && assistantMode === 'mision' && (
+        <section className="tut-start-card" aria-labelledby="tut-start-title">
+          <span className="tut-start-kicker">PUNTO DE PARTIDA · OPCIONAL</span>
+          <h2 id="tut-start-title">¿Qué quieres resolver?</h2>
+          <p>Elige un atajo o escribe tu caso. El tutor conservará el contexto y te llevará al procedimiento correspondiente.</p>
+          <div className="tut-start-options">
+            {[
+              ['emision', 'Comprar un billete nuevo'],
+              ['cambio', 'Cambiar un vuelo'],
+              ['reembolso', 'Que le devuelvan el dinero'],
+              ['servicio', 'Añadir un servicio']
+            ].map(([valor, texto]) => (
+              <button
+                key={valor}
+                type="button"
+                className="tut-start-option"
+                disabled={cargando}
+                onClick={() => responder('intencion', valor)}
+              >
+                {texto}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* El árbol necesita saber algo antes de decidir */}
       {pregunta && (
         <div className="tut-pregunta">
           <p className="tut-pregunta-texto">{pregunta.texto}</p>
           {pregunta.porQueImporta && <p className="tut-pregunta-porque">{pregunta.porQueImporta}</p>}
-          {pregunta.opciones && (
+          {pregunta.opciones && assistantMode === 'mision' && (
             <div className="tut-opciones">
               {pregunta.opciones.map((o) => (
                 <button
@@ -301,6 +372,11 @@ export function TutorPanel() {
               ))}
             </div>
           )}
+          {pregunta.opciones && assistantMode === 'libre' && (
+            <p className="tut-pregunta-libre">
+              Respóndeme con tus palabras; no tienes que elegir un botón. Conservaré tu respuesta y continuaré por el manual correcto.
+            </p>
+          )}
           {!pregunta.opciones && (
             <button type="button" className="quiz-big-btn" onClick={() => setMostrarPegar(true)}>
               <ClipboardPaste size={16} /> Pegar la pantalla
@@ -314,7 +390,7 @@ export function TutorPanel() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Sparkles size={18} color="var(--color-tutor)" />
           <span style={{ fontWeight: 'bold', fontSize: '14px', color: 'var(--text-light)' }}>
-            {ejercicioActivo ? `Ejercicio: ${ejercicioActivo.titulo}` : 'Tutor IA por Procedimiento'}
+            {ejercicioActivo ? `Ejercicio: ${ejercicioActivo.titulo}` : 'Asistente de casos'}
           </span>
         </div>
         <button
@@ -339,7 +415,7 @@ export function TutorPanel() {
       </div>
 
       {/* Catálogo Completo de Ejercicios Guiados por Procedimiento */}
-      {(!estado || mostrarCatalogo) && !cargando && (
+      {mostrarCatalogo && !cargando && (
         <div className="tut-catalogo-ejercicios" style={{ background: 'var(--bg-dark)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', padding: '14px', marginBottom: '16px' }}>
           <div style={{ marginBottom: '12px' }}>
             <h4 style={{ margin: '0 0 4px 0', fontSize: '15px', color: 'var(--text-light)', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -586,26 +662,34 @@ export function TutorPanel() {
 
       {/* Escribir el comando */}
       {paso?.comando && !estado?.terminado && (
-        <form
-          className="tut-form"
-          onSubmit={(e) => { e.preventDefault(); if (comando.trim()) avanzar({ comandoEscrito: comando }); }}
-        >
-          <input
-            type="text"
-            value={comando}
-            onChange={(e) => setComando(e.target.value)}
-            placeholder="Escribe el comando para comprobar (ej: FXP, DTR:...)"
-            disabled={cargando}
-            aria-label="Comando para el tutor"
-          />
-          <button type="submit" className="quiz-big-btn" disabled={!comando.trim() || cargando}>
-            Comprobar
-          </button>
-        </form>
+        <div className="tut-terminal-handoff">
+          {exerciseSession?.station && exerciseSession.station !== 'amadeus' ? (
+            <p><strong>Este paso no usa la terminal Amadeus.</strong> Sigue el manual y trabaja en la estación indicada: {exerciseSession.station}.</p>
+          ) : terminalRef?.current ? (
+            <>
+              <p><strong>La ejecución ocurre en la terminal.</strong> El tutor solo prepara el comando y lee la salida real.</p>
+            <button
+              type="button"
+              className="quiz-big-btn"
+              disabled={cargando}
+              onClick={() => terminalRef.current.setInput(paso.comando)}
+            >
+              <ArrowRightLeft size={15} /> Pasar comando al terminal
+            </button>
+            </>
+          ) : (
+            <>
+              <p><strong>La ejecución ocurre en la terminal.</strong> El tutor solo prepara el comando y lee la salida real.</p>
+            <Link to="/simulador" className="quiz-big-btn">
+              <ArrowRightLeft size={15} /> Abrir terminal para ejecutarlo
+            </Link>
+            </>
+          )}
+        </div>
       )}
 
       {/* Botón de avance para pasos de consulta / informativos que no llevan comando de terminal */}
-      {!paso?.comando && !estado?.terminado && (
+      {estado && !paso?.comando && !estado.terminado && (
         <button
           type="button"
           className="quiz-big-btn interactive-surface"

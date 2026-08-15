@@ -12,6 +12,7 @@ test.describe('smoke', () => {
 
     // La app cargo: el header del emulador muestra AMADEUS.
     await expect(page.getByText('AMADEUS 1A GDS')).toBeVisible();
+    await page.locator('.decision-card .decision-option').first().click();
 
     const input = page.locator('.cmd-input');
     await input.fill('SN 12 APR MEX SDQ');

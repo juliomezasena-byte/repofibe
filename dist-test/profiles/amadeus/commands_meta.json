@@ -1,0 +1,1221 @@
+{
+  "profile": "amadeus",
+  "version": "1.2.0",
+  "name": "Amadeus GDS Profile",
+  "commands": [
+    {
+      "code": "SN",
+      "category": "Schedules",
+      "name": "Schedule Neutral Display",
+      "description": "Muestra los vuelos de la ruta (Comando SN + Fecha + IATA Origen + IATA Destino). Ej: SN 12 APR MEX SDQ.",
+      "syntax": [
+        "SN {date} {origin} {destination}",
+        "SN{date}{origin}{destination}",
+        "SN{date} {origin} {destination}"
+      ],
+      "tokens": {
+        "date": "^(\\d{1,2}\\s?[A-Z]{3})",
+        "origin": "\\s?([A-Z]{3})",
+        "destination": "\\s?([A-Z]{3})"
+      },
+      "handler": "QUERY_SCHEDULE",
+      "examples": [
+        "SN 12 APR MEX SDQ",
+        "SN13MARLIMCOP",
+        "SN25NOVBOGMIA"
+      ],
+      "errors": {
+        "INVALID_CITY": "CHECK CITY CODES"
+      },
+      "normalize": "compact"
+    },
+    {
+      "code": "DAN",
+      "category": "Encoding/Decoding",
+      "name": "Encode City / Airport Name",
+      "description": "Busca el código IATA de 3 letras a partir del nombre de una ciudad o aeropuerto.",
+      "syntax": [
+        "DAN {cityName}"
+      ],
+      "tokens": {
+        "cityName": "^(.+)"
+      },
+      "handler": "ENCODE_CITY",
+      "examples": [
+        "DAN LIMA",
+        "DAN BOGOTA",
+        "DAN MADRID"
+      ],
+      "errors": {
+        "NOT_FOUND": "NO MATCH FOR CITY NAME"
+      }
+    },
+    {
+      "code": "DAC",
+      "category": "Encoding/Decoding",
+      "name": "Decode IATA City / Airport Code",
+      "description": "Decodifica el nombre completo de una ciudad y país a partir de su código IATA de 3 letras.",
+      "syntax": [
+        "DAC{cityCode}"
+      ],
+      "tokens": {
+        "cityCode": "^([A-Z]{3})"
+      },
+      "handler": "DECODE_CITY",
+      "examples": [
+        "DAC LIM",
+        "DAC BOG",
+        "DAC MAD"
+      ],
+      "errors": {
+        "INVALID_CODE": "CHECK IATA CITY CODE"
+      },
+      "normalize": "compact"
+    },
+    {
+      "code": "FQC",
+      "category": "Currency",
+      "name": "Foreign Currency Conversion",
+      "description": "Calcula la conversión entre divisas (ej: USD a COP) aplicando tasa BSR/IATA y gastos de gestión.",
+      "syntax": [
+        "FQC{amount}{fromCurrency}/{toCurrency}"
+      ],
+      "tokens": {
+        "amount": "^(\\d+(?:\\.\\d+)?)",
+        "fromCurrency": "^([A-Z]{3})/",
+        "toCurrency": "^([A-Z]{3})"
+      },
+      "handler": "CONVERT_CURRENCY",
+      "examples": [
+        "FQC35USD/COP",
+        "FQC100EUR/USD"
+      ],
+      "errors": {
+        "INVALID_CURRENCY": "CHECK CURRENCY CODE"
+      },
+      "normalize": "compact"
+    },
+    {
+      "code": "AN",
+      "category": "Availability",
+      "name": "Availability Display",
+      "description": "Muestra vuelos disponibles y clases abiertas (Ej: AN25NOVBOGMIA).",
+      "syntax": [
+        "AN{date}{origin}{destination}",
+        "AN {date} {origin} {destination}",
+        "AN{date}{origin}{destination}/A{airline}"
+      ],
+      "tokens": {
+        "date": "^(\\d{1,2}\\s?[A-Z]{3})",
+        "origin": "\\s?([A-Z]{3})",
+        "destination": "\\s?([A-Z]{3})",
+        "airline": "(?:/A([A-Z0-9]{2}))?"
+      },
+      "handler": "QUERY_AVAILABILITY",
+      "examples": [
+        "AN25NOVBOGMIA",
+        "AN 12 APR MEX SDQ"
+      ],
+      "errors": {
+        "INVALID_CITY": "CHECK CITY CODES",
+        "NO_FLIGHTS": "NO DIRECT FLIGHTS / CHECK DATES"
+      },
+      "normalize": "compact"
+    },
+    {
+      "code": "SS",
+      "category": "Booking",
+      "name": "Sell Segment (Venta de Puestos)",
+      "description": "Selecciona los puestos de los PAXS (SS + NRO_PASAJEROS + CLASE + NRO_VUELO). Ej: SS1Y1.",
+      "syntax": [
+        "SS{count}{class}{line}"
+      ],
+      "tokens": {
+        "count": "^(\\d{1})",
+        "class": "^([A-Z]{1,2})",
+        "line": "^(\\d{1,2})"
+      },
+      "handler": "SELL_SEGMENT",
+      "examples": [
+        "SS1Y1",
+        "SS2C3",
+        "SS1J1"
+      ],
+      "errors": {
+        "NO_AVAILABILITY": "CLASS CLOSED / NO SEATS AVAILABLE",
+        "INVALID_LINE": "CHECK LINE NUMBER"
+      },
+      "normalize": "compact"
+    },
+    {
+      "code": "NM",
+      "category": "Passenger",
+      "name": "Name Entry",
+      "description": "Registra el nombre de los pasajeros (PAXS) en la reserva.",
+      "syntax": [
+        "NM1{surname}/{firstname} {title}",
+        "NM{count}{surname}/{firstname1} {title1}/{firstname2} {title2}"
+      ],
+      "tokens": {
+        "count": "^(\\d{1})?",
+        "surname": "^([A-Z]+)/",
+        "firstname": "^([A-Z]+)",
+        "title": "(?: (MR|MRS|MS|MISS))?"
+      },
+      "handler": "ADD_NAME",
+      "examples": [
+        "NM1GARCIA/CARLOS MR",
+        "NM2PEREZ/JUAN MR/MARIA MRS"
+      ],
+      "errors": {
+        "INVALID_FORMAT": "FORMAT ERROR - NAME",
+        "DUPLICATE_NAME": "CHECK PASSENGER NAME"
+      }
+    },
+    {
+      "code": "AP",
+      "category": "Contact",
+      "name": "Add Contact Phone",
+      "description": "Agrega información de contacto telefónico del pasajero o agencia.",
+      "syntax": [
+        "AP{city} {phone}-{type}",
+        "AP+{codigo pais y telefono}"
+      ],
+      "tokens": {
+        "params": "^(.*)"
+      },
+      "handler": "ADD_CONTACT",
+      "examples": [
+        "APBOG 573001234567-M",
+        "AP+573001234567"
+      ],
+      "errors": {
+        "INVALID_FORMAT": "FORMAT ERROR - PHONE"
+      }
+    },
+    {
+      "code": "TK",
+      "category": "Ticketing",
+      "name": "Ticketing Option",
+      "description": "Define la opción o fecha límite para la emisión de tiquetes.",
+      "syntax": [
+        "TK OK",
+        "TK TL{date}"
+      ],
+      "tokens": {
+        "option": "^(OK|TL\\d{1,2}[A-Z]{3})"
+      },
+      "handler": "SET_TICKETING",
+      "examples": [
+        "TK OK",
+        "TK TL25NOV"
+      ],
+      "errors": {
+        "INVALID_FORMAT": "FORMAT ERROR - TK"
+      },
+      "normalize": "compact"
+    },
+    {
+      "code": "RF",
+      "category": "PNR Lifecycle",
+      "name": "Received From (Recibido De)",
+      "description": "RF = \"Recibido De\": registra QUIEN solicita la reserva o el cambio (el cliente o quien pide la gestion). Es un elemento OBLIGATORIO para poder cerrar y guardar el PNR con ER. Ej: RF CARLOS.",
+      "syntax": [
+        "RF {person}"
+      ],
+      "tokens": {
+        "person": "^(.+)"
+      },
+      "handler": "SET_RECEIVED_FROM",
+      "examples": [
+        "RF CARLOS",
+        "RF CLIENTE"
+      ],
+      "errors": {
+        "MISSING_PARAM": "FORMAT ERROR - RECEIVED FROM"
+      }
+    },
+    {
+      "code": "ERK",
+      "category": "PNR Lifecycle",
+      "name": "End and Redisplay (Keep)",
+      "description": "Guarda la reserva y la vuelve a mostrar, manteniendo el area de trabajo (variante de ER).",
+      "syntax": [
+        "ERK"
+      ],
+      "tokens": {},
+      "handler": "END_AND_REDISPLAY",
+      "examples": [
+        "ERK"
+      ],
+      "errors": {}
+    },
+    {
+      "code": "ER",
+      "category": "PNR Lifecycle",
+      "name": "End and Redisplay",
+      "description": "Guarda la reserva actual (crea PNR) y la vuelve a mostrar en pantalla.",
+      "syntax": [
+        "ER"
+      ],
+      "tokens": {},
+      "handler": "END_AND_REDISPLAY",
+      "examples": [
+        "ER"
+      ],
+      "errors": {
+        "NEED_NAME": "NEED NAME",
+        "NEED_ITINERARY": "NEED ITINERARY",
+        "NEED_PHONE": "NEED PHONE ELEMENT",
+        "NEED_TICKETING": "NEED TICKETING ELEMENT",
+        "NEED_RF": "NEED RECEIVED FROM"
+      }
+    },
+    {
+      "code": "ET",
+      "category": "PNR Lifecycle",
+      "name": "End Transact",
+      "description": "Guarda la reserva activa y limpia la pantalla del terminal.",
+      "syntax": [
+        "ET"
+      ],
+      "tokens": {},
+      "handler": "END_TRANSACT",
+      "examples": [
+        "ET"
+      ],
+      "errors": {
+        "NEED_PRINT": "CHECK MANDATORY PNR ELEMENTS (PRINT)"
+      }
+    },
+    {
+      "code": "IG",
+      "category": "PNR Lifecycle",
+      "name": "Ignore Transaction",
+      "description": "Ignora las modificaciones no guardadas y limpia el área de trabajo.",
+      "syntax": [
+        "IG"
+      ],
+      "tokens": {},
+      "handler": "IGNORE_TRANSACTION",
+      "examples": [
+        "IG"
+      ],
+      "errors": {}
+    },
+    {
+      "code": "RT",
+      "category": "PNR Display",
+      "name": "Redisplay PNR",
+      "description": "Vuelve a mostrar la reserva activa o abre un PNR guardado.",
+      "syntax": [
+        "RT",
+        "RT{pnrCode}"
+      ],
+      "tokens": {
+        "pnrCode": "^([A-Z0-9]{6})"
+      },
+      "handler": "REDISPLAY_PNR",
+      "examples": [
+        "RT",
+        "RTK8X9P2"
+      ],
+      "errors": {
+        "NOT_FOUND": "PNR NOT FOUND"
+      },
+      "normalize": "compact"
+    },
+    {
+      "code": "XE",
+      "category": "Cancelation",
+      "name": "Cancel Element",
+      "description": "Borra celdas de la reserva: una (XE1), un rango (XE1-3) o varias (XE4,8).",
+      "syntax": [
+        "XE{celda}",
+        "XE{desde}-{hasta}",
+        "XE{celda},{celda}"
+      ],
+      "tokens": {
+        "lineNumber": "^([0-9,-]+)"
+      },
+      "handler": "CANCEL_ELEMENT",
+      "examples": [
+        "XE1",
+        "XE1-3",
+        "XE4,8"
+      ],
+      "errors": {
+        "INVALID_LINE": "CHECK LINE NUMBER"
+      },
+      "normalize": "compact"
+    },
+    {
+      "code": "XI",
+      "category": "Cancelation",
+      "name": "Cancel Itinerary",
+      "description": "Cancela todos los segmentos de vuelo de la reserva activa.",
+      "syntax": [
+        "XI"
+      ],
+      "tokens": {},
+      "handler": "CANCEL_ITINERARY",
+      "examples": [
+        "XI"
+      ],
+      "errors": {
+        "NO_ITINERARY": "NO ITINERARY TO CANCEL"
+      }
+    },
+    {
+      "code": "FXX",
+      "category": "Pricing",
+      "name": "Facturar Precio del Vuelo (Informativo)",
+      "description": "Factura la tarifa para cada pasajero (Adulto, Child 'Niño' o Infante) según cabina. Ej: FXX/FF-BASIC/RAD*CH*IN,BOG.",
+      "syntax": [
+        "FXX",
+        "FXX/FF-{fareFamily}",
+        "FXX/R,{modifier}",
+        "FXX/{params}"
+      ],
+      "tokens": {
+        "params": "^(.+)"
+      },
+      "handler": "PRICE_INFORMATIVE",
+      "examples": [
+        "FXX",
+        "FXX/FF-OPTIMA/RAD*CH*IN,BOG",
+        "FXX/R,CH"
+      ],
+      "errors": {
+        "NO_ITINERARY": "NO ITINERARY TO PRICE"
+      }
+    },
+    {
+      "code": "FXP",
+      "category": "Pricing",
+      "name": "Facturar Precio y Crear Registro TST",
+      "description": "Factura la tarifa para cada pasajero y crea el registro de tarifa (TST) para emisión. Ej: FXP/FF-OPTIMA/RAD*CH*IN,BOG.",
+      "syntax": [
+        "FXP",
+        "FXP/FF-{fareFamily}",
+        "FXP/R,{modifier}",
+        "FXP/{params}"
+      ],
+      "tokens": {
+        "params": "^(.+)"
+      },
+      "handler": "PRICE_AND_STORE",
+      "examples": [
+        "FXP",
+        "FXP/FF-OPTIMA/RAD*CH*IN,BOG",
+        "FXP/R,CH"
+      ],
+      "errors": {
+        "NO_ITINERARY": "NO ITINERARY TO PRICE",
+        "NO_NAMES": "NEED PASSENGER NAME"
+      }
+    },
+    {
+      "code": "HE",
+      "category": "Help",
+      "name": "Help & Syntax Manual",
+      "description": "Muestra la ayuda y sintaxis declarada para los comandos GDS.",
+      "syntax": [
+        "HE",
+        "HE {topic}"
+      ],
+      "tokens": {
+        "topic": "^([A-Z0-9]+)"
+      },
+      "handler": "SHOW_HELP",
+      "examples": [
+        "HE",
+        "HE AN",
+        "HE NM",
+        "HE SN",
+        "HE SS",
+        "HE FXX"
+      ],
+      "errors": {}
+    },
+    {
+      "code": "SR",
+      "category": "Services",
+      "name": "Special Service Request (SSR)",
+      "description": "Solicitudes especiales y contactos de seguridad: comidas (VGML), sillas (WCHR), correo (CTCE- con // en vez de @) y telefono (CTCM-).",
+      "syntax": [
+        "SR {code}"
+      ],
+      "tokens": {
+        "code": "^([A-Z]{2,4})"
+      },
+      "handler": "ADD_SSR",
+      "examples": [
+        "SR VGML",
+        "SR WCHR",
+        "SR CTCE-JUAN//GMAIL.COM",
+        "SR CTCM-573001234567"
+      ],
+      "errors": {
+        "INVALID_CODE": "CHECK SERVICE CODE"
+      }
+    },
+    {
+      "code": "OS",
+      "category": "Services",
+      "name": "Other Service Info (OSI)",
+      "description": "Agrega información de servicio no accionable para las aerolíneas.",
+      "syntax": [
+        "OS {airline} {text}"
+      ],
+      "tokens": {
+        "airline": "^([A-Z0-9]{2}) ",
+        "text": "^(.+)"
+      },
+      "handler": "ADD_OSI",
+      "examples": [
+        "OS AV PASAJERO VIP",
+        "OS YY HFBB"
+      ],
+      "errors": {}
+    },
+    {
+      "code": "TTP",
+      "category": "Ticketing",
+      "name": "Issue Ticket",
+      "description": "Simula la emisión del tiquete electrónico para reservas con TST.",
+      "syntax": [
+        "TTP",
+        "TTP1(?:/{modifier})?"
+      ],
+      "tokens": {
+        "modifier": "^(.*)"
+      },
+      "handler": "ISSUE_TICKET",
+      "examples": [
+        "TTP",
+        "TTP1/ET/RT"
+      ],
+      "errors": {
+        "NO_TST": "NO TST PRESENT FOR ISSUANCE",
+        "NEED_OK": "CHECK TICKETING ELEMENT"
+      }
+    },
+    {
+      "code": "FP",
+      "category": "Ticketing",
+      "name": "Form of Payment",
+      "description": "Ingresa la forma de pago (ej. FP CASH,).",
+      "syntax": [
+        "FP {fop}"
+      ],
+      "tokens": {
+        "fop": "^([A-Za-z,\\s]+)"
+      },
+      "handler": "ADD_FOP",
+      "examples": [
+        "FP CASH",
+        "FP CASH,"
+      ],
+      "errors": {}
+    },
+    {
+      "code": "TTO",
+      "category": "Ticketing",
+      "name": "Ticketing Override / Fee",
+      "description": "Ingresa gastos de gestión y override de ticketing (ej. TTO/ST01/CSF/F35/T1).",
+      "syntax": [
+        "TTO/{params}"
+      ],
+      "tokens": {
+        "params": "^(.*)"
+      },
+      "handler": "ADD_TTO",
+      "examples": [
+        "TTO/ST01/CSF/F35/T1"
+      ],
+      "errors": {}
+    },
+    {
+      "code": "SO",
+      "category": "System",
+      "name": "Sign Out",
+      "description": "Cierra la sesión activa en el terminal.",
+      "syntax": [
+        "SO"
+      ],
+      "tokens": {},
+      "handler": "SIGN_OUT",
+      "examples": [
+        "SO"
+      ],
+      "errors": {}
+    },
+    {
+      "code": "DF",
+      "category": "Pricing",
+      "name": "Detailed Fare Summation / Diferencia de Tarifa",
+      "description": "Tres modos según el contexto: (1) suma DF VALOR1;VALOR2;GASTOS*CANTIDAD_PAX. (2) diferencia de tarifa DF nueva-original (cotización nueva menos ticket original). (3) penalidad menos descuento DF penalidad P descuento.",
+      "syntax": [
+        "DF {expression}",
+        "DF {nueva}-{original}",
+        "DF {penalidad}P{descuento}"
+      ],
+      "tokens": {
+        "expression": "^(.+)"
+      },
+      "handler": "SUM_FARES",
+      "examples": [
+        "DF 2*200000;1000000;860000;240000*3",
+        "DF 500000;250000;100000*2",
+        "DF 1890 - 1750",
+        "DF 150 P 75"
+      ],
+      "errors": {
+        "FORMAT_ERROR": "FORMAT ERROR - DF EXPRESSION"
+      }
+    },
+    {
+      "code": "RM",
+      "category": "Remarks",
+      "name": "General Remark / Notes",
+      "description": "Registra notas explicativas, desgloses de tarifa y políticas de reembolso en la reserva.",
+      "syntax": [
+        "RM {text}",
+        "RM*{date}*{text}"
+      ],
+      "tokens": {
+        "text": "^(.+)"
+      },
+      "handler": "ADD_REMARK",
+      "examples": [
+        "RM *22JUL26* ADT 2200000, CHD 1000000, INF 860000, GG 240000 COP",
+        "RM *22JUL26* TTL 12900000 COP"
+      ],
+      "errors": {
+        "FORMAT_ERROR": "FORMAT ERROR - REMARK"
+      }
+    },
+    {
+      "code": "FQN",
+      "category": "Pricing",
+      "name": "Fare Components / Penalidades del Ticket",
+      "description": "Muestra las condiciones del ticket (reembolsos en CANCELLATIONS, cambios en CHANGES). Ej: FQN1*PE. Navega con MD/MU.",
+      "syntax": [
+        "FQN{nroTicket}*PE"
+      ],
+      "tokens": {
+        "ticket": "^(d{1,2})",
+        "pe": "(?:[*](PE))?"
+      },
+      "handler": "SHOW_FARE_RULES",
+      "examples": [
+        "FQN1*PE"
+      ],
+      "normalize": "compact",
+      "errors": {
+        "NO_TICKET": "NO FARE COMPONENTS - CHECK TICKET NUMBER"
+      }
+    },
+    {
+      "code": "MN",
+      "category": "Schedules",
+      "name": "Dia Siguiente",
+      "description": "Se mueve al dia siguiente en el itinerario de vuelos mostrado (SN/AN).",
+      "syntax": [
+        "MN"
+      ],
+      "tokens": {},
+      "handler": "MOVE_NEXT_DAY",
+      "examples": [
+        "MN"
+      ],
+      "errors": {
+        "NO_DISPLAY": "NO DISPLAY - RUN SN/AN FIRST"
+      }
+    },
+    {
+      "code": "MY",
+      "category": "Schedules",
+      "name": "Dia Anterior",
+      "description": "Se mueve al dia anterior en el itinerario de vuelos mostrado (SN/AN).",
+      "syntax": [
+        "MY"
+      ],
+      "tokens": {},
+      "handler": "MOVE_PREV_DAY",
+      "examples": [
+        "MY"
+      ],
+      "errors": {
+        "NO_DISPLAY": "NO DISPLAY - RUN SN/AN FIRST"
+      }
+    },
+    {
+      "code": "MO",
+      "category": "Schedules",
+      "name": "Dia Original",
+      "description": "Vuelve al dia original del itinerario de vuelos mostrado (SN/AN).",
+      "syntax": [
+        "MO"
+      ],
+      "tokens": {},
+      "handler": "MOVE_ORIG_DAY",
+      "examples": [
+        "MO"
+      ],
+      "errors": {
+        "NO_DISPLAY": "NO DISPLAY - RUN SN/AN FIRST"
+      }
+    },
+    {
+      "code": "MD",
+      "category": "System",
+      "name": "Pagina Siguiente",
+      "description": "Avanza a la pagina siguiente en pantallas largas (FQN, FXX).",
+      "syntax": [
+        "MD"
+      ],
+      "tokens": {},
+      "handler": "PAGE_DOWN",
+      "examples": [
+        "MD"
+      ],
+      "errors": {
+        "NO_PAGES": "NO MORE PAGES"
+      }
+    },
+    {
+      "code": "MU",
+      "category": "System",
+      "name": "Pagina Anterior",
+      "description": "Retrocede a la pagina anterior en pantallas largas (FQN, FXX).",
+      "syntax": [
+        "MU"
+      ],
+      "tokens": {},
+      "handler": "PAGE_UP",
+      "examples": [
+        "MU"
+      ],
+      "errors": {
+        "NO_PAGES": "ALREADY ON FIRST PAGE"
+      }
+    },
+    {
+      "code": "TKXL",
+      "category": "Ticketing",
+      "name": "Plazo de Confirmacion (Time Limit)",
+      "description": "Fija el plazo de confirmacion de la cita/reserva, normalmente 24 hrs despues. Ej: TKXL 24JUL.",
+      "syntax": [
+        "TKXL{date}"
+      ],
+      "tokens": {
+        "date": "^(d{1,2}[A-Z]{3})"
+      },
+      "handler": "SET_TICKETING",
+      "examples": [
+        "TKXL 24JUL",
+        "TKXL24JUL"
+      ],
+      "normalize": "compact",
+      "errors": {
+        "INVALID_FORMAT": "FORMAT ERROR - TKXL"
+      }
+    },
+    {
+      "code": "APE",
+      "category": "Contact",
+      "name": "Correo de Confirmacion",
+      "description": "Agrega el correo electronico de confirmacion del pasajero (con @).",
+      "syntax": [
+        "APE-{correo}"
+      ],
+      "tokens": {
+        "email": "^-(.+)"
+      },
+      "handler": "ADD_CONTACT",
+      "examples": [
+        "APE-JUAN@GMAIL.COM"
+      ],
+      "errors": {
+        "INVALID_FORMAT": "FORMAT ERROR - EMAIL"
+      }
+    },
+    {
+      "code": "SRXBAG",
+      "category": "Services",
+      "name": "Servicio de Equipaje Extra (SSR XBAG)",
+      "description": "Solicita equipaje adicional para un pasajero en un segmento (SRXBAG/P{pax}/S{segmento}). Ej: SRXBAG/P1/S2.",
+      "syntax": [
+        "SRXBAG/P{pax}/S{segmento}"
+      ],
+      "tokens": {},
+      "handler": "ADD_BAGGAGE",
+      "examples": [
+        "SRXBAG/P1/S2",
+        "SRXBAG/P1/S1"
+      ],
+      "errors": {
+        "FORMAT_ERROR": "FORMAT ERROR - CHECK /P PAX /S SEGMENT"
+      },
+      "payloadPattern": "^/P[0-9]+/S[0-9]+"
+    },
+    {
+      "code": "FXG",
+      "category": "Services",
+      "name": "Guardar Servicio de Equipaje (crear TSM)",
+      "description": "Guarda el servicio de equipaje y crea el registro TSM (documento del servicio) para su emision.",
+      "syntax": [
+        "FXG"
+      ],
+      "tokens": {},
+      "handler": "SAVE_BAGGAGE",
+      "examples": [
+        "FXG"
+      ],
+      "errors": {
+        "NO_BAGGAGE": "NO BAGGAGE SERVICE TO STORE"
+      }
+    },
+    {
+      "code": "TQM",
+      "category": "Ticketing",
+      "name": "Ver TSM y Entrar a Forma de Pago",
+      "description": "Muestra el TSM del servicio y abre el registro para agregar la forma de pago. TQM/M{n} referencia un TSM específico si hay varios tipos de pasajero.",
+      "syntax": [
+        "TQM",
+        "TQM/M{n}"
+      ],
+      "tokens": {},
+      "handler": "SHOW_TSM",
+      "examples": [
+        "TQM",
+        "TQM/M1"
+      ],
+      "errors": {
+        "NO_TSM": "NO TSM PRESENT - USE FXG FIRST"
+      },
+      "payloadPattern": "^/M[0-9]+$"
+    },
+    {
+      "code": "TMI",
+      "category": "Ticketing",
+      "name": "Forma de Pago o Valor de Penalidad del TSM",
+      "description": "TMI/FP-{forma} o TMI/M{n}/FP-{forma} agregan la forma de pago al TSM. TMI/M{n}/F{valor}/CV-{valor} carga el valor de la penalidad y el cupón (antes de la forma de pago). Ej: TMI/FP-CASH,  TMI/M1/FP-CASH,  TMI/M1/F3279/CV-3279",
+      "syntax": [
+        "TMI/FP-{forma}",
+        "TMI/M{n}/FP-{forma}",
+        "TMI/M{n}/F{valor}/CV-{valor}"
+      ],
+      "tokens": {},
+      "handler": "SET_FOP",
+      "examples": [
+        "TMI/FP-CASH,",
+        "TMI/FP-CASH",
+        "TMI/M1/FP-CASH,",
+        "TMI/M1/F3279/CV-3279"
+      ],
+      "errors": {
+        "FORMAT_ERROR": "FORMAT ERROR - TMI/FP- OR TMI/M{n}/FP- OR TMI/M{n}/F{valor}/CV-{valor}"
+      },
+      "payloadPattern": "^/(FP|M[0-9]+)"
+    },
+    {
+      "code": "TTM",
+      "category": "Ticketing",
+      "name": "Emitir EMD del Servicio (TTM/M{n}/RT)",
+      "description": "Emite el documento electronico del servicio de equipaje (EMD) a partir del TSM. Ej: TTM/M1/RT.",
+      "syntax": [
+        "TTM/M{nroTsm}/RT"
+      ],
+      "tokens": {},
+      "handler": "ISSUE_TSM",
+      "examples": [
+        "TTM/M1/RT"
+      ],
+      "errors": {
+        "NO_TSM": "NO TSM TO ISSUE",
+        "NEED_FOP": "NEED FORM OF PAYMENT (TMI/FP-)"
+      },
+      "payloadPattern": "^/M[0-9]+"
+    },
+    {
+      "code": "TQT",
+      "category": "Pricing",
+      "name": "Ver TST (Registro de Tarifa)",
+      "description": "Muestra los TST guardados para revisar los valores de la tarifa. TQT = todos; TQT/T{n} = una tarifa especifica. Ej: TQT, TQT/T1.",
+      "syntax": [
+        "TQT",
+        "TQT/T{nro}"
+      ],
+      "tokens": {},
+      "handler": "SHOW_TST",
+      "examples": [
+        "TQT",
+        "TQT/T1"
+      ],
+      "errors": {
+        "NO_TST": "NO TST PRESENT - USE FXP FIRST"
+      },
+      "payloadPattern": "^/T[0-9]+"
+    },
+    {
+      "code": "TWD",
+      "category": "Ticketing",
+      "name": "Ver Detalle del Billete Emitido",
+      "description": "Muestra el billete ya emitido (fare basis, DOI, total). TWD/TKT{billete} por número, TWD/L{n} por línea, TWD/TAX por desglose de tasas.",
+      "syntax": [
+        "TWD/TKT{billete}",
+        "TWD/L{n}",
+        "TWD/TAX"
+      ],
+      "tokens": {},
+      "handler": "SHOW_TICKET_DETAIL",
+      "examples": [
+        "TWD/TKT0751000213325",
+        "TWD/L9",
+        "TWD/TAX"
+      ],
+      "errors": {
+        "NO_TICKET": "NO TICKET ON FILE - CHECK TWD/TKT OR TWD/L"
+      },
+      "payloadPattern": "^/(TKT\\s*\\d{3}-?\\d{10}|L\\d+|TAX)$"
+    },
+    {
+      "code": "TTE",
+      "category": "Ticketing",
+      "name": "Eliminar TST",
+      "description": "Elimina el TST activo. TTE/ALL elimina todos, TTE/T{n} elimina uno específico.",
+      "syntax": [
+        "TTE/ALL",
+        "TTE/T{n}"
+      ],
+      "tokens": {},
+      "handler": "DELETE_TST",
+      "examples": [
+        "TTE/ALL",
+        "TTE/T1"
+      ],
+      "errors": {
+        "NO_TST": "NO TST PRESENT"
+      },
+      "payloadPattern": "^/(ALL|T[0-9]+)$"
+    },
+    {
+      "code": "TTI",
+      "category": "Ticketing",
+      "name": "Colocar el TST en Reemisión",
+      "description": "Marca el TST activo como reemisión (exchange). Ej: TTI/EXCH/T2.",
+      "syntax": [
+        "TTI/EXCH/T{n}"
+      ],
+      "tokens": {},
+      "handler": "MARK_EXCHANGE",
+      "examples": [
+        "TTI/EXCH/T2"
+      ],
+      "errors": {
+        "NO_TST": "NO TST PRESENT"
+      },
+      "payloadPattern": "^/EXCH/T[0-9]+$"
+    },
+    {
+      "code": "TTK",
+      "category": "Ticketing",
+      "name": "Agregar Diferencia de Tarifa al TST",
+      "description": "Agrega el valor de la diferencia de tarifa calculada con DF al TST. Ej: TTK/T2/T140.",
+      "syntax": [
+        "TTK/T{n}/T{valor}"
+      ],
+      "tokens": {},
+      "handler": "ADD_FARE_DIFF",
+      "examples": [
+        "TTK/T2/T140"
+      ],
+      "errors": {
+        "NO_TST": "NO TST PRESENT"
+      },
+      "payloadPattern": "^/T[0-9]+/T[0-9]+(\\.[0-9]+)?$"
+    },
+    {
+      "code": "FO*L",
+      "category": "Ticketing",
+      "name": "Fare Override (ADT/CHD)",
+      "description": "Vincula la tarifa a la línea del billete y al pasajero. Ej: FO*L14/P1.",
+      "syntax": [
+        "FO*L{línea}/P{pax}"
+      ],
+      "tokens": {},
+      "handler": "FARE_OVERRIDE",
+      "examples": [
+        "FO*L14/P1"
+      ],
+      "errors": {
+        "NO_TST": "NO TST PRESENT"
+      },
+      "payloadPattern": "^[0-9]+/P[0-9]+$"
+    },
+    {
+      "code": "FOINF*L",
+      "category": "Ticketing",
+      "name": "Fare Override (Infante)",
+      "description": "Vincula la tarifa a la línea del billete y al pasajero infante. Ej: FOINF*L15/P1.",
+      "syntax": [
+        "FOINF*L{línea}/P{pax}"
+      ],
+      "tokens": {},
+      "handler": "FARE_OVERRIDE",
+      "examples": [
+        "FOINF*L15/P1"
+      ],
+      "errors": {
+        "NO_TST": "NO TST PRESENT"
+      },
+      "payloadPattern": "^[0-9]+/P[0-9]+$"
+    },
+    {
+      "code": "IU",
+      "category": "Services",
+      "name": "Solicitar Servicio de Penalidad (TSM)",
+      "description": "Solicita el TSM de penalidad para el cambio manual. Ej: IU IB NN1 PENF BOG/P1.",
+      "syntax": [
+        "IU {aerolínea} NN1 PENF {origen}/P{pax}"
+      ],
+      "tokens": {},
+      "handler": "ADD_PENALTY_SERVICE",
+      "examples": [
+        "IU IB NN1 PENF BOG/P1",
+        "IU IB NN1 PENF MAD/P1"
+      ],
+      "errors": {
+        "FORMAT_ERROR": "FORMAT ERROR - IU {AL} NN1 PENF {ORG}/P{n}"
+      },
+      "payloadPattern": "^[A-Z0-9]{2}\\s+NN1\\s+PENF\\s+[A-Z]{3}/P[0-9]+$"
+    },
+    {
+      "code": "TMC",
+      "category": "Ticketing",
+      "name": "Guardar Servicio de Penalidad (crear TSM)",
+      "description": "Guarda el servicio de penalidad y crea el registro TSM (equivalente a FXG pero para PENF). TMC/L{n} referencia la línea del elemento SVC; /INF para el infante.",
+      "syntax": [
+        "TMC",
+        "TMC/L{n}",
+        "TMC/L{n}/INF"
+      ],
+      "tokens": {},
+      "handler": "SAVE_TSM_PENF",
+      "examples": [
+        "TMC",
+        "TMC/L5",
+        "TMC/L6/INF"
+      ],
+      "errors": {
+        "NO_SERVICE": "NO PENALTY SERVICE TO STORE"
+      },
+      "payloadPattern": "^/L[0-9]+(/INF)?$"
+    },
+    {
+      "code": "TQO",
+      "category": "Ticketing",
+      "name": "Verificar Gasto de Gestión",
+      "description": "Verifica que el gasto de gestión (TTO) ya quedó agregado al TST.",
+      "syntax": [
+        "TQO"
+      ],
+      "tokens": {},
+      "handler": "CHECK_MGMT_FEE",
+      "examples": [
+        "TQO"
+      ],
+      "errors": {
+        "NO_FEE": "NO MANAGEMENT FEE REGISTERED - USE TTO FIRST"
+      }
+    },
+    {
+      "code": "TTP1/TTM",
+      "category": "Ticketing",
+      "name": "Emisión Combinada (Billete + EMD)",
+      "description": "Emite el billete y el EMD de penalidad juntos en un solo comando. Ej: TTP1/TTM/T2/M1/ET/RT.",
+      "syntax": [
+        "TTP1/TTM/T{n}/M{n}/ET/RT"
+      ],
+      "tokens": {
+        "params": "^(.*)"
+      },
+      "handler": "COMBINED_ISSUE",
+      "examples": [
+        "TTP1/TTM/T2/M1/ET/RT"
+      ],
+      "errors": {
+        "FORMAT_ERROR": "FORMAT ERROR - TTP1/TTM/T{n}/M{n}/ET/RT"
+      }
+    },
+    {
+      "code": "$$CONFIG",
+      "category": "Ticketing",
+      "name": "Cargar Perfil de Tarjeta (PCI)",
+      "description": "Carga el perfil de tarjeta PCI en Amadeus antes de cobrar. Ej: $$CONFIG:CCTYPE/2.",
+      "syntax": [
+        "$$CONFIG:CCTYPE/{n}"
+      ],
+      "tokens": {},
+      "handler": "CONFIG_PROFILE",
+      "examples": [
+        "$$CONFIG:CCTYPE/2"
+      ],
+      "errors": {
+        "FORMAT_ERROR": "FORMAT ERROR - $$CONFIG:CCTYPE/{n}"
+      },
+      "payloadPattern": "^:CCTYPE/[0-9]+$"
+    },
+    {
+      "code": "$$PAY",
+      "category": "Ticketing",
+      "name": "Ejecutar el Cobro",
+      "description": "Ejecuta el cargo a la tarjeta configurada con $$CONFIG. Confirma siempre el costo total con el cliente antes de este comando.",
+      "syntax": [
+        "$$PAY"
+      ],
+      "tokens": {},
+      "handler": "EXECUTE_PAY",
+      "examples": [
+        "$$PAY"
+      ],
+      "errors": {
+        "NO_PROFILE": "NO PCI PROFILE LOADED - USE $$CONFIG:CCTYPE/{n} FIRST",
+        "NO_FOP": "NEED FORM OF PAYMENT BEFORE $$PAY"
+      }
+    },
+    {
+      "code": "RTR",
+      "category": "PNR Display",
+      "name": "Redisplay PNR (variante RTR)",
+      "description": "Variante de RT. Confirmado como alias funcional por el usuario — el comportamiento diferenciado exacto frente a RT/RTF sigue sin confirmar con David.",
+      "syntax": [
+        "RTR"
+      ],
+      "tokens": {},
+      "handler": "REDISPLAY_PNR",
+      "examples": [
+        "RTR"
+      ],
+      "errors": {}
+    },
+    {
+      "code": "RTF",
+      "category": "PNR Display",
+      "name": "Redisplay PNR (variante RTF)",
+      "description": "Variante de RT. Confirmado como alias funcional por el usuario — el comportamiento diferenciado exacto frente a RT/RTR sigue sin confirmar con David.",
+      "syntax": [
+        "RTF"
+      ],
+      "tokens": {},
+      "handler": "REDISPLAY_PNR",
+      "examples": [
+        "RTF"
+      ],
+      "errors": {}
+    },
+    {
+      "code": "FXI",
+      "category": "Pricing",
+      "name": "Cotización Informativa Tarifa Más Baja (FXI)",
+      "description": "Cotización informativa de la tarifa más baja disponible para el itinerario activo sin crear máscara TST.",
+      "syntax": ["FXI", "FXI/S{segments}", "FXI/R,{modifier}"],
+      "tokens": { "params": "^(.*)" },
+      "handler": "PRICE_LOWEST_INFORMATIVE",
+      "examples": ["FXI", "FXI/S1,2"]
+    },
+    {
+      "code": "FXF",
+      "category": "Pricing",
+      "name": "Cotización por Familias Tarifarias (FXF)",
+      "description": "Cotización comparativa por familias tarifarias de Iberia (BASIC, OPTIMA, FLEX, BUSFLEX).",
+      "syntax": ["FXF", "FXF/FF-{fareFamily}", "FXF/S{segments}"],
+      "tokens": { "params": "^(.*)" },
+      "handler": "PRICE_FARE_FAMILY",
+      "examples": ["FXF", "FXF/FF-OPTIMA"]
+    },
+    {
+      "code": "FXE",
+      "category": "Pricing",
+      "name": "Cotización Tarifa Más Baja E-Ticket (FXE)",
+      "description": "Cotización de la tarifa más económica exigiendo emisión de tiquete electrónico.",
+      "syntax": ["FXE", "FXE/S{segments}"],
+      "tokens": { "params": "^(.*)" },
+      "handler": "PRICE_BEST_BUY_ET",
+      "examples": ["FXE"]
+    },
+    {
+      "code": "FXQ",
+      "category": "Pricing",
+      "name": "Cotizar y Guardar TST de Reemisión (FXQ)",
+      "description": "Cotiza y guarda la máscara TST para reemisión o cambio automático registrando saldo y penalidad.",
+      "syntax": ["FXQ", "FXQ/S{segments}", "FXQ/R,{modifier}"],
+      "tokens": { "params": "^(.*)" },
+      "handler": "PRICE_AND_STORE_EXCHANGE",
+      "examples": ["FXQ", "FXQ/S1,2"]
+    },
+    {
+      "code": "FXO",
+      "category": "Pricing",
+      "name": "Búsqueda de Tarifas Óptimas (FXO)",
+      "description": "Búsqueda de alternativas óptimas de vuelo para optimizar la tarifa actual.",
+      "syntax": ["FXO", "FXO/S{segments}"],
+      "tokens": { "params": "^(.*)" },
+      "handler": "PRICE_OPTIMAL_OPTIONS",
+      "examples": ["FXO"]
+    },
+    {
+      "code": "FHE",
+      "category": "Services",
+      "name": "Elemento de Hotel (FHE)",
+      "description": "Consulta de disponibilidad o elemento de hotel.",
+      "syntax": ["FHE", "FHE{cityCode}"],
+      "tokens": { "params": "^(.*)" },
+      "handler": "HOTEL_ELEMENT",
+      "examples": ["FHE MAD"]
+    },
+    {
+      "code": "DTR",
+      "category": "Ticketing",
+      "name": "Consulta de Registro de Billete (DTR)",
+      "description": "Muestra los detalles y cupones del billete electrónico en Resiber/Amadeus o reenvía confirmación por e-mail.",
+      "syntax": ["DTR:TN {ticketNumber}", "DTR TN {ticketNumber}", "DTR H"],
+      "tokens": { "params": "^(.*)" },
+      "handler": "SHOW_RESIBER_TICKET_DETAIL",
+      "examples": ["DTR:TN 0752533334760", "DTR TN 0751000213325,EML/USER@MAIL.COM"]
+    },
+    {
+      "code": "SP",
+      "category": "PNR State",
+      "name": "Dividir PNR (SP)",
+      "description": "Separa uno o varios pasajeros del PNR activo hacia un PNR hijo.",
+      "syntax": ["SP{paxIndex}"],
+      "tokens": { "paxIndex": "^([0-9,]+)" },
+      "handler": "SPLIT_PNR",
+      "examples": ["SP1", "SP2,3"]
+    },
+    {
+      "code": "EF",
+      "category": "PNR State",
+      "name": "Archivar División (EF)",
+      "description": "Finaliza y archiva la división del PNR (SP), creando el PNR hijo.",
+      "syntax": ["EF"],
+      "tokens": {},
+      "handler": "END_AND_FILE_SPLIT",
+      "examples": ["EF"]
+    },
+    {
+      "code": "FQQ",
+      "category": "Pricing",
+      "name": "Detalle de Construcción Tarifaria (FQQ)",
+      "description": "Muestra el desglose detallado de la línea de construcción tarifaria (Fare Calculation Line, NUC, ROE).",
+      "syntax": ["FQQ", "FQQ{tstNumber}", "FQQ/T{tstNumber}"],
+      "tokens": { "params": "^(.*)" },
+      "handler": "SHOW_FARE_QUOTE_DETAILS",
+      "examples": ["FQQ", "FQQ1", "FQQ/T1"]
+    }
+  ]
+}

@@ -1,0 +1,110 @@
+{
+  "id": "transacciones-utiles",
+  "titulo": "Transacciones útiles — catálogo Amadeus",
+  "tipo": "catalogo",
+  "nota": "Archivo con prefijo _ : es un CATÁLOGO de comandos, no un procedimiento con pasos, así que test-procedimientos.js lo omite. El catálogo de Resiber del mismo manual vive en public/profiles/resiber/commands_meta.json.",
+  "fuente": {
+    "documento": "IberiaNet Lite — #3593 \"9.4 TRANSACCIONES UTILES\" (3 capturas: FILTRO GENERAL/HISTORICOS, INFORMACION, OPERACIONES)",
+    "tipo": "manual-oficial-interno",
+    "recibido": "2026-08-08",
+    "confianzaGlobal": "verbatim"
+  },
+  "trampasEntreSistemas": [
+    {
+      "codigo": "RTA",
+      "amadeus": "VER ITR (itinerario)",
+      "resiber": "VOLVER A LA RESERVA",
+      "gravedad": "alta",
+      "texto": "Mismo código, función distinta según el sistema. El tutor DEBE decir en qué sistema estás antes de aceptar RTA.",
+      "confianza": "verbatim"
+    },
+    {
+      "codigo": "XE",
+      "amadeus": "Borrar elemento por línea",
+      "resiber": "Borrar SR para hacer PNCP",
+      "gravedad": "media",
+      "confianza": "verbatim"
+    },
+    {
+      "codigo": "RT",
+      "amadeus": "Redisplay del PNR activo",
+      "resiber": "RT/{apellido}/{vuelo}/{fecha} — es una BÚSQUEDA con parámetros",
+      "gravedad": "alta",
+      "confianza": "verbatim"
+    }
+  ],
+  "filtroGeneral": [
+    { "codigo": "RTA", "funcion": "Ver ITR" },
+    { "codigo": "RTG", "funcion": "Servicios especiales activos (SSR RQST)" },
+    { "codigo": "RTN", "funcion": "Ver nombres en reservas activas / grupos" },
+    { "codigo": "RTF", "funcion": "Ver información de los FA (TKT, formas de pago, FZ, RTC…)" },
+    { "codigo": "RTQ", "funcion": "Revisión de colas" },
+    { "codigo": "RTR", "funcion": "Ver notas activas en reserva" }
+  ],
+  "filtroHistoricos": [
+    { "codigo": "RH", "funcion": "Ver todo el historial" },
+    { "codigo": "RHA / RHI", "funcion": "Ver historial de modificaciones de vuelos" },
+    { "codigo": "RHG", "funcion": "Ver historial de servicios" },
+    { "codigo": "RHJ", "funcion": "Historial de AP-APJ" },
+    { "codigo": "RHF", "funcion": "Historial de formas de pago y emisión de TKT" },
+    { "codigo": "RHFA", "funcion": "Historial de billetes" },
+    { "codigo": "RHK", "funcion": "Elementos de tiempo de reserva" },
+    { "codigo": "RHN", "funcion": "Historial de nombres" },
+    { "codigo": "RHQ", "funcion": "Historial de colas" },
+    { "codigo": "RHR", "funcion": "Historial de notas" },
+    { "codigo": "TTH", "funcion": "Historial de TST" },
+    { "codigo": "TMH", "funcion": "Historial de TSM" }
+  ],
+  "informacion": [
+    { "codigo": "DAN", "funcion": "Código IATA a partir del nombre de ciudad/aeropuerto. Sirve con nombre parcial.", "ejemplos": ["DAN MADRID", "DANMAD*"] },
+    { "codigo": "DAC", "funcion": "Nombre de ciudad/aeropuerto a partir del código IATA. Verifica aeropuertos cercanos.", "ejemplos": ["DAC MAD", "DAC MAD/N"] },
+    { "codigo": "DNE", "funcion": "Tipo de avión y modelo", "ejemplos": ["DNE320", "DNE AIRBUS"] },
+    { "codigo": "DB", "funcion": "Lista los códigos de aeropuertos asociados a una ciudad en USA", "ejemplos": ["DB MIA"] },
+    { "codigo": "DNA", "funcion": "Información del código de una aerolínea: nombre, código o placa del billete", "ejemplos": ["DNA IBERIA", "DNA 075", "DNA IB"] },
+    { "codigo": "DNS", "funcion": "Codificar/decodificar el código de un estado", "ejemplos": ["DNS US", "DNS USFL", "DNS FLORIDA"] },
+    { "codigo": "DC", "funcion": "Moneda del país, código del país y nombre", "ejemplos": ["DC CANADA", "DA CA"] },
+    { "codigo": "DD", "funcion": "Hora en una ciudad · hora en ambos países · día de la semana de una fecha · nº de días entre fechas · fecha + n días", "ejemplos": ["DD MIA", "DDMIA2000/MAD", "DD14JUL", "DD14JUL/25AUG", "DD14JUL/30"] },
+    { "codigo": "DMI", "funcion": "Valida que los tiempos de conexión sean óptimos / suficientes", "ejemplos": ["DMI3"] },
+    { "codigo": "TTP/TKT", "funcion": "Verifica que el billete está listo para ser emitido o reemitido SIN emitirlo", "ejemplos": ["TTP/TKT"] },
+    { "codigo": "TTM/TKT", "funcion": "Verifica que el EMD está listo para ser emitido o reemitido SIN emitirlo", "ejemplos": ["TTM1/TKT"] },
+    { "codigo": "TIDFT/XXX/CS", "funcion": "Cantidad de licores permitidos por país", "ejemplos": ["TIDFT/BUE/CS"] },
+    { "codigo": "GG AIR {aerolinea} {IATA pais}", "funcion": "Buscar oficinas de la ciudad", "ejemplos": ["GG AIR IB BUE"] },
+    { "codigo": "LP/{vuelo}/{fecha}", "funcion": "Buscar por lista de pasajeros", "ejemplos": ["LP/IB6585/20MAY"] },
+    { "codigo": "PDFF/{numeroIB+}", "funcion": "Buscar datos de contacto en el IB+", "ejemplos": ["PDFF/12345678"] },
+    { "codigo": "PDFN/{apellidos}", "funcion": "Buscar nº de IB+ con los apellidos", "ejemplos": ["PDFN/PEREZ"] },
+    { "codigo": "DO {linea}", "funcion": "Ver terminales de donde salen los vuelos y estatus del vuelo", "ejemplos": ["DO 3"] }
+  ],
+  "operaciones": [
+    { "codigo": "DF", "funcion": "Funciones matemáticas: sumar, restar, multiplicar, dividir y porcentajes", "ejemplos": ["DF12;2 (suma)", "DF12-2 (resta)", "DF12*1 (multiplicación)", "DF12/2 (división)", "DF100P75 (porcentaje)"] },
+    { "codigo": "FQC", "funcion": "Conversión de monedas", "ejemplos": ["FQC 20EUR/USD"] },
+    { "codigo": "DK", "funcion": "Convertir libras a kilos y viceversa", "ejemplos": ["DKPK5", "DKKP10"] },
+    { "codigo": "FQM", "funcion": "Distancia en millas entre 2 ciudades en código IATA", "ejemplos": ["FQMMADBOG"] },
+    { "codigo": "PV", "funcion": "Verificar responsabilidad de emisión de TKT", "ejemplos": ["PV/IOI"], "cierraHueco": "reembolso-iberia-general paso 2 — el manual de reembolsos pedía 'comprobar responsabilidad / oficina de emisión PV/IATA' sin dar la transacción. Es PV." },
+    { "codigo": "TTE/ALL", "funcion": "Borrar todos los TST" },
+    { "codigo": "TTE/T{n}", "funcion": "Borrar un TST", "ejemplos": ["TTE/T1"] },
+    { "codigo": "TMX/ALL", "funcion": "Borrar todos los TSM" },
+    { "codigo": "TMX/M{n}", "funcion": "Borrar un TSM", "ejemplos": ["TMX/M2"] },
+    { "codigo": "TTS/T{n}/P{n}", "funcion": "Separar TST por pasajero", "ejemplos": ["TTS/T1/P1"] },
+    { "codigo": "FXX/R,{DOI},UP", "funcion": "Buscar fare basis si NO hay trayectos volados", "ejemplos": ["FXX/R,15MAR20,UP"] },
+    { "codigo": "SI ARNK", "funcion": "Especificar arribo desconocido", "ejemplos": ["SI ARNK"] },
+    { "codigo": "TTF/T{n}", "funcion": "Quitar los flag", "ejemplos": ["TTF/T1"] },
+    { "codigo": "FXK", "funcion": "Cotizar servicio" },
+    { "codigo": "FXK/S{n}-{n}", "funcion": "Cotizar servicios por trayecto", "ejemplos": ["FXK/S2-6"] },
+    { "codigo": "FPO/CC**+/SFCA,/0", "funcion": "Forma de pago a cero", "ejemplos": ["FPO/CCVI+/SFCA,/0"], "nota": "TERCERA confirmación independiente de que es CCVI+ y no CCSVI+ (las otras dos: manual #3638 y su bloque de recuperación de error). El CCSVI+ del bot EverGPT queda definitivamente descartado." },
+    { "codigo": "TRDC/L{n}", "funcion": "Para voidear TKT y EMD", "ejemplos": ["TRDC/L20"] },
+    { "codigo": "RRN", "funcion": "Duplicar reserva" },
+    { "codigo": "PTD", "funcion": "Ver tasas en TQT" },
+    { "codigo": "DI", "funcion": "Ver el resto de los vuelos en la máscara" },
+    { "codigo": "TWH", "funcion": "Ver historial del TKT" },
+    { "codigo": "TWD/O*", "funcion": "Ver TKT original después de un cambio" },
+    { "codigo": "SM{n}/V", "funcion": "Ver mapa de asientos vertical", "ejemplos": ["SM3/V"] },
+    { "codigo": "FXX/RZZ*CH*IN", "funcion": "Cotizar ADT, CHD e INF al tiempo", "nota": "⚠️ TERCERA forma distinta de cotizar varios tipos de pasajero. Las otras: FXX/FF-OPTIMA/RINADCH (manual #3058) y FXX/FF-OPTIMA/RCHINCH (probado en vivo 07AGO26). Las tres aparecen en fuentes válidas — confirmar cuál aplica en cada caso." },
+    { "codigo": "RLD", "funcion": "Desde la QLM020, ver el historial de búsqueda" },
+    { "codigo": "RPP/RLC-{codigo}", "funcion": "Ver reserva desde la QLM020", "ejemplos": ["RPP/RLC-XXXXX"] },
+    { "codigo": "SB {clase}", "funcion": "Cambiar la clase cuando se está haciendo una cotización", "ejemplos": ["SB A"] },
+    { "codigo": "IBDJ/LPSP", "funcion": "Ver correo que se le envía al pasajero" },
+    { "codigo": "IED/LPSP", "funcion": "Ver itinerario que se le envía al pasajero en español" },
+    { "codigo": "IBPJ-EMLA/LPSP", "funcion": "Enviar correo en español" },
+    { "codigo": "TMI/M{n}/RARS0.00/WARS0.00", "funcion": "Cambiar la moneda en un TSM", "ejemplos": ["TMI/M1/RARS0.00/WARS0.00"] }
+  ]
+}

@@ -1,4 +1,108 @@
 {
+  "agregar-docs": {
+    "id": "agregar-docs",
+    "titulo": "Agregar documentos APIS #3720",
+    "aerolinea": "IB",
+    "categoria": "documentacion",
+    "resumen": "Cargar DOCS, DOCA y DOCO para datos de pasaporte, nacimiento, dirección, residencia, visado, redress y Global Entry.",
+    "aplicaSolo": "Datos APIS requeridos por el itinerario y el pasajero.",
+    "advertencias": [
+      {
+        "nivel": "critico",
+        "texto": "Verificar pasajero y número P antes de asociar cada SSR.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "Para ADT/CHD usar M/F; para INF usar MI/FI según el sexo indicado por el manual.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "No inventar documento, fechas, país, dirección, visa ni número Known Traveller.",
+        "confianza": "derivado"
+      }
+    ],
+    "fuente": {
+      "documento": "IberiaNet Lite — #3720 AGREGAR DOCS",
+      "tipo": "manual-oficial-interno",
+      "recibido": "2026-08-12",
+      "confianzaGlobal": "verbatim"
+    },
+    "pasos": [
+      {
+        "n": 1,
+        "sistema": "amadeus",
+        "proceso": "Agregar pasaporte de ADT o CHD",
+        "comando": "SR DOCS YY HK1-P-{paisDocumento}-{numeroDocumento}-{paisNacimiento}-{fechaNacimiento}-{genero}-{fechaCaducidad}-{apellido}/{nombre}/P{pasajero}",
+        "explicacion": "P = pasaporte; género ADT/CHD M o F; asociar al pasajero P#.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      },
+      {
+        "n": 1.1,
+        "sistema": "amadeus",
+        "proceso": "Agregar pasaporte de INF",
+        "comando": "SR DOCS YY HK1-P-{paisDocumento}-{numeroDocumento}-{paisNacimiento}-{fechaNacimiento}-{generoINF}-{fechaCaducidad}-{apellido}/{nombre}/P{pasajero}",
+        "explicacion": "Para INF usar MI o FI como género.",
+        "confianza": "verbatim",
+        "condicional": "infante"
+      },
+      {
+        "n": 2,
+        "sistema": "amadeus",
+        "proceso": "Agregar fecha de nacimiento ADT o CHD",
+        "comando": "SR DOCS YY HK1-----{fechaNacimiento}-{genero}--{apellido}/{nombre}/P{pasajero}",
+        "explicacion": "Usar M o F para ADT/CHD.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 2.1,
+        "sistema": "amadeus",
+        "proceso": "Agregar fecha de nacimiento INF",
+        "comando": "SR DOCS YY HK1-----{fechaNacimiento}-{generoINF}--{apellido}/{nombre}/P{pasajero}",
+        "explicacion": "Usar MI o FI para INF.",
+        "confianza": "verbatim",
+        "condicional": "infante"
+      },
+      {
+        "n": 3,
+        "sistema": "amadeus",
+        "proceso": "Agregar dirección de destino",
+        "comando": "SR DOCA YY HK1-D-{paisDestino}-{direccion}-{ciudad}-{iataCiudad}-{codigoPostal}/P{pasajero}",
+        "explicacion": "D = dirección de destino.",
+        "confianza": "verbatim",
+        "condicional": "requerido-por-itinerario"
+      },
+      {
+        "n": 4,
+        "sistema": "amadeus",
+        "proceso": "Agregar país de residencia",
+        "comando": "SR DOCA YY HK1-R-{paisResidencia}/P{pasajero}",
+        "explicacion": "R = país de residencia actual.",
+        "confianza": "verbatim",
+        "condicional": "requerido-por-itinerario"
+      },
+      {
+        "n": 5,
+        "sistema": "amadeus",
+        "proceso": "Agregar visa o redress",
+        "comando": "SR DOCO YY HK1-{ciudadNacimiento} {paisNacimiento}-{tipoDocumento}-{numeroDocumento}-{ciudadExpedicion} {paisExpedicion}-{fechaExpedicion}-{paisDestino}-{indicadorInfante}-{fechaExpiracion}/P{pasajero}",
+        "explicacion": "Tipo V = Visa, R = Redress, K = Known Traveller. El indicador I se usa solo para INF según el ejemplo.",
+        "confianza": "verbatim",
+        "condicional": "visa-redress"
+      },
+      {
+        "n": 6,
+        "sistema": "amadeus",
+        "proceso": "Agregar Global Entry / Known Traveller",
+        "comando": "SR DOCO YY HK1--K-{numeroKnownTraveller}---{pais}/P{pasajero}",
+        "explicacion": "K = Known Traveller.",
+        "confianza": "verbatim",
+        "condicional": "global-entry"
+      }
+    ]
+  },
   "asientos-seleccion-remision": {
     "id": "asientos-seleccion-remision",
     "titulo": "Asientos — Selección, Cunas y Remisión de EMD (Resiber & Amadeus)",
@@ -102,15 +206,20 @@
         "n": 7,
         "sistema": "amadeus",
         "proceso": "Agregar forma de pago, autorizar PCI y emitir EMD",
-        "comando": "TMI/M1/FP-MS-TT,VI1234567890123456-1023-V1234ABCD",
+        "comando": null,
         "variantes": [
           "$$CONFIG:CCTYPE/2",
           "$$PAY",
           "XE17",
           "TTM1/M1/RT"
         ],
-        "explicacion": "M1 = TQM. Cargar perfil PCI $$CONFIG:CCTYPE/2, $$PAY, borrar cyber XE17 y emitir TTM1/M1/RT.",
-        "confianza": "verbatim"
+        "simulacion": {
+          "comando": "TMI/M1/FP-CASH,",
+          "nota": "Solo laboratorio: forma de pago ficticia. Nunca usar tarjeta o token real."
+        },
+        "explicacion": "En práctica local: TMI/M1/FP-CASH,, $$CONFIG:CCTYPE/2, $$PAY, XE17 y TTM1/M1/RT. El flujo PCI real se consulta al coach.",
+        "confianza": "hueco",
+        "esBloqueante": true
       },
       {
         "n": 8,
@@ -1242,7 +1351,7 @@
         "n": 26,
         "sistema": "amadeus",
         "proceso": "Forma de pago del TST (diferencia de tarifa y gasto de gestión)",
-        "comando": "FP O/CCVI+/MS-TT,VI1234567890123456-1023-V1234ABCD",
+        "comando": null,
         "plantilla": "FP O/CCVI+/{token}",
         "explicacion": "El token se copia de PCI o Travel Pay.",
         "confianza": "verbatim"
@@ -1251,7 +1360,7 @@
         "n": 27,
         "sistema": "amadeus",
         "proceso": "Forma de pago del TSM (penalidad)",
-        "comando": "TMI/M1/FP-MS-TT,VI1234567890123456-1023-V1234ABCD",
+        "comando": null,
         "plantilla": "TMI/M{tsm}/FP-{token}",
         "explicacion": "La penalidad se cobra en el TSM, aparte del TST.",
         "confianza": "verbatim"
@@ -1684,7 +1793,7 @@
         "n": 21,
         "sistema": "amadeus",
         "proceso": "Forma de pago del TST (diferencia de tarifa y gasto de gestión)",
-        "comando": "FP O/CCVI+/MS-TT,VI1234567890123456-1023-V1234ABCD",
+        "comando": null,
         "plantilla": "FP O/CCVI+/{token}",
         "explicacion": "El token se copia de PCI o Travel Pay.",
         "confianza": "verbatim"
@@ -1693,7 +1802,7 @@
         "n": 22,
         "sistema": "amadeus",
         "proceso": "Forma de pago del TSM (penalidad)",
-        "comando": "TMI/M1/FP-MS-TT,VI1234567890123456-1023-V1234ABCD",
+        "comando": null,
         "plantilla": "TMI/M{tsm}/FP-{token}",
         "explicacion": "La penalidad se cobra en el TSM, aparte del TST.",
         "confianza": "verbatim"
@@ -2094,7 +2203,7 @@
         "n": 14,
         "sistema": "amadeus",
         "proceso": "Forma de pago del TST (diferencia de tarifa y gasto de gestión)",
-        "comando": "FP O/CCVI+/MS-TT,VI1234567890123456-1023-V1234ABCD",
+        "comando": null,
         "plantilla": "FP O/CCVI+/{token}",
         "explicacion": "El token se copia de PCI o Travel Pay.",
         "confianza": "verbatim",
@@ -2104,7 +2213,7 @@
         "n": 15,
         "sistema": "amadeus",
         "proceso": "Forma de pago del TSM (penalidad)",
-        "comando": "TMI/M1/FP-MS-TT,VI1234567890123456-1023-V1234ABCD",
+        "comando": null,
         "plantilla": "TMI/M{tsm}/FP-{token}",
         "explicacion": "La penalidad se cobra en el TSM, aparte del TST.",
         "confianza": "verbatim"
@@ -2231,74 +2340,162 @@
       "El manual de CAMBIO MANUAL (#3112, 3 hijos) al que deriva la bifurcación del paso 5."
     ]
   },
-  "comidas-equipajes-especiales": {
-    "id": "comidas-equipajes-especiales",
-    "titulo": "Comidas Especiales (SPML) y Equipajes Especiales (SPEQ / GOLF / BIKE / WEAP)",
+  "casos-meda": {
+    "id": "casos-meda",
+    "titulo": "Casos MEDA #3124",
     "aerolinea": "IB",
     "categoria": "servicios",
-    "resumen": "Procedimiento operativo para la reserva de Menús Especiales (SPML) y Equipajes Especiales o Deportivos (SPEQ) en Resiber y Amadeus/SARA.",
-    "aplicaSolo": "Billetes 075 en vuelos de largo radio / Business para SPML. Vuelos operados por Grupo Iberia para SPEQ.",
+    "resumen": "Identificar situaciones que requieren valoración médica, gestionar INCAD y proteger la información de salud.",
+    "aplicaSolo": "Casos con posible necesidad de valoración médica en vuelos Iberia o conexiones aplicables.",
     "advertencias": [
       {
         "nivel": "critico",
-        "texto": "ANTELACIÓN SPML: Las comidas especiales deben solicitarse con al menos 24 a 48 HORAS de antelación al vuelo.",
+        "texto": "No incluir información sensible de salud en PNR: no usar RM, RC, RX ni texto libre médico.",
         "confianza": "verbatim"
       },
       {
         "nivel": "critico",
-        "texto": "EQUIPAJES ESPECIALES: El pago de equipo deportivo (Golf, Bicicletas, Esquí) se emite como EMD de servicios adicionales o se cobra en mostrador según tarifa.",
+        "texto": "La autorización MEDA solo vale para los vuelos solicitados originalmente; un cambio de vuelo requiere nueva autorización.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "Las autorizaciones médicas deben solicitarse al menos 48 horas antes de vuelos regulares.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "Enviar INCAD no garantiza la aceptación a bordo; Iberia puede pedir información adicional o evaluación médica.",
         "confianza": "verbatim"
       }
     ],
     "fuente": {
-      "documento": "IberiaNet Lite — Comidas y Equipajes Especiales",
+      "documento": "IberiaNet Lite — #3124 CASOS MEDA",
       "tipo": "manual-oficial-interno",
-      "recibido": "2026-08-11",
+      "recibido": "2026-08-12",
       "confianzaGlobal": "verbatim"
     },
-    "codigosSpml": [
+    "requierenValoracion": [
+      "oxígeno a bordo",
+      "hospitalización reciente",
+      "escolta médica",
+      "tratamiento o equipo médico durante el vuelo",
+      "convalecencia de enfermedad grave",
+      "posible empeoramiento durante el vuelo"
+    ],
+    "requierenIncad": [
+      "oxígeno",
+      "escolta médica",
+      "incubadora",
+      "cuidados sanitarios durante el vuelo",
+      "diálisis durante el vuelo",
+      "no puede usar mascarilla por razones médicas"
+    ],
+    "noRequierenIncad": [
+      "POC",
+      "silla de ruedas",
+      "embarazo sin complicaciones",
+      "enfermedad que no empeorará durante el vuelo"
+    ],
+    "pasos": [
       {
-        "codigo": "VGML",
-        "descripcion": "Vegetariana Estricta / Vegana"
+        "n": 1,
+        "sistema": "generalidades",
+        "proceso": "Clasificar si requiere valoración médica",
+        "comando": null,
+        "explicacion": "Identificar oxígeno, hospitalización, escolta, tratamiento/equipo médico o riesgo de empeoramiento.",
+        "confianza": "verbatim",
+        "esBloqueante": true
       },
       {
-        "codigo": "VLML",
-        "descripcion": "Vegetariana Lacto-Ovo"
+        "n": 2,
+        "sistema": "generalidades",
+        "proceso": "Aplicar reglas previas",
+        "comando": null,
+        "explicacion": "Escayola en últimas 24 horas: no puede abordar. Iberia no transporta camillas. Los aviones no tienen enchufes para aparatos médicos. POC propio puede usar FREMEC válido.",
+        "confianza": "verbatim",
+        "esBloqueante": true
       },
       {
-        "codigo": "KSML",
-        "descripcion": "Comida Kosher"
+        "n": 3,
+        "sistema": "generalidades",
+        "proceso": "Resolver conexión",
+        "comando": null,
+        "explicacion": "Si la primera compañía JBA en una conexión transatlántica es Iberia, Iberia gestiona MEDA para todos los vuelos de conexión.",
+        "confianza": "verbatim",
+        "condicional": "conexion"
       },
       {
-        "codigo": "MOML",
-        "descripcion": "Comida Musulmana (Halal)"
+        "n": 4,
+        "sistema": "supervisor",
+        "proceso": "Enviar INCAD cuando aplique",
+        "comando": null,
+        "explicacion": "Con ayuda del supervisor, enviar INCAD en el idioma correspondiente; el cliente lo completa con su médico y lo envía a sergadm@iberia.es con al menos 48 horas.",
+        "confianza": "verbatim",
+        "condicional": "requiere-incad",
+        "esBloqueante": true
       },
       {
-        "codigo": "GFML",
-        "descripcion": "Comida Sin Gluten"
+        "n": 5,
+        "sistema": "generalidades",
+        "proceso": "Informar límites de autorización",
+        "comando": null,
+        "explicacion": "MEDA no garantiza aceptación; los dispositivos deben poder desconectarse si la tripulación lo exige por seguridad.",
+        "confianza": "verbatim"
       },
       {
-        "codigo": "DBML",
-        "descripcion": "Comida para Diabéticos"
+        "n": 6,
+        "sistema": "proteccion-datos",
+        "proceso": "No guardar diagnóstico en PNR",
+        "comando": null,
+        "explicacion": "Registrar solo la gestión operativa mínima permitida; nunca detalles médicos en RM, RC, RX o texto libre.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      }
+    ]
+  },
+  "comidas-equipajes-especiales": {
+    "id": "comidas-equipajes-especiales",
+    "titulo": "Comidas especiales #3102",
+    "aerolinea": "IB/I2/YW",
+    "categoria": "servicios",
+    "resumen": "Solicitar comidas especiales en vuelos del Grupo Iberia, diferenciando Resiber y Amadeus/Altea-NDC.",
+    "aplicaSolo": "Billetes 075 y vuelos operados únicamente por IB, I2 o YW. Puede añadirse con billete OPEN FOR USE o sin billete emitido para asegurar el servicio.",
+    "advertencias": [
+      {
+        "nivel": "critico",
+        "texto": "Antes de iniciar: filtro de seguridad con apellido + PNR.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "Solicitar al menos 24 horas antes; para vuelos a Israel, 48 horas.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "Business: vuelos de más de 90 minutos. Turista/Premium Economy: más de 4 horas y media, excepto Dakar, Moscú, Malabo y Tel Aviv.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "Procesar segmento por segmento y verificar que el servicio quede HK confirmado.",
+        "confianza": "verbatim"
       }
     ],
-    "codigosSpeq": [
-      {
-        "codigo": "GOLF",
-        "descripcion": "Equipo de Golf (bolsa + zapatos)"
-      },
-      {
-        "codigo": "BIKE",
-        "descripcion": "Bicicleta no motorizada empaquetada"
-      },
-      {
-        "codigo": "SPEQ",
-        "descripcion": "Equipaje Especial Genérico / Deporte acuático / Esquí"
-      },
-      {
-        "codigo": "WEAP",
-        "descripcion": "Armas de caza o deportivas (requiere trámite Guardia Civil)"
-      }
+    "fuente": {
+      "documento": "IberiaNet Lite — #3102 COMIDAS ESPECIALES",
+      "tipo": "manual-oficial-interno",
+      "recibido": "2026-08-12",
+      "confianzaGlobal": "verbatim"
+    },
+    "codigosComida": [
+      "VGML",
+      "VLML",
+      "KSML",
+      "MOML",
+      "GFML",
+      "DBML"
     ],
     "pasos": [
       {
@@ -2306,116 +2503,244 @@
         "sistema": "natiba",
         "proceso": "Filtro de seguridad",
         "comando": null,
-        "explicacion": "APELLIDO + PNR.",
+        "explicacion": "Verificar apellido + PNR.",
         "confianza": "verbatim",
         "esBloqueante": true
       },
       {
         "n": 1,
-        "sistema": "resiber",
-        "proceso": "[RESIBER] Solicitar comida especial (ej. VGML)",
-        "comando": "SSR VGML YY NN1 /P1/S2",
-        "explicacion": "Resiber segmento a segmento. Guardar con ÑK.",
+        "sistema": "amadeus",
+        "proceso": "Documentar la información dada al cliente",
+        "comando": "INT IB SE AGREGA COMIDA ESPECIAL {tipoComida}//{iniciales}",
+        "explicacion": "Usar esta forma para documentar en la operación indicada por el manual.",
         "confianza": "verbatim"
       },
       {
         "n": 2,
         "sistema": "amadeus",
-        "proceso": "[AMADEUS] Solicitar comida especial (ej. VGML)",
-        "comando": "SR VGML IB NN1/S2-3/P1",
-        "explicacion": "Amadeus admite rango. Guardar con ER -> ERK.",
+        "proceso": "Solicitar comida segmento por segmento",
+        "comando": "SSR {tipoComida} IB HN1/P{pasajero}/S{segmento}",
+        "variantes": [
+          "SR {tipoComida}ML IB HN1/S{segmentos}/P{pasajero}"
+        ],
+        "explicacion": "En el flujo de la primera tabla se guarda con ÑK y el servicio queda HK. Volver a entrar a la reserva después de cada ÑK. En Amadeus/Altea se guarda con ER y se confirma con ERK.",
         "confianza": "verbatim"
       },
       {
         "n": 3,
         "sistema": "resiber",
-        "proceso": "[RESIBER] Solicitar equipo de golf (GOLF)",
-        "comando": "SSR GOLF YY NN1 1BAG 15KG 120X40X30/P1/S2",
-        "explicacion": "Registrar peso y dimensiones.",
-        "confianza": "verbatim"
+        "proceso": "Enviar documentos desde Resiber",
+        "comando": "ITP:/{reserva}/{email}",
+        "variantes": [
+          "DTR TN 075-{numeroTicket},EML/{email}",
+          "DEMR DN 075-{numeroEMD},EML/{email}"
+        ],
+        "explicacion": "Enviar itinerario, billete electrónico o EMD según corresponda.",
+        "confianza": "verbatim",
+        "condicional": "resiber"
       },
       {
         "n": 4,
         "sistema": "amadeus",
-        "proceso": "[AMADEUS] Solicitar equipo de golf (GOLF)",
-        "comando": "SR GOLF IB NN1 - 1BAG 15KG 120X40X30/S2-3/P1",
-        "explicacion": "Registrar peso y dimensiones en Amadeus.",
+        "proceso": "Enviar documentos desde Amadeus",
+        "comando": "IBP-EMLA/LPSP",
+        "variantes": [
+          "IEPJ-EMLA/LPSP",
+          "ITR-EMLA"
+        ],
+        "explicacion": "IBP: itinerario; IEPJ: itinerario y servicios; ITR: billetes electrónicos.",
+        "confianza": "verbatim",
+        "condicional": "amadeus"
+      }
+    ],
+    "erroresComunes": [
+      {
+        "sintoma": "Se solicita fuera del plazo",
+        "causa": "Menos de 24 horas antes o menos de 48 horas para Israel.",
+        "gravedad": "alta",
         "confianza": "verbatim"
+      },
+      {
+        "sintoma": "El servicio queda pendiente",
+        "causa": "No se procesó segmento por segmento o no se confirmó HK.",
+        "gravedad": "alta",
+        "confianza": "verbatim"
+      }
+    ]
+  },
+  "comunicaciones-cortadas-latam": {
+    "id": "comunicaciones-cortadas-latam",
+    "titulo": "Comunicaciones cortadas LATAM (#3134)",
+    "aerolinea": "IB",
+    "categoria": "reembolso",
+    "resumen": "Gestionar una compra web con cobro retenido y sin billete emitido, evitando duplicar solicitudes y recopilando la información para Back Office.",
+    "aplicaSolo": "Compra web fallida con cobro en moneda de LATAM y sin emisión de billete.",
+    "advertencias": [
+      {
+        "nivel": "critico",
+        "texto": "Antes de crear nada, comprobar que no exista una solicitud previa de reembolso o confirmación.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "Si hay dudas sobre la verificación, consultar con un coach para evitar reprocesos.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "El caso debe contener toda la información para que Back Office evalúe reembolso o emisión.",
+        "confianza": "verbatim"
+      }
+    ],
+    "fuente": {
+      "documento": "IberiaNet Lite — #3134 COMUNICACIONES CORTADAS LATAM",
+      "tipo": "manual-oficial-interno",
+      "recibido": "2026-08-12",
+      "confianzaGlobal": "verbatim"
+    },
+    "pasos": [
+      {
+        "n": 1,
+        "sistema": "backoffice",
+        "proceso": "Verificar que no exista solicitud previa",
+        "comando": null,
+        "explicacion": "Confirmar que no se haya creado ya un caso de reembolso o confirmación.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      },
+      {
+        "n": 2,
+        "sistema": "backoffice",
+        "proceso": "Recopilar monto y moneda",
+        "comando": null,
+        "explicacion": "Solicitar el monto cobrado y la moneda del pago.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      },
+      {
+        "n": 3,
+        "sistema": "backoffice",
+        "proceso": "Recopilar fecha del cobro",
+        "comando": null,
+        "explicacion": "Solicitar la fecha exacta del cobro.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      },
+      {
+        "n": 4,
+        "sistema": "backoffice",
+        "proceso": "Recopilar número de autorización",
+        "comando": null,
+        "explicacion": "Solicitar el número de autorización de la transacción.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      },
+      {
+        "n": 5,
+        "sistema": "resiber",
+        "proceso": "Buscar código de reserva si el cliente no lo tiene",
+        "comando": "RT/{apellido}/IB1323/{fecha}",
+        "explicacion": "Buscar el código de reserva en Resiber con apellido, vuelo y fecha.",
+        "confianza": "verbatim",
+        "opcional": true
+      },
+      {
+        "n": 6,
+        "sistema": "backoffice",
+        "proceso": "Confirmar objetivo del cliente",
+        "comando": null,
+        "explicacion": "Preguntar si desea reembolso o confirmar la compra.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      },
+      {
+        "n": 7,
+        "sistema": "backoffice",
+        "proceso": "Crear caso para evaluación",
+        "comando": null,
+        "explicacion": "Si cumple los requisitos, crear correctamente el caso para que Back Office evalúe el reembolso o la emisión. No prometer un resultado antes de la evaluación.",
+        "confianza": "verbatim",
+        "esBloqueante": true
       }
     ]
   },
   "correcion-de-nombre": {
     "id": "correcion-de-nombre",
-    "titulo": "Corrección de nombre — reglas sin cargo y operativa (Iberia y otras aerolíneas)",
-    "aerolinea": "IB",
+    "titulo": "Corrección de nombre #3108 — Grupo Iberia #3109",
+    "aerolinea": "IB/I2/YW",
     "categoria": "reemision",
-    "resumen": "Política de corrección gratuita de errores tipográficos, transcripción y orden de nombre/apellido en billetes 075, junto con el procedimiento operativo en Amadeus para vuelos de Grupo IB y otras aerolíneas.",
-    "aplicaSolo": "Billetes 075 en vuelos IB, I2, YW, codeshare con AA, BA y VY (IB5000). Billetes sin volar tramos.",
+    "resumen": "Determina si una corrección de nombre o apellido es gratuita y guía la reemisión para vuelos operados por el Grupo Iberia.",
+    "aplicaSolo": "Billetes 075 sin uso parcial en vuelos IB, I2, YW, codeshare AA/BA e IB5000 de VY. No aplica LEVEL ni cambio completo de pasajero.",
     "advertencias": [
       {
         "nivel": "critico",
-        "texto": "RESTRICCIÓN STRICTA: NO se permite cambio completo de pasajero. NO aplica en vuelos de LEVEL ni en billetes parcialmente usados.",
+        "texto": "Antes de iniciar: realizar filtro de seguridad con apellido + PNR.",
         "confianza": "verbatim"
       },
       {
         "nivel": "critico",
-        "texto": "VERIFICACIÓN DE IDENTIDAD: Las correcciones aplican siempre y cuando se pueda comprobar que se trata del mismo pasajero.",
+        "texto": "No se puede cambiar un nombre completo ni sustituir al pasajero. Debe comprobarse que se trata de la misma persona.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "critico",
+        "texto": "No aplica a vuelos de LEVEL ni a billetes parcialmente usados.",
         "confianza": "verbatim"
       },
       {
         "nivel": "alto",
-        "texto": "ERRORES DE HASTA 3 LETRAS: Se permiten correcciones de hasta 3 letras en nombre o apellidos (ej: Martin -> Martinez, Clara -> Sara), adición de primer/segundo nombre, inversión de orden de apellidos o nombre/apellido y adición de apellido faltante.",
+        "texto": "Vuelos de otras aerolíneas OneWorld distintas de AA, BA y VY: consultar con un supervisor.",
         "confianza": "verbatim"
       },
       {
         "nivel": "alto",
-        "texto": "OTRAS AEROLÍNEAS ONEWORLD (distintas a AA, BA, VY): Consultar con un supervisor en piso antes de proceder.",
+        "texto": "Si el pasajero informa un error de la web de Iberia, consultar con un supervisor.",
         "confianza": "verbatim"
       },
       {
         "nivel": "alto",
-        "texto": "CAMBIO COMPLETO AUTORIZADO POR COACH: Emitir nuevo billete + reembolso aplicando gasto de gestión por reembolso (el SF original no se devuelve).",
+        "texto": "Un cambio completo requiere autorización de coach, nuevo billete y reembolso con gasto de gestión; el SF original no se devuelve.",
         "confianza": "verbatim"
       }
     ],
     "fuente": {
-      "documento": "IberiaNet Lite — #3108 \"CORRECCIÓN DE NOMBRE\" + #3110 \"OPERADOS POR OTRAS AEROLÍNEAS\" + #3722 \"CREAR MÁSCARA MANUAL\"",
+      "documento": "IberiaNet Lite — #3108 CORRECCIÓN DE NOMBRE + #3109 OPERADOS POR EL GRUPO IBERIA + #3722 CREAR MÁSCARA MANUAL",
       "tipo": "manual-oficial-interno",
-      "recibido": "2026-08-11",
+      "recibido": "2026-08-12",
       "confianzaGlobal": "verbatim"
     },
     "casosPermitidosGratis": [
       {
-        "caso": "Nombres compuestos",
-        "ejemplo": "Carmen por María Carmen, o por Carmen María"
+        "caso": "Añadir nombre compuesto",
+        "ejemplo": "Carmen → María Carmen o Carmen María"
       },
       {
-        "caso": "Error de hasta 3 letras",
-        "ejemplo": "Martin por Martinez, Clara por Sara"
+        "caso": "Error de hasta tres letras",
+        "ejemplo": "Martin → Martinez; Clara → Sara"
       },
       {
-        "caso": "Error de transcripción de 1 letra",
-        "ejemplo": "FernáMdez por Fernández, Albaro por Alvaro"
+        "caso": "Error de transcripción",
+        "ejemplo": "FernáMdez → Fernández; Albaro → Alvaro"
       },
       {
         "caso": "Lengua oficial",
-        "ejemplo": "Pedro por Pere"
+        "ejemplo": "Pedro → Pere"
       },
       {
-        "caso": "Cambio posición apellidos/nombres",
-        "ejemplo": "Vargas Pérez por Pérez Vargas"
+        "caso": "Invertir apellidos",
+        "ejemplo": "Vargas Pérez → Pérez Vargas"
       },
       {
-        "caso": "Cambio posición entre nombre y apellido",
-        "ejemplo": "Alonso Vazquez/Julián por Julián Vazquez/Alonso"
+        "caso": "Invertir nombre y apellido",
+        "ejemplo": "Alonso Vazquez/Julián → Julián Vazquez/Alonso"
       },
       {
-        "caso": "Inclusión de apellido faltante",
-        "ejemplo": "Martín/Antonio por Martín Segura/Antonio"
+        "caso": "Añadir apellido faltante",
+        "ejemplo": "Martín/Antonio → Martín Segura/Antonio"
       },
       {
-        "caso": "Apellido bebé",
-        "ejemplo": "Cuando el bebé tomó los apellidos del adulto asociado y no los reales"
+        "caso": "Apellido de bebé asociado al adulto",
+        "ejemplo": "Corregir el apellido del bebé cuando heredó el del adulto"
       }
     ],
     "pasos": [
@@ -2424,126 +2749,1170 @@
         "sistema": "natiba",
         "proceso": "Filtro de seguridad",
         "comando": null,
-        "explicacion": "APELLIDO + PNR.",
+        "explicacion": "Verificar apellido + PNR antes de operar.",
         "confianza": "verbatim",
         "esBloqueante": true
       },
       {
         "n": 1,
         "sistema": "amadeus",
-        "proceso": "Colocar TKT en FHE y borrar elementos antiguos",
-        "comando": "FHE 075-1422342526/P1",
-        "variantes": [
-          "XE 14 (FA)",
-          "XE 10 (SR TKNE)",
-          "XE 23 (SSR FQTV)"
-        ],
-        "explicacion": "Asociar billete en FHE. Eliminar FA, SR TKNE y FQTV del pasajero a corregir.",
+        "proceso": "Colocar TKT del adulto en FHE",
+        "comando": "FHE 075-{numeroTicket} / P{pasajero}",
+        "explicacion": "Asocia el ticket del adulto al pasajero indicado.",
         "confianza": "verbatim"
+      },
+      {
+        "n": 1.1,
+        "sistema": "amadeus",
+        "proceso": "Eliminar FA si aplica",
+        "comando": "XE {lineaFA}",
+        "explicacion": "Eliminar la línea FA del adulto solo si existe y aplica.",
+        "confianza": "verbatim",
+        "opcional": true
+      },
+      {
+        "n": 1.2,
+        "sistema": "amadeus",
+        "proceso": "Eliminar SR TKNE del adulto",
+        "comando": "XE {lineaSR_TKNE}",
+        "explicacion": "Eliminar la línea del elemento SR TKNE solo si existe.",
+        "confianza": "verbatim",
+        "opcional": true
+      },
+      {
+        "n": 1.3,
+        "sistema": "amadeus",
+        "proceso": "Eliminar SSR FQTV del adulto",
+        "comando": "XE {lineaFQTV}",
+        "explicacion": "Eliminar la línea del SSR FQTV solo si existe.",
+        "confianza": "verbatim",
+        "opcional": true
       },
       {
         "n": 2,
         "sistema": "amadeus",
-        "proceso": "Eliminar segmentos viejos y corregir el nombre (NU1)",
-        "comando": "NU1 MARTINEZ CORTES/PATROCLO",
+        "proceso": "Modificar nombre de adulto o child",
+        "comando": "NU{lineaPax} {apellidoCorrecto}/{nombreCorrecto}",
         "variantes": [
-          "NU1 MARTINEZ SANZ/PEDRO (CHD)",
-          "1/(ADT) (desasociar INF)",
-          "1/(ADT)(INFPEREZ/ANDRES/18MAY23) (reasociar INF)"
+          "NU{lineaPax} {apellidoCorrecto}/{nombreCorrecto} (CHD/{fechaNacimiento})"
         ],
-        "explicacion": "XE lineaSegmentos -> NU1 APELLIDOCORRECTO/NAMECORRECTO.",
+        "explicacion": "NU1 modifica el nombre del pasajero en la línea indicada.",
         "confianza": "verbatim"
+      },
+      {
+        "n": 2.1,
+        "sistema": "amadeus",
+        "proceso": "Desasociar infante antes de corregir",
+        "comando": "{lineaAdulto}/(ADT)",
+        "explicacion": "Para un INF, primero se desasocia del adulto.",
+        "confianza": "verbatim",
+        "condicional": "infante"
+      },
+      {
+        "n": 2.2,
+        "sistema": "amadeus",
+        "proceso": "Asociar de nuevo el infante",
+        "comando": "{lineaAdulto}/(ADT)(INF{apellidoInfante}/{nombreInfante}/{fechaNacimiento})",
+        "explicacion": "Se vuelve a asociar el bebé con el apellido y nombre correctos.",
+        "confianza": "verbatim",
+        "condicional": "infante"
       },
       {
         "n": 3,
         "sistema": "amadeus",
-        "proceso": "Reservar nuevamente las plazas en la misma clase (Caso A)",
-        "comando": "SS 2 A 1",
+        "proceso": "Verificar máscara TST",
+        "comando": "TQT",
         "variantes": [
-          "SS 2 A 1 * S 11",
-          "SS 2 A S 1"
+          "TQT/T1"
         ],
-        "explicacion": "Misma clase y mismo vuelo. Si no hay misma clase, cotizar diferencia con FXX + DF (Caso B).",
+        "explicacion": "TQT para un solo tipo de pasajero; TQT/T1 para varios tipos.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 3.1,
+        "sistema": "amadeus",
+        "proceso": "Crear TST a histórico si no existe",
+        "comando": "FXP/L{segmentoIda}-{fareBasisIda}/L{segmentoVuelta}-{fareBasisVuelta}/R,{fechaEmision},UP/P{pasajero}",
+        "explicacion": "Crear la máscara usando segmentos, fare basis y fecha de emisión original.",
+        "confianza": "verbatim",
+        "condicional": "sin-tst"
+      },
+      {
+        "n": 3.2,
+        "sistema": "amadeus",
+        "proceso": "Separar TST por pasajero",
+        "comando": "TTS/T{numeroTST}/P{pasajero}",
+        "explicacion": "Si hay varios pasajeros en el mismo TST, separarlo antes de continuar.",
+        "confianza": "verbatim",
+        "opcional": true
+      },
+      {
+        "n": 3.3,
+        "sistema": "amadeus",
+        "proceso": "Guardar cambios",
+        "comando": "ER",
+        "explicacion": "Guardar hasta este punto antes de poner el TST en reemisión.",
         "confianza": "verbatim"
       },
       {
         "n": 4,
         "sistema": "amadeus",
-        "proceso": "Verificar/Crear TST y poner en modo reemisión",
-        "comando": "TQT",
-        "variantes": [
-          "FXP/L2-AANNOB2/L4-NASNOB2/R,DOI,UP/P1",
-          "TTI/EXCH/T2"
-        ],
-        "explicacion": "Si no hay TST, crear a histórico con FXP. Poner TST en modo reemisión TTI/EXCH/T2.",
+        "proceso": "Colocar TST en reemisión",
+        "comando": "TTI/EXCH/T{numeroTST}",
+        "explicacion": "Marca el TST seleccionado para reemisión.",
         "confianza": "verbatim"
       },
       {
         "n": 5,
         "sistema": "amadeus",
-        "proceso": "Actualizar elementos FE, FO y FP",
-        "comando": "FE X0/P1",
-        "variantes": [
-          "FO*L14/P1",
-          "FPO/CCVI+/SFCA,/0"
-        ],
-        "explicacion": "Borrar FE/FO/FP anteriores (XE) e incluir FE X0/P1, FO*L14/P1 y FP FPO/CCVI+/SFCA,/0.",
-        "confianza": "verbatim"
+        "proceso": "Eliminar FE si aplica",
+        "comando": "XE {lineaFE}",
+        "explicacion": "Eliminar el elemento FE anterior solo si existe.",
+        "confianza": "verbatim",
+        "opcional": true
       },
       {
         "n": 6,
         "sistema": "amadeus",
-        "proceso": "Reemitir billete",
-        "comando": "TTP1/ET/RT/T2/F",
-        "plantilla": "TTP1/ET/RT/T{numeroTST}/F",
-        "explicacion": "Reemitir el billete con la corrección de nombre.",
+        "proceso": "Agregar FE",
+        "comando": "FE X0/P{pasajero}",
+        "explicacion": "Agregar FE para el pasajero corregido.",
         "confianza": "verbatim"
       },
       {
         "n": 7,
         "sistema": "amadeus",
-        "proceso": "Enviar itinerario",
-        "comando": "IBP-EMLA/LPSP",
+        "proceso": "Eliminar FO si aplica",
+        "comando": "XE {lineaFO}",
+        "explicacion": "Eliminar el elemento FO anterior solo si existe.",
+        "confianza": "verbatim",
+        "opcional": true
+      },
+      {
+        "n": 8,
+        "sistema": "amadeus",
+        "proceso": "Crear FO para adulto o child",
+        "comando": "FO*L{lineaTicket}/P{pasajero}",
         "variantes": [
-          "IEPJ-EMLA/LPSP",
-          "ITR-EMLA",
-          "ITP:/RESERVA/EMAIL",
-          "DTR TN 075-..."
+          "FOINF*L{lineaTicket}/P{pasajero}"
         ],
-        "explicacion": "Enviar documentos al cliente por Amadeus o Resiber.",
+        "explicacion": "Para INF se usa FOINF*Línea/Pasajero.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 9,
+        "sistema": "amadeus",
+        "proceso": "Eliminar FP si aplica",
+        "comando": "XE {lineaFP}",
+        "explicacion": "Eliminar la forma de pago anterior solo si existe.",
+        "confianza": "verbatim",
+        "opcional": true
+      },
+      {
+        "n": 10,
+        "sistema": "amadeus",
+        "proceso": "Incluir forma de pago de reemisión",
+        "comando": "FPO/CCVI+/SFCA,/0",
+        "explicacion": "Agregar la forma de pago indicada por el manual.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 11,
+        "sistema": "amadeus",
+        "proceso": "Reemitir billete",
+        "comando": "TTP1/T{numeroTST}/ET/RT/F",
+        "explicacion": "T2 es el número del TST utilizado.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 11.1,
+        "sistema": "amadeus",
+        "proceso": "Completar NVA/NVB si el sistema lo solicita",
+        "comando": "TQTP",
+        "variantes": [
+          "TQT/T{numeroTST}"
+        ],
+        "explicacion": "Entrar a modo panel, acceder al TST y agregar las fechas NVA/NVB.",
+        "confianza": "verbatim",
+        "condicional": "NEED NVA FOR REISSUE"
+      },
+      {
+        "n": 12,
+        "sistema": "amadeus",
+        "proceso": "Enviar documentación",
+        "comando": "IBP-EMLA/LPPO",
+        "variantes": [
+          "IEPJ-EMLA/LPPO",
+          "ITR-EMLA"
+        ],
+        "explicacion": "LPPO indica portugués; ITR envía billetes electrónicos.",
         "confianza": "verbatim"
       }
     ],
     "mascaraManualTST3722": {
-      "explicacion": "Pasos para construir un TST a mano con TTI en caso de modificación directa:",
+      "fuente": "#3722 CREAR MÁSCARA MANUAL",
       "pasos": [
         {
-          "paso": 1,
-          "comando": "TTC/S5",
-          "detalle": "Crear máscara en segmento S5"
+          "n": 1,
+          "comando": "TTC/S{lineaSegmentos}",
+          "explicacion": "Crear la máscara con la línea de segmentos."
         },
         {
-          "paso": 2,
+          "n": 2,
           "comando": "TQC",
-          "detalle": "Poner TST en modo críptico (TWDRT para regresar al billete)"
+          "variantes": [
+            "TWDRT"
+          ],
+          "explicacion": "Entrar en modo cryptic; TWDRT vuelve al billete."
         },
         {
-          "paso": 3,
-          "comando": "TTI/T2/L1/B AANNOB2 IN/V 31MAR31MAR/A1PC",
-          "detalle": "Agregar Farebasis, NVB/NVA y Piezas de equipaje (IN = Infant, CH = Child)"
+          "n": 3,
+          "comando": "TTI/T{numeroTST}/L{linea}/B {fareBasis} {descuento}/V {NVB}{NVA}/A{equipaje}",
+          "explicacion": "Agregar fare basis, descuento, fechas NVA/NVB y piezas de XBAG."
         },
         {
-          "paso": 4,
-          "comando": "TTI/T2/RUSD1243/EEUR123/O130YQ/O28.38JD/…/T0",
-          "detalle": "Agregar Fare, equivalente, tasas pagadas y diferencia T0"
+          "n": 4,
+          "comando": "TTI/T{numeroTST}/R{fareOriginal}/E{equivalente}/O{tasas}/T{diferencia}",
+          "explicacion": "Agregar fare, equivalente, tasas y diferencia."
         },
         {
-          "paso": 5,
-          "comando": "TTI/T2/C BOG IB X/MAD…",
-          "detalle": "Agregar Fare Calculation"
+          "n": 5,
+          "comando": "TTI/T{numeroTST}/C {fareCalculation}",
+          "explicacion": "Agregar el fare calculation."
         }
       ]
     }
+  },
+  "descuento-ecuador": {
+    "id": "descuento-ecuador",
+    "titulo": "Descuentos Ecuador (#3065)",
+    "aerolinea": "IB",
+    "categoria": "emision",
+    "resumen": "Flujo de reserva con descuento pais para el mercado de Ecuador (UIO001), cotizada en USD, para residentes ecuatorianos.",
+    "aplicaSolo": [
+      "Reserva con descuento pais",
+      "Mercado de Ecuador UIO001",
+      "Cotizacion en USD",
+      "Residentes ecuatorianos"
+    ],
+    "advertencias": [
+      {
+        "nivel": "critico",
+        "texto": "Este manual SOLO aplica para reservas con DESCUENTO PAIS. Las reservas sin descuento siguen RESERVAS GENERALES.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "critico",
+        "texto": "Solo aplica a reservas cotizadas en USD del mercado de Ecuador UIO001.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "critico",
+        "texto": "Los descuentos son unicamente validos para residentes ecuatorianos y no son acumulables con otros descuentos.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "Discapacidad: 50% con carnet CONADIS. Jovenes de 12 a 24 anos: 25%. Adulto mayor ecuatoriano de 65 anos o mas: 50%.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "Si aplica discapacidad, solo se puede generar reserva ON HOLD; el pasajero debe enviar el documento CONADIS a VENTADIRECTALATAM@IBERIA.COM y Back Office finaliza el pago.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "La edad, residencia y discapacidad no se deben suponer: deben validarse con los datos y documentos del pasajero.",
+        "confianza": "derivado"
+      }
+    ],
+    "fuente": {
+      "documento": "Iberianet Lite - #3065 3. DESCUENTOS ECUADOR",
+      "tipo": "manual-oficial-interno",
+      "recibido": "2026-08-12",
+      "confianzaGlobal": "verbatim",
+      "nota": "Transcrito desde el texto aportado por el usuario; comandos conservados desde la columna TRANSACCION."
+    },
+    "pasos": [
+      {
+        "n": 1,
+        "sistema": "amadeus",
+        "proceso": "Buscar fechas de vuelo - solo ida",
+        "comando": null,
+        "plantilla": "AN {fecha} {origen}{destino}",
+        "explicacion": "AN FECHA ORGDES. Ejemplo: 11MAR y MADBOG.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 1.1,
+        "sistema": "amadeus",
+        "proceso": "Buscar fechas de vuelo - ida y vuelta",
+        "comando": null,
+        "plantilla": "AN {fechaIda} {origen}{destino} * {fechaVuelta}",
+        "explicacion": "AN FECHA1 ORGDES * FECHA2.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 1.2,
+        "sistema": "amadeus",
+        "proceso": "Buscar todas las clases ofertadas",
+        "comando": null,
+        "plantilla": "SN {fecha} {origen}{destino}",
+        "explicacion": "SN FECHA ORG DES.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 1.3,
+        "sistema": "amadeus",
+        "proceso": "Cambiar rapidamente la fecha",
+        "comando": "MY",
+        "variantes": [
+          "MN"
+        ],
+        "explicacion": "MY dia anterior; MN dia siguiente.",
+        "confianza": "verbatim",
+        "opcional": true
+      },
+      {
+        "n": 2,
+        "sistema": "amadeus",
+        "proceso": "Seleccionar plazas - solo un vuelo",
+        "comando": null,
+        "plantilla": "SS {plazas} {clase} {lineaVuelo}",
+        "explicacion": "SS PLAZAS CLASE LINEA DE VUELO. El INF no ocupa plaza.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 2.1,
+        "sistema": "amadeus",
+        "proceso": "Seleccionar plazas - ida y vuelta",
+        "comando": null,
+        "plantilla": "SS {plazas} {claseIda} {lineaIda} * {claseVuelta} {lineaVuelta}",
+        "explicacion": "SS PLAZAS CLASE IDA LINEA DE VUELO * CLASE REGRESO LINEA DE VUELO.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 2.2,
+        "sistema": "amadeus",
+        "proceso": "Seleccionar plazas - clases diferentes por vuelo",
+        "comando": null,
+        "plantilla": "SS {plazas} {claseVuelo1} {claseVuelo2} {lineaVuelo}",
+        "explicacion": "Las clases corresponden a cada vuelo.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 3,
+        "sistema": "amadeus",
+        "proceso": "Cotizar descuento por discapacidad",
+        "comando": null,
+        "plantilla": "FXX/FF-{tarifa}/RDIS",
+        "explicacion": "RDIS aplica el descuento DIS.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 3.1,
+        "sistema": "amadeus",
+        "proceso": "Cotizar descuento joven de 12 a 24 anos",
+        "comando": null,
+        "plantilla": "FXX/FF-{tarifa}/RZZ",
+        "explicacion": "RZZ aplica el descuento ZZ.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 3.2,
+        "sistema": "amadeus",
+        "proceso": "Cotizar descuento adulto mayor de 65 anos",
+        "comando": null,
+        "plantilla": "FXX/FF-{tarifa}/RCD",
+        "explicacion": "RCD aplica el descuento CD.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 3.3,
+        "sistema": "amadeus",
+        "proceso": "Recotizar si aparece NO FARES/RBD/CARRIER/PASSENGER TYPE",
+        "comando": null,
+        "plantilla": "FXR/FF-{tarifa}/{codigoDescuento}",
+        "explicacion": "Cambia las clases y reemplaza FXX por FXR.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 4,
+        "sistema": "amadeus",
+        "proceso": "Documentar valores informados al cliente",
+        "comando": null,
+        "plantilla": "RM{fechaRM}PAX AVDO VALOR TKT {detalleValores} USD//{iniciales}",
+        "explicacion": "Documenta valores para CHD, ADT e INF.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 5,
+        "sistema": "amadeus",
+        "proceso": "Buscar condiciones de tarifa",
+        "comando": null,
+        "plantilla": "FQN {lineaTarifa} * PE",
+        "explicacion": "PE es constante.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 6,
+        "sistema": "amadeus",
+        "proceso": "Documentar condiciones indicadas al cliente",
+        "comando": null,
+        "plantilla": "RM{fechaRM}PAX AVDO {condicionesTarifa} //{iniciales}",
+        "explicacion": "Documenta las condiciones comunicadas.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 7,
+        "sistema": "amadeus",
+        "proceso": "Agregar nombres - adulto",
+        "comando": null,
+        "plantilla": "NM1 {apellidoAdulto}/{nombreAdulto}",
+        "explicacion": "NM1 APELLIDO/NOMBRE.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 7.1,
+        "sistema": "amadeus",
+        "proceso": "Agregar nombres - child",
+        "comando": null,
+        "plantilla": "NM1 {apellidoChild}/{nombreChild}(CHD/{fechaNacimientoChild})",
+        "explicacion": "NM1 APELLIDO/NOMBRE (CHD/FECHA DE NACIMIENTO).",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 7.2,
+        "sistema": "amadeus",
+        "proceso": "Agregar nombres - adulto con infante",
+        "comando": null,
+        "plantilla": "NM1 {apellidoAdulto}/{nombreAdulto} (INF{apellidoInfante}/{nombreInfante}/{fechaNacimientoInfante})",
+        "explicacion": "El INF va asociado al adulto y no lleva barra despues de INF.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 7.3,
+        "sistema": "amadeus",
+        "proceso": "Ingresar Iberia Plus",
+        "comando": null,
+        "plantilla": "FFA{aerolineaFF}-{numeroViajeroFrecuente}",
+        "explicacion": "Es opcional.",
+        "confianza": "verbatim",
+        "opcional": true
+      },
+      {
+        "n": 8,
+        "sistema": "amadeus",
+        "proceso": "Incluir correo",
+        "comando": null,
+        "plantilla": "APE- {email}",
+        "variantes": [
+          "SR CTCE- {emailSSR}"
+        ],
+        "explicacion": "En CTCE se reemplaza @ por //. ",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 8.1,
+        "sistema": "amadeus",
+        "proceso": "Incluir telefono",
+        "comando": null,
+        "plantilla": "AP+ {telefono}",
+        "variantes": [
+          "SR CTCM- {telefono}"
+        ],
+        "explicacion": "AP+ y SSR CTCM.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 9,
+        "sistema": "amadeus",
+        "proceso": "Establecer tiempo ON HOLD",
+        "comando": null,
+        "plantilla": "TKXL {fechaLimite} / {horaZulu}",
+        "explicacion": "TKXL fecha y hora Zulu.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 9.1,
+        "sistema": "amadeus",
+        "proceso": "Emision inmediata",
+        "comando": "TKOK",
+        "explicacion": "Pago inmediato mediante PCI o Travel autorizado por un coach.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 9.2,
+        "sistema": "amadeus",
+        "proceso": "Emision a 72 horas",
+        "comando": null,
+        "plantilla": "TKTL {fechaEmision}/{horaZulu}",
+        "explicacion": "TKTL fecha/hora Zulu.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 10,
+        "sistema": "amadeus",
+        "proceso": "Solo pago web",
+        "comando": "OS YY HBFF",
+        "explicacion": "Guardar con ER para codigo de reserva.",
+        "confianza": "verbatim",
+        "opcional": true
+      },
+      {
+        "n": 11,
+        "sistema": "amadeus",
+        "proceso": "Guardar tarifa descuento discapacidad",
+        "comando": null,
+        "plantilla": "FXP/FF-{tarifa}/RDIS",
+        "explicacion": "FXP con RDIS.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 11.1,
+        "sistema": "amadeus",
+        "proceso": "Guardar tarifa descuento joven",
+        "comando": null,
+        "plantilla": "FXP/FF-{tarifa}/RZZ",
+        "explicacion": "FXP con RZZ.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 11.2,
+        "sistema": "amadeus",
+        "proceso": "Guardar tarifa adulto mayor",
+        "comando": null,
+        "plantilla": "FXP/FF-{tarifa}/RCD",
+        "explicacion": "FXP con RCD.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 11.3,
+        "sistema": "amadeus",
+        "proceso": "Seleccionar opciones de tarifa",
+        "comando": null,
+        "plantilla": "FXT{opcion}/P{pasajero}",
+        "explicacion": "Para varias opciones: FXT05/P1//06/P2.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 12,
+        "sistema": "amadeus",
+        "proceso": "Verificar mascara TST",
+        "comando": "TQT",
+        "variantes": [
+          "TQT/T1"
+        ],
+        "explicacion": "TQT para un tipo de pasajero; TQT/T1 para varios. Guardar con ER.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 13,
+        "sistema": "amadeus",
+        "proceso": "Agregar DOCS obligatorio",
+        "comando": null,
+        "plantilla": "SR DOCS YY HK1-P-{paisDocumento}-{numeroDocumento}-{paisNacimiento}-{fechaNacimiento}-{genero}-{caducidadDocumento}-{apellido}/{nombre}/P{pasajero}",
+        "explicacion": "DOCS es obligatorio y valida la documentacion del pasajero. Guardar con ER.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      },
+      {
+        "n": 14,
+        "sistema": "amadeus",
+        "proceso": "Enviar itinerario - ON HOLD por discapacidad",
+        "comando": "IBP-EMLA/LPSP",
+        "variantes": [
+          "IEPJ-EMLA/LPSP"
+        ],
+        "explicacion": "En discapacidad, ON HOLD es el ultimo paso; el cliente envia CONADIS y Back Office finaliza el pago. Informar emision con PCC.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 15,
+        "sistema": "amadeus",
+        "proceso": "Incluir titular de tarjeta",
+        "comando": null,
+        "plantilla": "RMCSY/{nombreTitular}:{apellidoTitular}",
+        "explicacion": "Nuevo Cyber.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 16,
+        "sistema": "amadeus",
+        "proceso": "Incluir gasto de gestion",
+        "comando": null,
+        "plantilla": "TTO/ST01/CSF/F{gastoGestion}",
+        "explicacion": "Con varios TST agregar /T{numeroTST}. Guardar con ER.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 17,
+        "sistema": "iberianet",
+        "proceso": "Tomar datos de tarjeta PCI Pal o Travel Pay",
+        "comando": null,
+        "explicacion": "El manual remite a las formas de pago PCI Pal o Travel Pay, pero no aporta comando de terminal.",
+        "confianza": "hueco",
+        "nota": "No hay comando documentado para este paso. Confirma el procedimiento de pago antes de continuar."
+      },
+      {
+        "n": 18,
+        "sistema": "amadeus",
+        "proceso": "Agregar forma de pago",
+        "comando": null,
+        "plantilla": "FP {tokenPCIoTravelPay}",
+        "explicacion": "FP TOKEN desde PCI o Travel Pay.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 19,
+        "sistema": "amadeus",
+        "proceso": "Cargar perfil PCI",
+        "comando": "$$CONFIG:CCTYPE/2",
+        "explicacion": "Cargar el perfil PCI.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 20,
+        "sistema": "amadeus",
+        "proceso": "Realizar cargo",
+        "comando": "$$PAY",
+        "explicacion": "Realizar el cargo.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 21,
+        "sistema": "amadeus",
+        "proceso": "Borrar Cyber",
+        "comando": null,
+        "plantilla": "XE{lineaCyber}",
+        "explicacion": "XE17 en el ejemplo; usa la linea real del Cyber.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 22,
+        "sistema": "amadeus",
+        "proceso": "Emitir billete",
+        "comando": "TTP1/ET/RT",
+        "explicacion": "Emision del billete.",
+        "confianza": "verbatim",
+        "validacion": {
+          "tipo": "exacto",
+          "patron": "TTP1/ET/RT"
+        }
+      },
+      {
+        "n": 23,
+        "sistema": "amadeus",
+        "proceso": "Enviar documentos",
+        "comando": "ITR-EMLA",
+        "variantes": [
+          "IBP-EMLA/LPSP",
+          "IEPJ-EMLA/LPSP"
+        ],
+        "explicacion": "ITR-EMLA; tambien IBP o IEPJ segun el documento.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 23.1,
+        "sistema": "resiber",
+        "proceso": "Enviar itinerario desde Resiber",
+        "comando": null,
+        "plantilla": "ITP:/{reserva}/{email}",
+        "explicacion": "ITP:/RESERVA/EMAIL.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 23.2,
+        "sistema": "resiber",
+        "proceso": "Enviar billetes desde Resiber",
+        "comando": null,
+        "plantilla": "DTR TN {numeroBillete},EML/{email}",
+        "explicacion": "DTR TN.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 23.3,
+        "sistema": "resiber",
+        "proceso": "Enviar EMD desde Resiber",
+        "comando": null,
+        "plantilla": "DEMR DN {numeroEMD},EML/{email}",
+        "explicacion": "DEMR DN.",
+        "confianza": "verbatim"
+      }
+    ],
+    "erroresComunes": [
+      {
+        "sintoma": "NO FARES/RBD/CARRIER/PASSENGER TYPE",
+        "causa": "Cambia las clases y recotiza con FXR en lugar de FXX.",
+        "gravedad": "alta",
+        "confianza": "verbatim"
+      },
+      {
+        "sintoma": "Descuento de Ecuador aplicado sin residencia o documento",
+        "causa": "No se verificaron residencia ecuatoriana, categoria, edad o carnet CONADIS.",
+        "gravedad": "critica",
+        "confianza": "derivado"
+      },
+      {
+        "sintoma": "Descuentos acumulados",
+        "causa": "Los descuentos no son acumulables.",
+        "gravedad": "alta",
+        "confianza": "verbatim"
+      }
+    ]
+  },
+  "descuento-panama": {
+    "id": "descuento-panama",
+    "titulo": "Descuentos Panama (#3064)",
+    "aerolinea": "IB",
+    "categoria": "emision",
+    "resumen": "Flujo de reserva con descuento pais para el mercado de Panama (PTY001), cotizada en USD, con validacion obligatoria de DOCS.",
+    "aplicaSolo": [
+      "Reserva con descuento pais",
+      "Mercado de Panama PTY001",
+      "Cotizacion en USD",
+      "Nacional o residente con descuento de adulto mayor o jubilado"
+    ],
+    "advertencias": [
+      {
+        "nivel": "critico",
+        "texto": "Este manual SOLO aplica para reservas con DESCUENTO PAIS. Las reservas sin descuento siguen RESERVAS GENERALES.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "critico",
+        "texto": "Solo aplica a reservas cotizadas en USD del mercado de Panama PTY001.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "critico",
+        "texto": "Es obligatorio agregar DOCS para validar la fecha de nacimiento y confirmar si aplica el descuento.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "El descuento indicado es 25% en el fare para nacionales o residentes: mujeres desde 55 anos y hombres desde 60 anos; no es acumulable con otros descuentos.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "La edad, nacionalidad o residencia no se deben suponer: deben validarse con los datos y DOCS del pasajero.",
+        "confianza": "derivado"
+      },
+      {
+        "nivel": "alto",
+        "texto": "En pagos web, OS YY HBFF y ER se usan para obtener el codigo de reserva; en una reserva ON HOLD el envio de itinerario es el ultimo paso antes de informar el proceso de emision con PCC.",
+        "confianza": "verbatim"
+      }
+    ],
+    "fuente": {
+      "documento": "Iberianet Lite - #3064 2. DESCUENTOS PANAMA",
+      "tipo": "manual-oficial-interno",
+      "recibido": "2026-08-12",
+      "confianzaGlobal": "verbatim",
+      "nota": "Transcrito desde el texto aportado por el usuario. Los comandos se conservan desde la columna TRANSACCION; no se usa una version resumida de bot."
+    },
+    "pasos": [
+      {
+        "n": 1,
+        "sistema": "amadeus",
+        "proceso": "Buscar fechas de vuelo - solo ida",
+        "comando": null,
+        "plantilla": "AN {fecha} {origen}{destino}",
+        "explicacion": "AN FECHA ORGDES. Ejemplo del manual: 11MAR = fecha; MADBOG = ruta de vuelo.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 1.1,
+        "sistema": "amadeus",
+        "proceso": "Buscar fechas de vuelo - ida y vuelta",
+        "comando": null,
+        "plantilla": "AN {fechaIda} {origen}{destino} * {fechaVuelta}",
+        "explicacion": "AN FECHA1 ORGDES * FECHA2.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 1.2,
+        "sistema": "amadeus",
+        "proceso": "Buscar todas las clases ofertadas",
+        "comando": null,
+        "plantilla": "SN {fecha} {origen}{destino}",
+        "explicacion": "SN FECHA ORG DES.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 1.3,
+        "sistema": "amadeus",
+        "proceso": "Cambiar rapidamente la fecha",
+        "comando": "MY",
+        "variantes": [
+          "MN"
+        ],
+        "explicacion": "MY mueve al dia anterior; MN mueve al dia siguiente.",
+        "confianza": "verbatim",
+        "opcional": true
+      },
+      {
+        "n": 2,
+        "sistema": "amadeus",
+        "proceso": "Seleccionar plazas - solo un vuelo",
+        "comando": null,
+        "plantilla": "SS {plazas} {clase} {lineaVuelo}",
+        "explicacion": "SS PLAZAS CLASE LINEA DE VUELO. Las plazas salen de la composicion: el INF no ocupa plaza.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 2.1,
+        "sistema": "amadeus",
+        "proceso": "Seleccionar plazas - ida y vuelta",
+        "comando": null,
+        "plantilla": "SS {plazas} {claseIda} {lineaIda} * {claseVuelta} {lineaVuelta}",
+        "explicacion": "SS PLAZAS CLASE IDA LINEA DE VUELO * CLASE REGRESO LINEA DE VUELO.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 2.2,
+        "sistema": "amadeus",
+        "proceso": "Seleccionar plazas - clases diferentes por vuelo",
+        "comando": null,
+        "plantilla": "SS {plazas} {claseVuelo1} {claseVuelo2} {lineaVuelo}",
+        "explicacion": "La primera clase corresponde al vuelo uno y la segunda al vuelo dos.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 3,
+        "sistema": "amadeus",
+        "proceso": "Cotizar con descuento pais - adulto mayor o jubilado",
+        "comando": null,
+        "plantilla": "FXX/FF-{tarifa}/RCD",
+        "explicacion": "FXX/FF-TARIFA/RCD. OPTIMA es la tarifa del ejemplo; RCD identifica el descuento adulto mayor. No es acumulable con otros descuentos.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 3.1,
+        "sistema": "amadeus",
+        "proceso": "Recotizar si aparece NO FARES/RBD/CARRIER/PASSENGER TYPE",
+        "comando": null,
+        "plantilla": "FXR/FF-{tarifa}/RCD",
+        "explicacion": "El error indica que la tarifa no esta disponible para las clases seleccionadas. Cambia las clases y reemplaza FXX por FXR.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 4,
+        "sistema": "amadeus",
+        "proceso": "Documentar valores informados al cliente",
+        "comando": null,
+        "plantilla": "RM{fechaRM}PAX AVDO VALOR TKT {detalleValores} USD//{iniciales}",
+        "explicacion": "Deja constancia del valor informado para cada tipo de pasajero.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 5,
+        "sistema": "amadeus",
+        "proceso": "Buscar condiciones de tarifa",
+        "comando": null,
+        "plantilla": "FQN {lineaTarifa} * PE",
+        "explicacion": "FQN LINEA DE TARIFA ELEGIDA * PE. PE es constante.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 6,
+        "sistema": "amadeus",
+        "proceso": "Documentar condiciones indicadas al cliente",
+        "comando": null,
+        "plantilla": "RM{fechaRM}PAX AVDO {condicionesTarifa} //{iniciales}",
+        "explicacion": "Deja constancia de las condiciones tarifarias comunicadas.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 7,
+        "sistema": "amadeus",
+        "proceso": "Agregar nombres - adulto",
+        "comando": null,
+        "plantilla": "NM1 {apellidoAdulto}/{nombreAdulto}",
+        "explicacion": "NM1 APELLIDO/NOMBRE.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 7.1,
+        "sistema": "amadeus",
+        "proceso": "Agregar nombres - child",
+        "comando": null,
+        "plantilla": "NM1 {apellidoChild}/{nombreChild}(CHD/{fechaNacimientoChild})",
+        "explicacion": "NM1 APELLIDO/NOMBRE (CHD/FECHA DE NACIMIENTO).",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 7.2,
+        "sistema": "amadeus",
+        "proceso": "Agregar nombres - adulto con infante",
+        "comando": null,
+        "plantilla": "NM1 {apellidoAdulto}/{nombreAdulto} (INF{apellidoInfante}/{nombreInfante}/{fechaNacimientoInfante})",
+        "explicacion": "El infante queda asociado al adulto en el mismo NM. No se agrega barra despues de INF.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 7.3,
+        "sistema": "amadeus",
+        "proceso": "Ingresar numero de Iberia Plus",
+        "comando": null,
+        "plantilla": "FFA{aerolineaFF}-{numeroViajeroFrecuente}",
+        "explicacion": "FFA AEROLINEA - NUMERO DE VIAJERO FRECUENTE. Es opcional.",
+        "confianza": "verbatim",
+        "opcional": true
+      },
+      {
+        "n": 8,
+        "sistema": "amadeus",
+        "proceso": "Incluir datos de contacto - correo",
+        "comando": null,
+        "plantilla": "APE- {email}",
+        "variantes": [
+          "SR CTCE- {emailSSR}"
+        ],
+        "explicacion": "En SR CTCE se reemplaza @ por //. Deben incluirse ambas entradas segun el flujo.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 8.1,
+        "sistema": "amadeus",
+        "proceso": "Incluir datos de contacto - telefono",
+        "comando": null,
+        "plantilla": "AP+ {telefono}",
+        "variantes": [
+          "SR CTCM- {telefono}"
+        ],
+        "explicacion": "AP+ NUMERO DE TELEFONO y SR CTCM para el SSR movil.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 9,
+        "sistema": "amadeus",
+        "proceso": "Establecer tiempo de emision - ON HOLD",
+        "comando": null,
+        "plantilla": "TKXL {fechaLimite} / {horaZulu}",
+        "explicacion": "TKXL FECHA / HORA ZULU. El ejemplo usa la fecha del dia siguiente y la hora zulú actual.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 9.1,
+        "sistema": "amadeus",
+        "proceso": "Establecer emision inmediata",
+        "comando": "TKOK",
+        "explicacion": "El pago se hara inmediatamente mediante PCI o Travel autorizado por un coach.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 9.2,
+        "sistema": "amadeus",
+        "proceso": "Establecer emision a 72 horas",
+        "comando": null,
+        "plantilla": "TKTL {fechaEmision}/{horaZulu}",
+        "explicacion": "TKTL FECHA/HORA ZULU. El manual lo indica para 48 o 72 horas.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 10,
+        "sistema": "amadeus",
+        "proceso": "Solo para pago web",
+        "comando": "OS YY HBFF",
+        "explicacion": "Guardar con ER para obtener el codigo de reserva.",
+        "confianza": "verbatim",
+        "opcional": true
+      },
+      {
+        "n": 11,
+        "sistema": "amadeus",
+        "proceso": "Guardar tarifa cotizada con descuento pais",
+        "comando": null,
+        "plantilla": "FXP/FF-{tarifa}/RCD",
+        "explicacion": "FXP/FF-TARIFA/RCD. OPTIMA es la tarifa del ejemplo.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 11.1,
+        "sistema": "amadeus",
+        "proceso": "Seleccionar una opcion de tarifa",
+        "comando": null,
+        "plantilla": "FXT{opcion}/P{pasajero}",
+        "explicacion": "Si hay varias opciones, selecciona una sola para el pasajero.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 11.2,
+        "sistema": "amadeus",
+        "proceso": "Seleccionar varias opciones de tarifa",
+        "comando": null,
+        "plantilla": "FXT{opcion1}/P{pasajero1}//{opcion2}/P{pasajero2}",
+        "explicacion": "FXT OPCION/PASAJERO para cada pasajero.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 12,
+        "sistema": "amadeus",
+        "proceso": "Verificar mascara TST",
+        "comando": "TQT",
+        "variantes": [
+          "TQT/T1"
+        ],
+        "explicacion": "TQT para un solo tipo de pasajero; TQT/T1 para varios tipos. Guardar con ER.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 13,
+        "sistema": "amadeus",
+        "proceso": "Agregar datos del pasaporte - DOCS obligatorio",
+        "comando": null,
+        "plantilla": "SR DOCS YY HK1-P-{paisDocumento}-{numeroDocumento}-{paisNacimiento}-{fechaNacimiento}-{genero}-{caducidadDocumento}-{apellido}/{nombre}/P{pasajero}",
+        "explicacion": "DOCS valida la fecha de nacimiento y la elegibilidad. Guardar con ER.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      },
+      {
+        "n": 14,
+        "sistema": "amadeus",
+        "proceso": "Enviar itinerario - reserva ON HOLD",
+        "comando": "IBP-EMLA/LPSP",
+        "variantes": [
+          "IEPJ-EMLA/LPSP"
+        ],
+        "explicacion": "IBP itinerario; IEPJ itinerario y servicios; SP idioma espanol. En ON HOLD este es el ultimo paso del flujo.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 15,
+        "sistema": "amadeus",
+        "proceso": "Incluir titular de tarjeta - nuevo Cyber",
+        "comando": null,
+        "plantilla": "RMCSY/{nombreTitular}:{apellidoTitular}",
+        "explicacion": "Incluir nombre y apellido del titular de la tarjeta.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 16,
+        "sistema": "amadeus",
+        "proceso": "Incluir gasto de gestion - un TST",
+        "comando": null,
+        "plantilla": "TTO/ST01/CSF/F{gastoGestion}",
+        "explicacion": "Si hay varios TST, agregar /T{numeroTST}. Guardar con ER.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 17,
+        "sistema": "iberianet",
+        "proceso": "Tomar datos de tarjeta en PCI Pal o Travel Pay",
+        "comando": null,
+        "explicacion": "PCI Pal y Travel Pay son formas de pago externas. El material no documenta una transaccion de terminal para este paso; no inventes una.",
+        "confianza": "hueco",
+        "nota": "El manual remite a las formas de pago PCI Pal o Travel Pay, pero no aporta un comando operativo para Iberianet."
+      },
+      {
+        "n": 18,
+        "sistema": "amadeus",
+        "proceso": "Agregar forma de pago",
+        "comando": null,
+        "plantilla": "FP {tokenPCIoTravelPay}",
+        "explicacion": "FP TOKEN. El token se copia de la trama PCI o Travel Pay; no lo inventes ni lo muestres en claro si contiene datos sensibles.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 19,
+        "sistema": "amadeus",
+        "proceso": "Cargar perfil PCI en Amadeus",
+        "comando": "$$CONFIG:CCTYPE/2",
+        "explicacion": "Cargar el perfil de PCI antes del cobro.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 20,
+        "sistema": "amadeus",
+        "proceso": "Realizar cargo a la tarjeta",
+        "comando": "$$PAY",
+        "explicacion": "Realizar el cargo a la tarjeta del cliente.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 21,
+        "sistema": "amadeus",
+        "proceso": "Borrar Cyber para poder emitir",
+        "comando": null,
+        "plantilla": "XE{lineaCyber}",
+        "explicacion": "XE17 en el ejemplo: XE seguido de la linea donde esta el Cyber.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 22,
+        "sistema": "amadeus",
+        "proceso": "Emitir el billete",
+        "comando": "TTP1/ET/RT",
+        "explicacion": "Emision del billete electronico.",
+        "confianza": "verbatim",
+        "validacion": {
+          "tipo": "exacto",
+          "patron": "TTP1/ET/RT"
+        }
+      },
+      {
+        "n": 23,
+        "sistema": "amadeus",
+        "proceso": "Enviar documentos - billetes electronicos",
+        "comando": "ITR-EMLA",
+        "variantes": [
+          "IBP-EMLA/LPSP",
+          "IEPJ-EMLA/LPSP"
+        ],
+        "explicacion": "ITR-EMLA envia billetes electronicos desde Amadeus.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 23.1,
+        "sistema": "resiber",
+        "proceso": "Enviar itinerario desde Resiber",
+        "comando": null,
+        "plantilla": "ITP:/{reserva}/{email}",
+        "explicacion": "ITP:/RESERVA/EMAIL. Si la reserva esta abierta puede usarse la variante con (SI LA RESERVA ESTA ABIERTA).",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 23.2,
+        "sistema": "resiber",
+        "proceso": "Enviar billetes electronicos desde Resiber",
+        "comando": null,
+        "plantilla": "DTR TN {numeroBillete},EML/{email}",
+        "explicacion": "DTR TN numero de billete, EML/email.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 23.3,
+        "sistema": "resiber",
+        "proceso": "Enviar EMD electronico desde Resiber",
+        "comando": null,
+        "plantilla": "DEMR DN {numeroEMD},EML/{email}",
+        "explicacion": "DEMR DN numero de EMD, EML/email.",
+        "confianza": "verbatim"
+      }
+    ],
+    "erroresComunes": [
+      {
+        "sintoma": "NO FARES/RBD/CARRIER/PASSENGER TYPE",
+        "causa": "La tarifa no esta disponible para las clases seleccionadas; cambia las clases y recotiza con FXR en lugar de FXX.",
+        "gravedad": "alta",
+        "confianza": "verbatim"
+      },
+      {
+        "sintoma": "Descuento aplicado sin cumplir condiciones",
+        "causa": "No se verificaron mercado PTY001, moneda USD, nacionalidad o residencia, edad/jubilacion y DOCS.",
+        "gravedad": "critica",
+        "confianza": "derivado"
+      },
+      {
+        "sintoma": "El infante ocupa plaza",
+        "causa": "El INF no ocupa plaza. La cantidad de SS debe calcularse con ADT + CHD.",
+        "gravedad": "alta",
+        "confianza": "verbatim"
+      }
+    ]
   },
   "ejercicio-split-servicios-complejo": {
     "id": "ejercicio-split-servicios-complejo",
@@ -2772,6 +4141,12 @@
     "aerolinea": "IB",
     "categoria": "ejercicios-maestros",
     "resumen": "Ejercicio de evaluación avanzada end-to-end: creación de PNR inicial (2 ADT + 1 CHD + 1 INF), ejecución de 2 SPLITs consecutivos para generar 3 reservas independientes, y asignación combinada de UMNR, PMR, SPEQ, XBAG, PETC, SPML, BSCT, Corrección de Nombre y AVIH.",
+    "fuente": {
+      "documento": "Ejercicio maestro de entrenamiento Iberia/Amadeus aportado por el instructor",
+      "tipo": "ejercicio-de-entrenamiento",
+      "recibido": "2026-08-11",
+      "confianzaGlobal": "derivado"
+    },
     "aplicaSolo": "Entrenamiento de Alto Rendimiento en Amadeus y Resiber para Agentes Senior de Iberia.",
     "pasos": [],
     "advertencias": [
@@ -2888,6 +4263,295 @@
           "SSR AVIH YY NN1 DOG CHIHUAHUA 15KG 60X50X40/P1/S2",
           "ÑK"
         ]
+      }
+    ]
+  },
+  "emision-colombia-cop": {
+    "id": "emision-colombia-cop",
+    "titulo": "Emisión Colombia COP (BOG001)",
+    "aerolinea": "LATAM/Iberia",
+    "categoria": "emision",
+    "resumen": "Flujo de reserva para llamadas de Colombia cuando el cobro se realiza en COP y la gestión corresponde a BOG001.",
+    "aplicaSolo": [
+      "llamada de atención de Colombia",
+      "cobro en COP",
+      "oficina BOG001"
+    ],
+    "fuente": {
+      "documento": "Manual aportado por el usuario: reserva Colombia cobrada en COP",
+      "tipo": "manual-oficial-interno",
+      "recibido": "2026-08-12",
+      "confianzaGlobal": "verbatim",
+      "nota": "Los comandos se conservaron de la columna TRANSACCIÓN. Los datos de cliente, tarjeta, correo, documento y token deben completarse en el momento; nunca se inventan."
+    },
+    "advertencias": [
+      "Este manual solo aplica a reservas cobradas en COP para llamadas de Colombia.",
+      "La gestión debe realizarse a través de la oficina BOG001.",
+      "Si el pasajero paga por depósito bancario, consulta el manual general de formas de pago.",
+      "El pago PCI/Travel Pay no se inventa: se consulta al coach o el procedimiento vigente."
+    ],
+    "pasos": [
+      {
+        "n": 1,
+        "sistema": "amadeus",
+        "proceso": "Buscar fechas de vuelo - solo ida",
+        "comando": null,
+        "plantilla": "AN {fecha} {origen}{destino}",
+        "variantes": [
+          "AN {fecha1} {origen}{destino} * {fecha2}",
+          "SN {fecha} {origen}{destino}"
+        ],
+        "explicacion": "AN FECHA ORGDES. Para ida y vuelta: AN FECHA1 ORGDES * FECHA2. SN muestra todas las clases. MY mueve al día anterior y MN al día siguiente.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 2,
+        "sistema": "amadeus",
+        "proceso": "Seleccionar plazas para un solo vuelo",
+        "comando": null,
+        "plantilla": "SS {plazas} {clase} {lineaVuelo}",
+        "variantes": [
+          "SS {plazas} {claseIda} {lineaIda} * {claseVuelta} {lineaVuelta}",
+          "SS {plazas} {claseIda} {claseVuelta} {lineaVuelo}"
+        ],
+        "explicacion": "Para ida y vuelta se usa SS PLAZAS CLASE IDA LÍNEA * CLASE REGRESO LÍNEA. Para clases diferentes: SS PLAZAS CLASE IDA CLASE VUELTA LÍNEA.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 3,
+        "sistema": "amadeus",
+        "proceso": "Cotizar los vuelos",
+        "comando": null,
+        "plantilla": "FXX/FF-{tarifa}",
+        "variantes": [
+          "FXX/FF-{tarifa}/RCH",
+          "FXX/FF-{tarifa}/RIN",
+          "FXX/FF-{tarifa}/RINADCH"
+        ],
+        "explicacion": "Adulto: FXX/FF-TARIFA. Niño: /RCH. Infante: /RIN. Varios tipos: /RINADCH. Si aparece NO FARES/RBD/CARRIER/PASSENGER TYPE, cambia las clases y reemplaza FXX por FXR.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 4,
+        "sistema": "referencia",
+        "proceso": "Verificar gasto de gestión",
+        "comando": null,
+        "plantilla": null,
+        "explicacion": "Tabla del manual: hasta 354 USD = 17.85 USD; 355 a 590 USD = 32.32 USD; 591 a 944 USD = 54.74 USD; 945 USD = 113.05 USD. El cobro final del caso es en COP: convierte cuando corresponda.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 5,
+        "sistema": "amadeus",
+        "proceso": "Documentar los valores informados al cliente",
+        "comando": "RM05NOV24PAX AVDO VALOR TKT X CHD xxx COP, X ADT xxx COP, X INF xxx COP//AR",
+        "explicacion": "Registra los valores de billete por tipo de pasajero en COP según lo informado al cliente.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 6,
+        "sistema": "amadeus",
+        "proceso": "Buscar condiciones de tarifa y convertir penalidad a COP",
+        "comando": "FQN {lineaTarifa} * PE",
+        "variantes": [
+          "FQC {valor}USD/COP"
+        ],
+        "explicacion": "FQN LÍNEA DE TARIFA * PE. Para convertir penalidad o gasto de gestión: FQC VALORUSD/COP.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 7,
+        "sistema": "amadeus",
+        "proceso": "Documentar las condiciones indicadas al cliente",
+        "comando": "RM05NOV24PAX AVDO TKT NO REEMBOLSABLE, CHG PERMITIDOS CON PENTY {valor} COP //AR",
+        "explicacion": "Documenta la condición de reembolso, cambios y penalidad convertida a COP.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 8,
+        "sistema": "amadeus",
+        "proceso": "Agregar nombres y tipos de pasajero",
+        "comando": null,
+        "plantilla": "NM{cantidad}{apellido}/{nombre}",
+        "variantes": [
+          "NM1 {apellido}/{nombre}(CHD/{fechaNacimiento})",
+          "NM1 {apellido}/{nombre}(INF{apellidoInf}/{nombreInf}/{fechaNacimiento})",
+          "NM1 {apellido}/{nombre}(INS/{fechaNacimiento})",
+          "FFAIB-{numeroIberiaPlus}"
+        ],
+        "explicacion": "Adulto NM1 APELLIDO/NOMBRE. Child añade (CHD/FECHA). Adulto con infante añade (INFAPELLIDO/NOMBRE/FECHA). Infante con asiento usa (INS/FECHA). Iberia Plus: FFAIB-NÚMERO.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 9,
+        "sistema": "amadeus",
+        "proceso": "Incluir datos de contacto",
+        "comando": null,
+        "plantilla": "APE- {email}",
+        "variantes": [
+          "SR CTCE- {emailSSR}",
+          "AP+ {telefono}",
+          "SR CTCM- {telefono}"
+        ],
+        "explicacion": "En CTCE se reemplaza @ por //. No inventes correo ni teléfono.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 10,
+        "sistema": "amadeus",
+        "proceso": "Establecer tiempo de emisión",
+        "comando": null,
+        "plantilla": "TKXL {fecha}/{horaZulu}",
+        "variantes": [
+          "TKOK",
+          "TKTL {fecha}/{horaZulu}"
+        ],
+        "explicacion": "ON HOLD: TKXL FECHA/HORA ZULU. Inmediata: TKOK. A 72 horas: TKTL FECHA/HORA ZULU. El pago inmediato por PCI/Travel Pay requiere autorización del coach.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 11,
+        "sistema": "amadeus",
+        "proceso": "Solo para pago web y guardar la reserva",
+        "comando": "OS YY HBFF",
+        "variantes": [
+          "ER"
+        ],
+        "explicacion": "Solo para pago web: OS YY HBFF. Guardar con ER para obtener el código de reserva.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 12,
+        "sistema": "amadeus",
+        "proceso": "Guardar la tarifa cotizada",
+        "comando": null,
+        "plantilla": "FXP/FF-{tarifa}",
+        "variantes": [
+          "FXP/FF-{tarifa}/RCH",
+          "FXP/FF-{tarifa}/RIN",
+          "FXT{opcion}/P{pasajero}",
+          "FXT{opcion}/P{pasajero1}//{opcion2}/P{pasajero2}"
+        ],
+        "explicacion": "Adulto FXP/FF-TARIFA; child /RCH; infante /RIN. Si aparece lista de opciones, selecciona una o varias con FXT según pasajero.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 13,
+        "sistema": "amadeus",
+        "proceso": "Verificar que se creó la máscara TST",
+        "comando": "TQT",
+        "variantes": [
+          "TQT/T1"
+        ],
+        "explicacion": "TQT para un tipo de pasajero. TQT/T1 cuando hay varios tipos.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 14,
+        "sistema": "amadeus",
+        "proceso": "Agregar datos del pasaporte y guardar",
+        "comando": "SR DOCS YY HK1-P-{paisDocumento}-{numeroDocumento}-{paisNacimiento}-{fechaNacimiento}-{genero}-{fechaCaducidad}-{apellido}/{nombre}/P{pasajero}",
+        "variantes": [
+          "ER"
+        ],
+        "explicacion": "DOCS es obligatorio. Completa país, documento, país de nacimiento, fecha de nacimiento, género, caducidad, apellido/nombre y pasajero.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      },
+      {
+        "n": 15,
+        "sistema": "amadeus",
+        "proceso": "Enviar itinerario",
+        "comando": "IBP-EMLA/LPSP",
+        "variantes": [
+          "IEPJ-EMLA/LPSP",
+          "ITR-EMLA"
+        ],
+        "explicacion": "En ON HOLD este es el último paso antes de cobrar. Informa que los billetes serán emitidos con PCC y que el cliente presentará la tarjeta usada.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 16,
+        "sistema": "amadeus",
+        "proceso": "Incluir datos del titular de la tarjeta",
+        "comando": "RMCSY/{nombre}:{apellido}",
+        "explicacion": "Registra nombre y apellido del titular de la tarjeta de pago.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 17,
+        "sistema": "amadeus",
+        "proceso": "Incluir el gasto de gestión",
+        "comando": "TTO/ST01/CSF/F{gastoGestion}",
+        "variantes": [
+          "TTO/ST01/CSF/F{gastoGestion}/T{numeroTST}",
+          "ER"
+        ],
+        "explicacion": "Un TST: TTO/ST01/CSF/FGASTO. Varios TST: añade /Tn. Guardar con ER.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 18,
+        "sistema": "referencia",
+        "proceso": "Tomar datos de tarjeta PCI o Travel Pay",
+        "comando": null,
+        "explicacion": "El manual remite a PCI PAL LATAM - Formas de pago - PCI PAL y Travel Pay LATAM - Formas de pago - Travel Pay. Este paso está fuera del texto operativo aportado: consulta al coach/instructor y no inventes el flujo.",
+        "confianza": "hueco",
+        "nota": "Paso no documentado en este manual. Pregunta al instructor por PCI PAL o Travel Pay antes de continuar."
+      },
+      {
+        "n": 19,
+        "sistema": "amadeus",
+        "proceso": "Agregar forma de pago",
+        "comando": null,
+        "simulacion": {
+          "comando": "FP CASH,",
+          "nota": "Solo laboratorio: forma de pago ficticia. Nunca pegar tarjeta, CVV ni token."
+        },
+        "explicacion": "El pago PCI/Travel Pay real no está documentado aquí. En práctica local usa únicamente FP CASH,.",
+        "confianza": "hueco",
+        "esBloqueante": true
+      },
+      {
+        "n": 20,
+        "sistema": "amadeus",
+        "proceso": "Cargar el perfil de PCI en Amadeus",
+        "comando": "$$CONFIG:CCTYPE/2",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 21,
+        "sistema": "amadeus",
+        "proceso": "Realizar el cargo a la tarjeta",
+        "comando": "$$PAY",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 22,
+        "sistema": "amadeus",
+        "proceso": "Borrar el cyber para poder emitir",
+        "comando": "XE17",
+        "explicacion": "17 es la línea donde está el cyber.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 23,
+        "sistema": "amadeus",
+        "proceso": "Emitir el billete",
+        "comando": "TTP1/ET/RT",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 24,
+        "sistema": "amadeus",
+        "proceso": "Enviar documentos finales",
+        "comando": "IBP-EMLA/LPSP",
+        "variantes": [
+          "IEPJ-EMLA/LPSP",
+          "ITR-EMLA"
+        ],
+        "explicacion": "IBP: itinerario; IEPJ: itinerario y servicios; ITR: billetes electrónicos.",
+        "confianza": "verbatim"
       }
     ]
   },
@@ -3238,10 +4902,15 @@
         "n": 17,
         "sistema": "amadeus",
         "proceso": "Agregar forma de pago",
-        "comando": "FP MS-TT,VI1234567890123456-1023-V1234ABCD",
+        "comando": null,
         "plantilla": "FP {TOKEN}",
-        "explicacion": "TOKEN = copia la trama de PCI o Travel Pay.",
-        "confianza": "verbatim"
+        "simulacion": {
+          "comando": "FP CASH,",
+          "nota": "Solo laboratorio: forma de pago ficticia. Nunca pegar tarjeta, CVV ni token."
+        },
+        "explicacion": "El pago PCI/Travel Pay real está fuera del alcance del laboratorio. En práctica local usa únicamente FP CASH,.",
+        "confianza": "hueco",
+        "esBloqueante": true
       },
       {
         "n": 18,
@@ -3378,6 +5047,110 @@
       "Faltan los submanuales hermanos: ON HOLD 72 HRS (#3063), DESCUENTOS PANAMA (#3064), DESCUENTOS ECUADOR (#3065), ASOCIAR CHILD (#3066), ASOCIAR INFANTE (#3067), RESERVAS Y GASTO GESTION COLOMBIA (#3133), COMUNICACIONES CORTADAS LATAM (#3134)."
     ]
   },
+  "emision-reservas-on-hold": {
+    "id": "emision-reservas-on-hold",
+    "titulo": "Emisión de reservas ON HOLD (#3686)",
+    "aerolinea": "IB",
+    "categoria": "emision",
+    "resumen": "Completar dentro del plazo la emisión de una reserva ON HOLD: titular, pago, cobro, eliminación del Cyber, emisión y envío.",
+    "aplicaSolo": "Reserva ON HOLD dentro de las 72 horas y con pago autorizado por el procedimiento de PCI PAL o Travel Pay.",
+    "advertencias": [
+      {
+        "nivel": "critico",
+        "texto": "Antes de cobrar, verificar que la reserva sigue dentro del límite y que no existe una solicitud duplicada.",
+        "confianza": "derivado"
+      },
+      {
+        "nivel": "critico",
+        "texto": "El Cyber debe eliminarse antes de emitir el billete.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "No almacenar ni inventar tokens PCI PAL/Travel Pay.",
+        "confianza": "verbatim"
+      }
+    ],
+    "fuente": {
+      "documento": "IberiaNet Lite — #3686 EMISIÓN RESERVAS ON HOLD",
+      "tipo": "manual-oficial-interno",
+      "recibido": "2026-08-12",
+      "confianzaGlobal": "verbatim"
+    },
+    "pasos": [
+      {
+        "n": 1,
+        "sistema": "amadeus",
+        "proceso": "Registrar titular de tarjeta",
+        "comando": "RMCSY/{nombreTitular}:{apellidoTitular}",
+        "variantes": [
+          "ER"
+        ],
+        "explicacion": "Guardar el nombre del titular del nuevo Cyber.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 2,
+        "sistema": "externo",
+        "proceso": "Obtener datos de tarjeta",
+        "comando": null,
+        "explicacion": "Usar PCI PAL Europa o Travel Pay Europa según el procedimiento autorizado. El manual no aporta un comando de captura de tarjeta.",
+        "confianza": "hueco",
+        "nota": "El manual no aporta una transacción de captura. Es un paso bloqueante: usa únicamente el canal PCI PAL/Travel Pay autorizado y confirma con el supervisor; nunca pegues datos de tarjeta en el tutor.",
+        "esBloqueante": true
+      },
+      {
+        "n": 3,
+        "sistema": "amadeus",
+        "proceso": "Agregar forma de pago del EMD",
+        "comando": "FP {tokenPCI} +BF,1/{moneda}{valorEMD}",
+        "explicacion": "El valor corresponde al EMD ON HOLD.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 4,
+        "sistema": "amadeus",
+        "proceso": "Cargar perfil PCI",
+        "comando": "$$CONFIG:CCTYPE/2",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 5,
+        "sistema": "amadeus",
+        "proceso": "Realizar cargo",
+        "comando": "$$PAY",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 6,
+        "sistema": "amadeus",
+        "proceso": "Borrar Cyber",
+        "comando": "XE{lineaCyber}",
+        "explicacion": "XE17 en el ejemplo; sustituir por la línea real del Cyber.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 7,
+        "sistema": "amadeus",
+        "proceso": "Emitir billete",
+        "comando": "TTP1/ET/RT",
+        "explicacion": "Emitir dentro del plazo ON HOLD.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 8,
+        "sistema": "amadeus",
+        "proceso": "Enviar documentación",
+        "comando": "IBP-EMLA/LPSP",
+        "variantes": [
+          "IEPJ-EMLA/LPSP",
+          "ITR-EMLA"
+        ],
+        "explicacion": "Enviar itinerario, servicios y billetes electrónicos según corresponda.",
+        "confianza": "verbatim"
+      }
+    ]
+  },
   "equipaje-adicional-xbag": {
     "id": "equipaje-adicional-xbag",
     "titulo": "Equipaje Adicional (XBAG) — Emisión de EMD y Errores de Cotización",
@@ -3503,7 +5276,11 @@
         "n": 7,
         "sistema": "amadeus",
         "proceso": "7. Agregar forma de pago al TSM",
-        "comando": "TMI/M1/FP-MS-TT,VI1234567890123456-1023-V1234ABCD",
+        "comando": null,
+        "simulacion": {
+          "comando": "TMI/M1/FP-CASH,",
+          "nota": "Solo laboratorio: forma de pago ficticia."
+        },
         "plantilla": "TMI/M{numeroTsm}/FP-{TOKEN}",
         "explicacion": "M1 = número del TSM (TQM) · TOKEN = trama copiada de PCI Pal o Travel Pay.",
         "confianza": "verbatim"
@@ -3556,6 +5333,462 @@
         ],
         "explicacion": "Amadeus: IBP (itinerario), IEPJ (servicios), ITR (billetes). Resiber: ITP, DTR TN (e-ticket), DEMR DN (EMD).",
         "confianza": "verbatim"
+      }
+    ]
+  },
+  "facturas-latam": {
+    "id": "facturas-latam",
+    "titulo": "Facturas LATAM #3122",
+    "aerolinea": "IB",
+    "categoria": "postventa",
+    "resumen": "Orientar solicitudes de factura para billetes Iberia emitidos en mercados LATAM y ofrecer recibo de itinerario cuando no aplica factura.",
+    "aplicaSolo": "Billetes emitidos por Iberia en México, Colombia, Guatemala, República Dominicana o Perú.",
+    "advertencias": [
+      {
+        "nivel": "critico",
+        "texto": "México, Colombia, Guatemala y República Dominicana: el pasajero solicita la factura en la web, en Tus vuelos → Petición de facturas.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "critico",
+        "texto": "No proporcionar ventadirectalatam@iberia.com para facturas de México; el manual lo marca como error crítico.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "La factura no está disponible hasta pasadas 72 horas desde la compra y tiene como límite el último día del mes siguiente.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "Perú: solo Call Center y el RUC debió incluirse al comprar. Sin RUC original no se puede entregar factura después.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "Otros países: no se genera factura; ofrecer recibo de itinerario.",
+        "confianza": "verbatim"
+      }
+    ],
+    "fuente": {
+      "documento": "IberiaNet Lite — #3122 FACTURAS",
+      "tipo": "manual-oficial-interno",
+      "recibido": "2026-08-12",
+      "confianzaGlobal": "verbatim"
+    },
+    "reglasPais": [
+      {
+        "pais": "MX",
+        "canal": "web",
+        "ruta": "Tus vuelos → Petición de facturas",
+        "notas": "Solo billetes emitidos en MXN; si DOI < 30 días y falla, cambiar navegador/verificar conexión; persistiendo, enviar pantallazos a servis.ibpagos@iberia.es."
+      },
+      {
+        "pais": "CO",
+        "canal": "web",
+        "ruta": "Tus vuelos → Petición de facturas"
+      },
+      {
+        "pais": "GT",
+        "canal": "web",
+        "ruta": "Tus vuelos → Petición de facturas"
+      },
+      {
+        "pais": "DO",
+        "canal": "web",
+        "ruta": "Tus vuelos → Petición de facturas"
+      },
+      {
+        "pais": "PE",
+        "canal": "call-center",
+        "requisito": "RUC incluido en la compra"
+      },
+      {
+        "pais": "OTROS",
+        "canal": "recibo-itinerario",
+        "requisito": "No se genera factura"
+      }
+    ],
+    "pasos": [
+      {
+        "n": 1,
+        "sistema": "generalidades",
+        "proceso": "Identificar país y responsabilidad del billete",
+        "comando": null,
+        "explicacion": "Confirmar que es billete Iberia y el país de solicitud.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      },
+      {
+        "n": 2,
+        "sistema": "iberia.com",
+        "proceso": "Orientar solicitud web",
+        "comando": null,
+        "explicacion": "Para MX, CO, GT y DO: Tus vuelos → Petición de facturas. No prometer emisión inmediata.",
+        "confianza": "verbatim",
+        "condicional": "MX-CO-GT-DO"
+      },
+      {
+        "n": 3,
+        "sistema": "call-center",
+        "proceso": "Verificar factura de Perú",
+        "comando": null,
+        "explicacion": "Solo si el RUC se incluyó en la compra; usar FZ-PP, FZ-NI o FZ-RUC según documento.",
+        "confianza": "verbatim",
+        "condicional": "PE"
+      },
+      {
+        "n": 3.1,
+        "sistema": "amadeus",
+        "proceso": "Agregar elemento fiscal al billete",
+        "comando": "FZ-{tipoDocumento}",
+        "variantes": [
+          "FZ-PP",
+          "FZ-NI",
+          "FZ-RUC"
+        ],
+        "explicacion": "Elemento obligatorio para el billete en Perú.",
+        "confianza": "verbatim",
+        "condicional": "PE"
+      },
+      {
+        "n": 3.2,
+        "sistema": "amadeus",
+        "proceso": "Agregar elemento fiscal al EMD",
+        "comando": "TMI/M{numeroTSM}/FE-{tipoDocumento}",
+        "variantes": [
+          "TMI/M#/FE-PP",
+          "TMI/M#/FE-NI",
+          "TMI/M#/FE-RUC"
+        ],
+        "explicacion": "Elemento fiscal obligatorio para EMD de Perú.",
+        "confianza": "verbatim",
+        "condicional": "PE"
+      },
+      {
+        "n": 4,
+        "sistema": "amadeus/resiber",
+        "proceso": "Ofrecer recibo cuando no aplica factura",
+        "comando": "DTR:TN 075-{numeroTicket},EML/{correo}",
+        "variantes": [
+          "DEMR:DN 075-{numeroEMD},EML/{correo}"
+        ],
+        "explicacion": "Para otros países, enviar recibo de itinerario o EMD; no llamarlo factura.",
+        "confianza": "verbatim",
+        "condicional": "OTROS"
+      },
+      {
+        "n": 5,
+        "sistema": "iberia.com",
+        "proceso": "Escalar incidencia de México",
+        "comando": null,
+        "explicacion": "Si DOI < 30 días en MXN y falla tras cambiar navegador/verificar conexión, enviar pantallazos a servis.ibpagos@iberia.es. Pagos con dos formas siempre dan error y no se modifican; respuesta estimada 14–45 días.",
+        "confianza": "verbatim",
+        "condicional": "MX"
+      }
+    ]
+  },
+  "formas-pago-latam": {
+    "id": "formas-pago-latam",
+    "titulo": "Formas de pago LATAM #3123",
+    "aerolinea": "IB",
+    "categoria": "pagos",
+    "resumen": "Reglas de moneda, cuotas, franquicias y comunicación de PCC por mercado LATAM. No captura datos sensibles de tarjeta.",
+    "aplicaSolo": "Reservas gestionadas en mercados LATAM según país de cobro.",
+    "advertencias": [
+      {
+        "nivel": "critico",
+        "texto": "Siempre informar al pasajero que tiene PCC.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "critico",
+        "texto": "La tarjeta, CVV, token PCI y número completo nunca se guardan en ejercicios, PNR ni logs.",
+        "confianza": "derivado"
+      },
+      {
+        "nivel": "alto",
+        "texto": "El texto principal indica Guatemala en USD, mientras el resumen aportado indica GTQ. Se conserva como discrepancia pendiente; no se elige una moneda automáticamente.",
+        "confianza": "discrepancia"
+      }
+    ],
+    "fuente": {
+      "documento": "IberiaNet Lite — #3123 FORMAS DE PAGO",
+      "tipo": "manual-oficial-interno",
+      "recibido": "2026-08-12",
+      "confianzaGlobal": "verbatim-con-discrepancia"
+    },
+    "mercados": [
+      {
+        "pais": "ARGENTINA",
+        "moneda": "ARS",
+        "cuotas": [
+          1
+        ],
+        "franquicias": [
+          "AMEX",
+          "MASTERCARD",
+          "VISA"
+        ]
+      },
+      {
+        "pais": "CHILE",
+        "moneda": "CLP",
+        "cuotas": [
+          1,
+          3,
+          6,
+          9,
+          12
+        ],
+        "franquicias": [
+          "AMEX",
+          "MASTERCARD",
+          "VISA",
+          "DINERS"
+        ]
+      },
+      {
+        "pais": "COLOMBIA",
+        "moneda": "COP",
+        "cuotas": "1-36",
+        "franquicias": [
+          "AMEX",
+          "MASTERCARD",
+          "VISA",
+          "DINERS"
+        ]
+      },
+      {
+        "pais": "COSTA RICA",
+        "moneda": "CRC",
+        "cuotas": [
+          1
+        ],
+        "franquicias": [
+          "AMEX",
+          "MASTERCARD",
+          "VISA"
+        ]
+      },
+      {
+        "pais": "ECUADOR",
+        "moneda": "USD",
+        "cuotas": "3-24 meses",
+        "franquicias": [
+          "AMEX",
+          "MASTERCARD",
+          "VISA",
+          "DINERS"
+        ]
+      },
+      {
+        "pais": "EL SALVADOR",
+        "moneda": "USD",
+        "cuotas": [
+          1
+        ],
+        "franquicias": [
+          "AMEX",
+          "MASTERCARD",
+          "VISA"
+        ]
+      },
+      {
+        "pais": "GUATEMALA",
+        "moneda": "USD",
+        "cuotas": [
+          1
+        ],
+        "franquicias": [
+          "AMEX",
+          "MASTERCARD",
+          "VISA"
+        ],
+        "discrepanciaResumen": "El resumen dice GTQ; el texto principal dice USD."
+      },
+      {
+        "pais": "HONDURAS",
+        "moneda": "USD",
+        "cuotas": [
+          1
+        ],
+        "franquicias": [
+          "AMEX",
+          "MASTERCARD",
+          "VISA"
+        ]
+      },
+      {
+        "pais": "MEXICO",
+        "moneda": "MXN",
+        "cuotas": "ver detalle",
+        "franquicias": [
+          "AMEX",
+          "MASTERCARD",
+          "VISA",
+          "DINERS"
+        ],
+        "condiciones": "Solo tarjetas emitidas en México y monto mínimo 7.500 MXN."
+      },
+      {
+        "pais": "NICARAGUA",
+        "moneda": "USD",
+        "cuotas": [
+          1
+        ],
+        "franquicias": [
+          "AMEX",
+          "MASTERCARD",
+          "VISA"
+        ]
+      },
+      {
+        "pais": "PANAMA",
+        "moneda": "USD",
+        "cuotas": [
+          1
+        ],
+        "franquicias": [
+          "AMEX",
+          "MASTERCARD",
+          "VISA"
+        ]
+      },
+      {
+        "pais": "PERU",
+        "moneda": "USD",
+        "cuotas": [
+          1
+        ],
+        "franquicias": [
+          "AMEX",
+          "MASTERCARD",
+          "VISA",
+          "DINERS"
+        ]
+      },
+      {
+        "pais": "REPUBLICA DOMINICANA",
+        "moneda": "USD",
+        "cuotas": [
+          1
+        ],
+        "franquicias": [
+          "AMEX",
+          "MASTERCARD",
+          "VISA",
+          "DISCOVER",
+          "DINERS"
+        ]
+      },
+      {
+        "pais": "URUGUAY",
+        "moneda": "USD",
+        "cuotas": [
+          1
+        ],
+        "franquicias": [
+          "AMEX",
+          "MASTERCARD",
+          "VISA",
+          "DINERS"
+        ]
+      },
+      {
+        "pais": "VENEZUELA",
+        "moneda": "USD",
+        "cuotas": [
+          1
+        ],
+        "franquicias": [
+          "AMEX",
+          "MASTERCARD",
+          "VISA",
+          "DINERS"
+        ]
+      }
+    ],
+    "mexicoCuotas": [
+      {
+        "franquicia": "AMEX",
+        "cuotas": [
+          3,
+          6
+        ],
+        "minimo": "7500 MXN",
+        "emisor": "México"
+      },
+      {
+        "franquicia": "MASTERCARD",
+        "cuotas": [
+          3,
+          6
+        ],
+        "minimo": "7500 MXN",
+        "emisor": "Banco Santander"
+      },
+      {
+        "franquicia": "VISA",
+        "cuotas": [
+          3,
+          6,
+          9
+        ],
+        "minimo": "7500 MXN",
+        "emisor": "Banco Santander"
+      },
+      {
+        "franquicia": "DINERS",
+        "cuotas": [
+          3,
+          6
+        ],
+        "minimo": "7500 MXN",
+        "emisor": "Banco Santander"
+      }
+    ],
+    "pagoSingle": {
+      "descripcion": "Cobro inmediato, aunque aún no exista documento emitido.",
+      "ejemplo": "FP MS-WEB,114949000VU9160450V",
+      "nota": "El cobro permanece en Iberia si se voidea."
+    },
+    "pasos": [
+      {
+        "n": 1,
+        "sistema": "generalidades",
+        "proceso": "Identificar mercado y moneda",
+        "comando": null,
+        "explicacion": "Determinar país de cobro antes de ofrecer cuotas o franquicias.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      },
+      {
+        "n": 2,
+        "sistema": "pagos",
+        "proceso": "Validar moneda, cuotas y franquicia",
+        "comando": null,
+        "explicacion": "Comparar la tarjeta del cliente con las reglas del país. En México validar emisor y mínimo de 7.500 MXN.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      },
+      {
+        "n": 3,
+        "sistema": "pagos",
+        "proceso": "Informar PCC",
+        "comando": null,
+        "explicacion": "Informar al pasajero que tiene PCC.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      },
+      {
+        "n": 4,
+        "sistema": "amadeus",
+        "proceso": "Registrar forma de pago autorizada",
+        "comando": "FP {tramaAutorizadaPCI}",
+        "explicacion": "La trama debe proceder del canal PCI/Travel Pay autorizado. En práctica se usa un token ficticio claramente marcado.",
+        "confianza": "verbatim",
+        "esBloqueante": true
       }
     ]
   },
@@ -3845,6 +6078,121 @@
       "La escala de Colombia usa '<=' en el manual; el tramo >944 se lee como 'mayor que 944'.",
       "Discrepancia de cifras de Colombia contra la tabla pública de iberia.com (posible IVA del 19% incluido).",
       "Honduras y Nicaragua figuran aquí pero NO en la tabla pública, que dice que un país no listado tiene gasto 0."
+    ]
+  },
+  "generalidades-latam": {
+    "id": "generalidades-latam",
+    "titulo": "Generalidades LATAM #3062",
+    "aerolinea": "IB",
+    "categoria": "generalidades",
+    "resumen": "Checklist inicial para identificar la llamada, abrir la reserva, verificar seguridad, responsabilidad del billete y estados antes de cualquier proceso LATAM.",
+    "aplicaSolo": "Cualquier proceso LATAM antes de iniciar emisión, reemisión, reembolso o servicios.",
+    "advertencias": [
+      {
+        "nivel": "critico",
+        "texto": "El filtro de seguridad con localizador/PNR y apellido es obligatorio.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "Verificar la responsabilidad del billete antes de aplicar un procedimiento.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "HK indica plaza confirmada y O indica cupón abierto/disponible.",
+        "confianza": "verbatim"
+      }
+    ],
+    "fuente": {
+      "documento": "IberiaNet Lite — #3062 GENERALIDADES",
+      "tipo": "manual-oficial-interno",
+      "recibido": "2026-08-12",
+      "confianzaGlobal": "verbatim"
+    },
+    "pasos": [
+      {
+        "n": 1,
+        "sistema": "avaya/salesforce",
+        "proceso": "Identificar origen de la llamada",
+        "comando": null,
+        "explicacion": "Identificar la ciudad desde Avaya (+00) o Salesforce.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      },
+      {
+        "n": 2,
+        "sistema": "resiber/amadeus",
+        "proceso": "Abrir la reserva",
+        "comando": "RT {PNR}",
+        "explicacion": "Abrir la reserva con RT y el localizador.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      },
+      {
+        "n": 3,
+        "sistema": "natiba",
+        "proceso": "Realizar filtro de seguridad",
+        "comando": null,
+        "explicacion": "Validar localizador/PNR y apellido del pasajero.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      },
+      {
+        "n": 4,
+        "sistema": "resiber/amadeus",
+        "proceso": "Localizar ticket",
+        "comando": null,
+        "variantes": [
+          "SR TKNE",
+          "FA",
+          "FHE"
+        ],
+        "explicacion": "Localizar el elemento que identifica o contiene el billete.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      },
+      {
+        "n": 5,
+        "sistema": "amadeus",
+        "proceso": "Verificar aerolínea responsable",
+        "comando": "DNA {tresPrimerosDigitosTKT}",
+        "variantes": [
+          "DNA 075"
+        ],
+        "explicacion": "Usar los tres primeros dígitos del billete; DNA 075 identifica la placa Iberia.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      },
+      {
+        "n": 6,
+        "sistema": "amadeus",
+        "proceso": "Verificar pasajero directo o agencia",
+        "comando": "DTR TN 075-{numeroTicket}",
+        "variantes": [
+          "DTR H",
+          ".PV/IOI"
+        ],
+        "explicacion": "Consultar la responsabilidad y el tipo de emisión.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      },
+      {
+        "n": 7,
+        "sistema": "amadeus",
+        "proceso": "Verificar estados de segmentos y cupones",
+        "comando": null,
+        "explicacion": "Confirmar que la plaza esté HK y los cupones estén O (OPEN). Solo entonces continuar al manual específico.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      }
+    ],
+    "relacionados": [
+      "latam-general-prechecklist",
+      "on-hold-72h",
+      "facturas-latam",
+      "comunicaciones-cortadas-latam",
+      "pmr-silla-de-ruedas"
     ]
   },
   "generar-split": {
@@ -5057,6 +7405,370 @@
       }
     ]
   },
+  "on-hold-72h": {
+    "id": "on-hold-72h",
+    "titulo": "Reserva ON HOLD 72 horas (#3063)",
+    "aerolinea": "IB",
+    "categoria": "emision",
+    "resumen": "Crear una reserva ON HOLD, cobrar el depósito no reembolsable, crear el EMD y dejar la emisión pendiente por 72 horas.",
+    "aplicaSolo": "Reservas ON HOLD según mercado, moneda, destino y tarifa aplicables.",
+    "advertencias": [
+      {
+        "nivel": "critico",
+        "texto": "El plazo de 72 horas no es prorrogable. Si no se completa el pago, la reserva se cancela y se pierde el depósito inicial.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "critico",
+        "texto": "El depósito no es reembolsable si el cliente decide no emitir.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "El precio ON HOLD es por pasajero y depende de radio, país que llama, destino y tarifa.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "El flujo de pago PCI PAL/Travel Pay es un hueco operativo si no se aporta su manual específico; nunca inventar tokens.",
+        "confianza": "hueco"
+      },
+      {
+        "nivel": "alto",
+        "texto": "No mezclar la emisión del EMD del #3063 con la emisión del billete del subproceso #3686; son momentos distintos.",
+        "confianza": "derivado"
+      }
+    ],
+    "fuente": {
+      "documento": "IberiaNet Lite — #3063 ON HOLD 72 HRS",
+      "tipo": "manual-oficial-interno",
+      "recibido": "2026-08-12",
+      "confianzaGlobal": "verbatim"
+    },
+    "tablaPrecios": {
+      "espana": {
+        "largoRadio": "10 EUR",
+        "medioCortoRadio": "5 EUR"
+      },
+      "usa": {
+        "largoRadio": "10 USD",
+        "medioCortoRadio": "5 USD"
+      },
+      "restoPaises": {
+        "largoRadio": "10 GBP",
+        "medioCortoRadio": "5 GBP"
+      }
+    },
+    "pasos": [
+      {
+        "n": 1,
+        "sistema": "amadeus",
+        "proceso": "Buscar fechas solo ida",
+        "comando": null,
+        "plantilla": "AN {fecha} {origen}{destino}",
+        "variantes": [
+          "AN {fechaIda} {origen}{destino} * {fechaVuelta}",
+          "SN {fecha} {origen}{destino}",
+          "MY",
+          "MN"
+        ],
+        "explicacion": "AN busca disponibilidad; SN muestra todas las clases; MY día anterior; MN día siguiente.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 2,
+        "sistema": "amadeus",
+        "proceso": "Seleccionar plazas",
+        "comando": null,
+        "plantilla": "SS {plazas} {clase} {linea}",
+        "variantes": [
+          "SS {plazas} {claseIda} {lineaIda} * {claseVuelta} {lineaVuelta}",
+          "SS {plazas} {claseVuelo1} {claseVuelo2} {linea}"
+        ],
+        "explicacion": "Para ida y vuelta se indican ambas clases y líneas. La cantidad de plazas se basa en pasajeros con asiento.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 3,
+        "sistema": "amadeus",
+        "proceso": "Cotizar vuelos",
+        "comando": null,
+        "plantilla": "FXX/FF-{tarifa}",
+        "variantes": [
+          "FXX/FF-{tarifa}/RCH",
+          "FXX/FF-{tarifa}/RIN",
+          "FXX/FF-{tarifa}/RINADCH"
+        ],
+        "explicacion": "Adulto, child, infante o varios tipos. Tarifas: BASIC, OPTIMA, COMFORT, FLEX; PEOPTIMA/PECOMFORT/PEFLEX; BUSOPTIMA/BUSCOMFORT/BUSFLEX.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 3.1,
+        "sistema": "amadeus",
+        "proceso": "Recotizar si no hay tarifa para RBD",
+        "comando": "FXR/FF-{tarifa}",
+        "explicacion": "Si aparece NO FARES/RBD/CARRIER/PASSENGER TYPE, la tarifa no está disponible para las clases seleccionadas.",
+        "confianza": "verbatim",
+        "condicional": "NO FARES/RBD/CARRIER/PASSENGER TYPE"
+      },
+      {
+        "n": 4,
+        "sistema": "amadeus",
+        "proceso": "Documentar valores informados",
+        "comando": "RM{fecha}*PAX AVDO VALOR TKT {detalleValores}//{iniciales}",
+        "explicacion": "Registrar el valor por ADT, CHD e INF según corresponda.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 5,
+        "sistema": "amadeus",
+        "proceso": "Buscar condiciones de tarifa",
+        "comando": "FQN {lineaTarifa} * PE",
+        "explicacion": "PE es la constante indicada por el manual.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 6,
+        "sistema": "amadeus",
+        "proceso": "Documentar condiciones y convertir penalidad",
+        "comando": "RM{fecha}PAX AVDO TKT {condiciones}//{iniciales}",
+        "variantes": [
+          "FQC {valor}USD/{monedaCobro}"
+        ],
+        "explicacion": "Si el vuelo sale de Latinoamérica, la penalidad se cobra en USD y se convierte a la moneda cobrada.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 7,
+        "sistema": "amadeus",
+        "proceso": "Agregar nombres",
+        "comando": null,
+        "plantilla": "NM1 {apellidoAdulto}/{nombreAdulto}",
+        "variantes": [
+          "NM1 {apellidoChild}/{nombreChild}(CHD/{fechaNacimientoChild})",
+          "NM1 {apellidoAdulto}/{nombreAdulto}(INF{apellidoInfante}/{nombreInfante}/{fechaNacimientoInfante})",
+          "FFAIB-{numeroIberiaPlus}"
+        ],
+        "explicacion": "El INF va asociado al adulto y no ocupa plaza.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 8,
+        "sistema": "amadeus",
+        "proceso": "Incluir contacto",
+        "comando": "APE- {email}",
+        "variantes": [
+          "SR CTCE- {emailSSR}",
+          "AP+ {telefono}",
+          "SR CTCM- {telefono}"
+        ],
+        "explicacion": "En CTCE se reemplaza @ por //. No inventar datos.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 9,
+        "sistema": "amadeus",
+        "proceso": "Establecer límite de 72 horas",
+        "comando": "TKTL {fechaLimite}/{horaZulu}",
+        "explicacion": "Fecha y hora Zulu del límite de emisión.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 10,
+        "sistema": "amadeus",
+        "proceso": "Marcar pago web y guardar",
+        "comando": "OS YY HBFF",
+        "variantes": [
+          "ER"
+        ],
+        "explicacion": "Guardar con ER para obtener el código de reserva.",
+        "confianza": "verbatim",
+        "opcional": true
+      },
+      {
+        "n": 11,
+        "sistema": "amadeus",
+        "proceso": "Guardar tarifa cotizada",
+        "comando": null,
+        "plantilla": "FXP/FF-{tarifa}",
+        "variantes": [
+          "FXP/FF-{tarifa}/RCH",
+          "FXP/FF-{tarifa}/RIN",
+          "FXT{opcion}/P{pasajero}",
+          "FXT{opcion1}/P{pasajero1}//{opcion2}/P{pasajero2}"
+        ],
+        "explicacion": "Seleccionar una o varias opciones solo cuando el sistema las muestre.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 12,
+        "sistema": "amadeus",
+        "proceso": "Verificar TST",
+        "comando": "TQT",
+        "variantes": [
+          "TQT/T1",
+          "ER"
+        ],
+        "explicacion": "TQT para un tipo de pasajero; TQT/T1 para varios.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 13,
+        "sistema": "amadeus",
+        "proceso": "Enviar itinerario de la reserva ON HOLD",
+        "comando": "IBP-EMLA/LPSP",
+        "variantes": [
+          "IEPJ-EMLA/LPSP"
+        ],
+        "explicacion": "En una reserva ON HOLD este es el último paso del flujo de reserva antes del cobro/emisión posterior.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 14,
+        "sistema": "amadeus",
+        "proceso": "Crear EMD ON HOLD",
+        "comando": "IU IB NN1 HBFF {origen}/P{pasajero}",
+        "variantes": [
+          "IU IB NN1 HBFF {origen}/P{pasajero}"
+        ],
+        "explicacion": "Usar el origen del vuelo y el pasajero.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 15,
+        "sistema": "amadeus",
+        "proceso": "Añadir elemento SK",
+        "comando": "SK HBFF IB",
+        "explicacion": "Añadir el elemento SK del ON HOLD.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 16,
+        "sistema": "amadeus",
+        "proceso": "Crear máscara TSM",
+        "comando": "TMC/L{lineaSVC}",
+        "explicacion": "L es la línea del elemento SVC.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 17,
+        "sistema": "amadeus",
+        "proceso": "Verificar TSM",
+        "comando": "TQM",
+        "variantes": [
+          "TQM/M{numeroTSM}"
+        ],
+        "explicacion": "TQM para un tipo de pasajero; TQM/M1 para varios.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 18,
+        "sistema": "amadeus",
+        "proceso": "Agregar valor al TSM",
+        "comando": "TMI/M{numeroTSM}/FEUR{valor}/CV-{valor}/CR-{vuelo}-{fecha}-{ruta}",
+        "variantes": [
+          "TMI/ALL/FEUR{valor}/CV-{valor}/CR-{vuelo}-{fecha}-{ruta}"
+        ],
+        "explicacion": "ALL actualiza todos los TSM. El valor y la referencia del vuelo deben corresponder al caso.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 19,
+        "sistema": "amadeus",
+        "proceso": "Enviar itinerario final del ON HOLD",
+        "comando": "IBP-EMLA/LPSP",
+        "variantes": [
+          "IEPJ-EMLA/LPSP"
+        ],
+        "explicacion": "Es el último paso si la reserva queda solo ON HOLD.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 20,
+        "sistema": "amadeus",
+        "proceso": "Registrar titular de tarjeta para emisión posterior",
+        "comando": "RMCSY/{nombreTitular}:{apellidoTitular}",
+        "variantes": [
+          "ER"
+        ],
+        "explicacion": "Guardar el nombre del titular del nuevo Cyber.",
+        "confianza": "verbatim",
+        "condicional": "emision-dentro-plazo"
+      },
+      {
+        "n": 21,
+        "sistema": "externo",
+        "proceso": "Tomar datos de tarjeta",
+        "comando": null,
+        "explicacion": "Consultar PCI PAL o Travel Pay. El manual no aporta la trama segura; no inventar ni guardar tokens reales.",
+        "confianza": "hueco",
+        "nota": "El manual remite a PCI PAL o Travel Pay, pero no aporta la pantalla ni la transacción para capturar datos. Detén el flujo y confirma con el supervisor; no solicites ni pegues datos de tarjeta aquí.",
+        "condicional": "emision-dentro-plazo"
+      },
+      {
+        "n": 22,
+        "sistema": "amadeus",
+        "proceso": "Agregar forma de pago del TSM",
+        "comando": "TMI/M{numeroTSM}/FP-{tokenPCI}",
+        "variantes": [
+          "FP {tokenPCI} +BF,1/{moneda}{valor}"
+        ],
+        "explicacion": "Existen dos sintaxis en las fuentes #3063 y #3686; usar la indicada por la operación y nunca exponer el token.",
+        "confianza": "verbatim",
+        "condicional": "emision-dentro-plazo"
+      },
+      {
+        "n": 23,
+        "sistema": "amadeus",
+        "proceso": "Cargar perfil PCI",
+        "comando": "$$CONFIG:CCTYPE/2",
+        "confianza": "verbatim",
+        "condicional": "emision-dentro-plazo"
+      },
+      {
+        "n": 24,
+        "sistema": "amadeus",
+        "proceso": "Realizar cargo",
+        "comando": "$$PAY",
+        "confianza": "verbatim",
+        "condicional": "emision-dentro-plazo"
+      },
+      {
+        "n": 25,
+        "sistema": "amadeus",
+        "proceso": "Borrar Cyber",
+        "comando": "XE{lineaCyber}",
+        "explicacion": "XE seguido de la línea donde está el Cyber, por ejemplo XE17.",
+        "confianza": "verbatim",
+        "condicional": "emision-dentro-plazo"
+      },
+      {
+        "n": 26,
+        "sistema": "amadeus",
+        "proceso": "Emitir EMD del ON HOLD",
+        "comando": "TTM1/M{numeroTSM}/RT",
+        "variantes": [
+          "TTP1/ET/RT"
+        ],
+        "explicacion": "El #3063 indica TTM1/M#/RT para el EMD; el #3686 indica TTP1/ET/RT para emitir el billete. No elegir automáticamente entre ambos sin identificar la operación.",
+        "confianza": "verbatim",
+        "condicional": "emision-dentro-plazo"
+      },
+      {
+        "n": 27,
+        "sistema": "amadeus",
+        "proceso": "Enviar documentación final",
+        "comando": "IBP-EMLA/LPSP",
+        "variantes": [
+          "IEPJ-EMLA/LPSP",
+          "ITR-EMLA"
+        ],
+        "explicacion": "Enviar itinerario, servicios o billetes electrónicos según el resultado.",
+        "confianza": "verbatim",
+        "condicional": "emision-dentro-plazo"
+      }
+    ]
+  },
   "perro-asistencia-svan": {
     "id": "perro-asistencia-svan",
     "titulo": "Perro de asistencia (SVAN) — en Resiber y en Amadeus",
@@ -5245,59 +7957,63 @@
   },
   "pmr-silla-de-ruedas": {
     "id": "pmr-silla-de-ruedas",
-    "titulo": "Pasajeros con Movilidad Reducida (PMR) — Sillas de Ruedas (WCHC, WCHS, WCHR) y Asistencias Especiales",
-    "aerolinea": "IB",
+    "titulo": "Pasajero con movilidad reducida #3101",
+    "aerolinea": "IB/I2/YW",
     "categoria": "servicios",
-    "resumen": "Procedimiento operativo para solicitar asistencia de silla de ruedas y servicios especiales para personas con discapacidad o movilidad reducida en Resiber y Amadeus/SARA.",
-    "aplicaSolo": "Billetes 075 (Iberia, Air Nostrum, Iberia Express y acuerdos interlinea). Gratuito.",
+    "resumen": "Solicitar silla de ruedas y documentar servicios de movilidad reducida en Resiber y Amadeus.",
+    "aplicaSolo": "Billetes 075 y vuelos operados únicamente por IB, I2 o YW. Aplica también a billetes de Iberia, agencias GDS y NDC.",
     "advertencias": [
       {
         "nivel": "critico",
-        "texto": "GRATUITO: La asistencia PMR es un servicio sin costo adicional pero requiere notificación previa con al menos 48 HORAS de antelación.",
-        "confianza": "verbatim"
-      },
-      {
-        "nivel": "critico",
-        "texto": "CLASIFICACIÓN EXACTA: WCHR (rampa/distancias), WCHS (escaleras/no camina distancias largas), WCHC (cabina/inmovilidad total).",
+        "texto": "Solicitar al menos 48 horas antes de la salida. Las peticiones de sillas se confirman automáticamente.",
         "confianza": "verbatim"
       },
       {
         "nivel": "alto",
-        "texto": "OTRAS DISCAPACIDADES: BLND (pasajero ciego), DEAF (pasajero sordo), DPNA (discapacidad intelectual o del desarrollo).",
+        "texto": "El billete debe estar OPEN FOR USE (O), aunque el servicio puede añadirse sin billete emitido para asegurar que el pasajero pueda volar.",
         "confianza": "verbatim"
       },
       {
         "nivel": "alto",
-        "texto": "ASIENTOS PROHIBIDOS: Los pasajeros PMR NUNCA pueden ubicarse en filas de salida de emergencia.",
+        "texto": "Los asientos especiales con reposabrazos abatibles aparecen marcados con H en el sistema de check-in.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "Procesar segmento por segmento y verificar HK después de guardar.",
         "confianza": "verbatim"
       }
     ],
     "fuente": {
-      "documento": "IberiaNet Lite — Asistencia PMR y Movilidad Reducida",
+      "documento": "IberiaNet Lite — #3101 PASAJERO CON MOVILIDAD REDUCIDA",
       "tipo": "manual-oficial-interno",
-      "recibido": "2026-08-11",
+      "recibido": "2026-08-12",
       "confianzaGlobal": "verbatim"
     },
     "codigosPmr": [
       {
         "codigo": "WCHR",
-        "descripcion": "Wheelchair Ramp — Pasajero requiere silla para recorrer distancias en terminal, pero puede subir/bajar escaleras y caminar a su asiento."
+        "descripcion": "Silla para distancias en terminal; puede usar escaleras y caminar al asiento."
       },
       {
         "codigo": "WCHS",
-        "descripcion": "Wheelchair Steps — Pasajero requiere silla para distancias y ayuda para subir/bajar escaleras, pero camina hasta su asiento dentro del avión."
+        "descripcion": "Silla para distancias y ayuda con escaleras; camina hasta su asiento."
       },
       {
         "codigo": "WCHC",
-        "descripcion": "Wheelchair Cabin — Pasajero inamovible. Requiere silla hasta la puerta y silla de cabina para ser trasladado a su asiento."
+        "descripcion": "Pasajero inamovible; silla hasta la puerta y silla de cabina hasta el asiento."
       },
       {
         "codigo": "BLND",
-        "descripcion": "Blind passenger — Pasajero con discapacidad visual (especificar si viaja con perro guía SVAN)."
+        "descripcion": "Pasajero ciego; indicar detalles y si viaja con perro guía."
+      },
+      {
+        "codigo": "DPNA",
+        "descripcion": "Discapacidad intelectual o del desarrollo; indicar detalles."
       },
       {
         "codigo": "DEAF",
-        "descripcion": "Deaf passenger — Pasajero con discapacidad auditiva."
+        "descripcion": "Pasajero sordo, mudo o sordomudo; no se considera PMR."
       }
     ],
     "pasos": [
@@ -5306,27 +8022,78 @@
         "sistema": "natiba",
         "proceso": "Filtro de seguridad",
         "comando": null,
-        "explicacion": "APELLIDO + PNR.",
+        "explicacion": "Verificar apellido + PNR.",
         "confianza": "verbatim",
         "esBloqueante": true
       },
       {
         "n": 1,
         "sistema": "resiber",
-        "proceso": "[RESIBER] Solicitar silla de ruedas (ej. WCHC)",
-        "comando": "SSR WCHC YY NN1 /P1/S2",
-        "plantilla": "SSR {CODIGO_PMR} YY NN1 /P{pasajero}/S{segmento}",
-        "explicacion": "Resiber segmento a segmento. Guardar con ÑK.",
+        "proceso": "Solicitar servicio segmento por segmento",
+        "comando": "SSR {tipoServicio} YY HN1 - {condicion}/P{pasajero}/S{segmento}",
+        "variantes": [
+          "SSR WCHR IB HN1 - PAX ANCIANO/P1/S2"
+        ],
+        "explicacion": "Guardar con ÑK; el servicio debe quedar HK confirmado. Volver a entrar a la reserva después de cada ÑK.",
         "confianza": "verbatim"
       },
       {
         "n": 2,
         "sistema": "amadeus",
-        "proceso": "[AMADEUS] Solicitar silla de ruedas (ej. WCHC)",
-        "comando": "SR WCHC IB NN1/S2-3/P1",
-        "plantilla": "SR {CODIGO_PMR} IB NN1/S{segmentos}/P{pasajero}",
-        "explicacion": "Amadeus admite rango. Guardar con ER -> ERK.",
+        "proceso": "Solicitar servicio por segmentos",
+        "comando": "SR {tipoServicio}/S{segmentos}/P{pasajero}",
+        "variantes": [
+          "SR WCHR/S2-3/P1",
+          "SR BLND - {detalles}/S2-3/P1",
+          "SR DPNA - {detalles}/S2-3/P1",
+          "SR DEAF - {detalles}/S2-3/P1"
+        ],
+        "explicacion": "Guardar con ER y confirmar el servicio con ERK.",
         "confianza": "verbatim"
+      },
+      {
+        "n": 3,
+        "sistema": "resiber",
+        "proceso": "Enviar documentos desde Resiber",
+        "comando": "ITP:/{reserva}/{email}",
+        "variantes": [
+          "DTR TN 075-{numeroTicket},EML/{email}",
+          "DEMR DN 075-{numeroEMD},EML/{email}"
+        ],
+        "explicacion": "Enviar itinerario, billete electrónico o EMD.",
+        "confianza": "verbatim",
+        "condicional": "resiber"
+      },
+      {
+        "n": 4,
+        "sistema": "amadeus",
+        "proceso": "Enviar documentos desde Amadeus",
+        "comando": "IBP-EMLA/LPSP",
+        "variantes": [
+          "IEPJ-EMLA/LPSP",
+          "ITR-EMLA"
+        ],
+        "explicacion": "IBP: itinerario; IEPJ: itinerario y servicios; ITR: billetes electrónicos.",
+        "confianza": "verbatim",
+        "condicional": "amadeus"
+      }
+    ],
+    "generalidades": [
+      {
+        "codigo": "BLND",
+        "regla": "No requiere autorización médica; perro guía puede viajar en cabina sin cargo. En grupo se requiere una persona vidente por fila de pasajeros invidentes."
+      },
+      {
+        "codigo": "DPNA",
+        "regla": "No requiere autorización médica; en Reino Unido e Irlanda el perro no está permitido y se requiere confirmación del Servicio Médico Iberia."
+      },
+      {
+        "codigo": "DEAF",
+        "regla": "Pasajeros sordos, mudos o sordomudos no se consideran PMR y se aceptan sin restricciones."
+      },
+      {
+        "codigo": "acompanante",
+        "regla": "Acompañante válido: persona mayor de 16 años capaz de ayudar en una emergencia; un animal de servicio también puede serlo."
       }
     ]
   },
@@ -5632,6 +8399,12 @@
     "aerolinea": "IB",
     "categoria": "reembolsos",
     "resumen": "Manual operativo para procesar solicitudes de reembolso por Compromiso de Calidad (<24h), No PCC, Condiciones de Tarifa (con FXX, FQD, FQP) y Duplicidad (sin GG) en Resiber y Salesforce.",
+    "fuente": {
+      "documento": "IberiaNet Lite — #3069 \"COMPROMISO DE CALIDAD\" + #3071 \"CONDICIONES DE TARIFA\" + #3072 \"DUPLICIDAD\" + #3078/#3079/#3080",
+      "tipo": "manual-oficial-interno",
+      "recibido": "2026-08-11",
+      "confianzaGlobal": "verbatim"
+    },
     "aplicaSolo": "Billetes 075- (Iberia).",
     "pasos": [],
     "advertencias": [
@@ -5656,12 +8429,6 @@
         "confianza": "verbatim"
       }
     ],
-    "fuente": {
-      "documento": "IberiaNet Lite — #3069 \"COMPROMISO DE CALIDAD\" + #3071 \"CONDICIONES DE TARIFA\" + #3072 \"DUPLICIDAD\" + #3078/#3079/#3080",
-      "tipo": "manual-oficial-interno",
-      "recibido": "2026-08-11",
-      "confianzaGlobal": "verbatim"
-    },
     "motivos": {
       "compromisoDeCalidad": {
         "reglas": "Solicitud dentro de las 24h a la emisión (DOI). DTR TN -> ver DOI -> DTR H (hora emisión) -> DD MAD (hora actual local oficina). Verificar <24h.",
@@ -6120,6 +8887,74 @@
       "El flujo XBAG del bot no coincide con el módulo de equipaje ya implementado en el simulador."
     ]
   },
+  "transporte-ceniza": {
+    "id": "transporte-ceniza",
+    "titulo": "Transporte de ceniza #3125",
+    "aerolinea": "IB",
+    "categoria": "servicios",
+    "resumen": "Orientar el transporte de cenizas cremadas como equipaje de mano y la documentación necesaria.",
+    "aplicaSolo": "Transporte de cenizas cremadas en vuelos Iberia.",
+    "advertencias": [
+      {
+        "nivel": "alto",
+        "texto": "La urna debe ser apropiada, estar cubierta y disimulada y contar con empaquetado antirrotura.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "Llevar certificado de defunción y certificado de incineración; pueden solicitarlos en el aeropuerto de origen.",
+        "confianza": "verbatim"
+      },
+      {
+        "nivel": "alto",
+        "texto": "En viajes internacionales, consultar al Consulado del país de destino por requisitos locales.",
+        "confianza": "verbatim"
+      }
+    ],
+    "fuente": {
+      "documento": "IberiaNet Lite — #3125 TRANSPORTE DE CENIZA",
+      "tipo": "manual-oficial-interno",
+      "recibido": "2026-08-12",
+      "confianzaGlobal": "verbatim"
+    },
+    "pasos": [
+      {
+        "n": 1,
+        "sistema": "generalidades",
+        "proceso": "Confirmar que se transporta como equipaje de mano",
+        "comando": null,
+        "explicacion": "Iberia permite transportar cenizas cremadas como equipaje de mano.",
+        "confianza": "verbatim"
+      },
+      {
+        "n": 2,
+        "sistema": "generalidades",
+        "proceso": "Verificar urna y embalaje",
+        "comando": null,
+        "explicacion": "La urna debe estar cubierta, disimulada y protegida contra rotura.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      },
+      {
+        "n": 3,
+        "sistema": "generalidades",
+        "proceso": "Verificar documentos",
+        "comando": null,
+        "explicacion": "Confirmar certificado de defunción y certificado de incineración; recomendar llevarlos durante el viaje.",
+        "confianza": "verbatim",
+        "esBloqueante": true
+      },
+      {
+        "n": 4,
+        "sistema": "consulado",
+        "proceso": "Revisar requisitos del destino internacional",
+        "comando": null,
+        "explicacion": "Si el viaje es internacional, recomendar consultar al Consulado del país de destino.",
+        "confianza": "verbatim",
+        "condicional": "internacional"
+      }
+    ]
+  },
   "umnr-menor-no-acompanado": {
     "id": "umnr-menor-no-acompanado",
     "titulo": "UMNR — Menor no acompañado: cobro del servicio por WEMD en Resiber",
@@ -6256,7 +9091,11 @@
         "n": 8,
         "sistema": "resiber",
         "proceso": "Cobrar con el token de tarjeta",
-        "comando": "$$PAY:MS-TT,VI82000007783311111-0225-V001AS8KM",
+        "comando": null,
+        "simulacion": {
+          "comando": "$$PAY",
+          "nota": "Solo laboratorio: $$PAY no conecta ningún cobro real."
+        },
         "plantilla": "$$PAY:{token}",
         "explicacion": "El token se copia de PCI Pal / Travel Pay.",
         "confianza": "verbatim",
@@ -8447,6 +11286,114 @@
         "color": "#f9ef77",
         "usoPrincipal": "Consultar gastos de gestión y valor de penalidad.",
         "ejemplosComando": []
+      },
+      {
+        "id": "generalidades",
+        "nombre": "Generalidades operativas",
+        "tipo": "procedimiento",
+        "color": "#64748b",
+        "usoPrincipal": "Comprobaciones previas, filtro de seguridad y derivaciones.",
+        "ejemplosComando": []
+      },
+      {
+        "id": "avaya/salesforce",
+        "nombre": "Avaya / Salesforce",
+        "tipo": "crm-contact-center",
+        "color": "#64748b",
+        "usoPrincipal": "Identificar el origen de la llamada y documentar el caso.",
+        "ejemplosComando": []
+      },
+      {
+        "id": "resiber/amadeus",
+        "nombre": "Resiber / Amadeus",
+        "tipo": "gds-host",
+        "color": "#64748b",
+        "usoPrincipal": "Flujos que alternan entre las dos pantallas operativas.",
+        "ejemplosComando": [
+          ":"
+        ]
+      },
+      {
+        "id": "amadeus/resiber",
+        "nombre": "Amadeus / Resiber",
+        "tipo": "gds-host",
+        "color": "#64748b",
+        "usoPrincipal": "Ejercicios que requieren ambos sistemas.",
+        "ejemplosComando": [
+          ":"
+        ]
+      },
+      {
+        "id": "backoffice",
+        "nombre": "Back Office",
+        "tipo": "derivacion",
+        "color": "#64748b",
+        "usoPrincipal": "Evaluar reembolsos, emisiones o confirmaciones pendientes.",
+        "ejemplosComando": []
+      },
+      {
+        "id": "call-center",
+        "nombre": "Call Center",
+        "tipo": "canal",
+        "color": "#64748b",
+        "usoPrincipal": "Gestiones que deben solicitarse por atención telefónica.",
+        "ejemplosComando": []
+      },
+      {
+        "id": "consulado",
+        "nombre": "Consulado del destino",
+        "tipo": "externo",
+        "color": "#64748b",
+        "usoPrincipal": "Consultar requisitos locales para viajes internacionales.",
+        "ejemplosComando": []
+      },
+      {
+        "id": "externo",
+        "nombre": "Gestión externa",
+        "tipo": "externo",
+        "color": "#64748b",
+        "usoPrincipal": "Proceso fuera de Amadeus cuya transacción no consta en el manual.",
+        "ejemplosComando": []
+      },
+      {
+        "id": "iberia.com",
+        "nombre": "iberia.com",
+        "tipo": "web-externa",
+        "color": "#64748b",
+        "usoPrincipal": "Gestiones que el pasajero realiza en la web de Iberia.",
+        "ejemplosComando": []
+      },
+      {
+        "id": "pagos",
+        "nombre": "Pagos autorizados",
+        "tipo": "pago",
+        "color": "#64748b",
+        "usoPrincipal": "Formas de pago y verificaciones de cobro documentadas.",
+        "ejemplosComando": []
+      },
+      {
+        "id": "proteccion-datos",
+        "nombre": "Protección de datos",
+        "tipo": "control",
+        "color": "#64748b",
+        "usoPrincipal": "Filtro de seguridad y tratamiento de información sensible.",
+        "ejemplosComando": []
+      },
+      {
+        "id": "referencia",
+        "nombre": "Referencia del manual",
+        "tipo": "referencia",
+        "color": "#64748b",
+        "usoPrincipal": "Aclaraciones que no son comandos ejecutables.",
+        "ejemplosComando": []
+      },
+      {
+        "id": "supervisor",
+        "nombre": "Supervisor / Coach",
+        "tipo": "escalamiento",
+        "color": "#64748b",
+        "usoPrincipal": "Validar excepciones o información que el manual no documenta.",
+        "ejemplosComando": []
       }
     ],
     "aerolineas": [
@@ -8455,6 +11402,18 @@
         "nombre": "Iberia",
         "placa": "075",
         "nota": "Reembolso crea caso en Salesforce."
+      },
+      {
+        "id": "YW",
+        "nombre": "Air Nostrum",
+        "placa": null,
+        "nota": "Operador contemplado por los manuales de servicios; verificar la responsabilidad del billete antes de aplicar reglas específicas."
+      },
+      {
+        "id": "LATAM",
+        "nombre": "LATAM",
+        "placa": null,
+        "nota": "Mercado/procedimiento LATAM; no sustituye la verificación de responsabilidad del billete."
       },
       {
         "id": "I2",

@@ -51,10 +51,10 @@ export function Menu() {
 
   return (
     <main className="menu-container">
-      {/* Banner Hero Destacado: Tutor IA de Procedimientos */}
+      {/* Entrada principal: el estudiante comienza con un caso, no con un chatbot vacío. */}
       <section className="menu-hero-card">
         <div className="menu-hero-badge">
-          <Sparkles size={14} /> TUTOR MULTI-SISTEMA PASO A PASO
+          <Sparkles size={14} /> MESA DE OPERACIONES · CASO ABIERTO
         </div>
         <div className="menu-hero-content">
           <div className="menu-hero-info">
@@ -63,15 +63,15 @@ export function Menu() {
                 <Bot size={32} className="menu-hero-icon" />
               </div>
               <div>
-                <h2 className="menu-hero-title">Tutor IA de Procedimientos</h2>
+                <h2 className="menu-hero-title">Practica un caso real</h2>
                 <p className="menu-hero-subtitle">
                   Resuelve casos reales guiado paso a paso a través de 5 sistemas de aerolínea: Amadeus, Resiber, Natiba, Salesforce e IberiaNet.
                 </p>
               </div>
             </div>
           </div>
-          <Link to="/tutor" className="menu-hero-cta">
-            <span>Iniciar Tutoría IA</span>
+          <Link to="/practicar" className="menu-hero-cta">
+            <span>Elegir práctica</span>
             <ArrowRight size={18} />
           </Link>
         </div>
@@ -89,7 +89,7 @@ export function Menu() {
           <div className="menu-card-header">
             {/* alt="" a propósito: el icono es decorativo y el título va justo
                 al lado. Describirlo ("PNR 3D") solo añade ruido al lector. */}
-            <img src="/images/card_pnr_3d.webp" alt="" className="menu-card-3d-icon" />
+            <img src="/images/card_pnr_v2.png" alt="" className="menu-card-3d-icon" />
             <span className="menu-card-tag tag-pnr">Simulador PNR</span>
           </div>
           <div>
@@ -113,7 +113,7 @@ export function Menu() {
 
         <Link to="/teoria" className="menu-card menu-card-teoria">
           <div className="menu-card-header">
-            <img src="/images/card_theory_3d.webp" alt="" className="menu-card-3d-icon" />
+            <img src="/images/card_theory_v2.png" alt="" className="menu-card-3d-icon" />
             <span className="menu-card-tag tag-teoria">Teoría</span>
           </div>
           <div>
@@ -127,7 +127,7 @@ export function Menu() {
 
         <Link to="/examen-iberia" className="menu-card menu-card-iberia">
           <div className="menu-card-header">
-            <img src="/images/card_iberia_3d.webp" alt="" className="menu-card-3d-icon" />
+            <img src="/images/card_iberia_v2.png" alt="" className="menu-card-3d-icon" />
             <span className="menu-card-tag tag-iberia">Oficial</span>
           </div>
           <div>
@@ -143,7 +143,7 @@ export function Menu() {
 
         <Link to="/examen-seguridad" className="menu-card menu-card-seguridad">
           <div className="menu-card-header">
-            <img src="/images/card_security_3d.webp" alt="" className="menu-card-3d-icon" />
+            <img src="/images/card_security_v2.png" alt="" className="menu-card-3d-icon" />
             <span className="menu-card-tag tag-seguridad">Filtro</span>
           </div>
           <div>
@@ -159,7 +159,7 @@ export function Menu() {
 
         <Link to="/roleplay" className="menu-card menu-card-roleplay menu-card-full">
           <div className="menu-card-horizontal">
-            <img src="/images/card_roleplay_3d.svg" alt="" className="menu-card-3d-icon" />
+            <img src="/images/card_roleplay_v2.png" alt="" className="menu-card-3d-icon" />
             <div className="menu-card-body">
               <div className="menu-card-title-row">
                 <h4 className="menu-card-title">Simulación de Llamada (Roleplay)</h4>

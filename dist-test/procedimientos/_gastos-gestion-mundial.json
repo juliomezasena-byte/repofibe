@@ -1,0 +1,172 @@
+{
+  "id": "gastos-gestion-mundial",
+  "titulo": "Gastos de gestión de billetes — tabla mundial",
+  "tipo": "referencia",
+  "nota": "Archivo con prefijo _ : es referencia, no un procedimiento con pasos. Complementa a gastos-gestion-latam.json (interno, 15 países LATAM) con la tabla pública completa de 55 países.",
+  "fuente": {
+    "documento": "iberia.com — \"Gastos de gestión de billetes\"",
+    "tipo": "fuente-publica-oficial",
+    "recibido": "2026-08-08",
+    "confianzaGlobal": "verbatim",
+    "nota": "Fuente PÚBLICA de la aerolínea, distinta del manual interno #3043. Ante discrepancia, ver el bloque 'discrepanciaColombia'."
+  },
+  "reglasGenerales": [
+    { "texto": "El gasto de gestión por billete se aplica a CADA pasajero de la reserva y el importe es el mismo para cada uno.", "confianza": "verbatim" },
+    { "texto": "Los gastos de gestión NO son reembolsables, salvo reembolsos por situaciones atribuibles a Iberia.", "confianza": "verbatim" },
+    { "texto": "País de compra = aquel desde el que se compra el billete. Para los países NO reflejados en la tabla, el gasto de gestión es 0.", "confianza": "verbatim" },
+    { "texto": "Compras iniciadas en iberia.com pero FINALIZADAS por teléfono (Serviberia) u oficina SÍ pagan el gasto de gestión.", "confianza": "verbatim" },
+    { "texto": "La compra on line es GRATUITA en todos los países de la tabla.", "confianza": "verbatim" }
+  ],
+  "exenciones": {
+    "confianza": "verbatim",
+    "titulares": ["Platino", "Platino Prime", "Infinita", "Infinita Prime", "Iberia Singular"],
+    "alcance": "Exentos de gastos de emisión, cambio y reembolso ellos y sus acompañantes en la MISMA reserva, así como billetes en redención de Avios emitidos contra sus cuentas."
+  },
+  "avios": {
+    "confianza": "verbatim",
+    "compraPorTelefono": [
+      { "mercado": "General", "importe": "15 EUR" },
+      { "mercado": "Reino Unido", "importe": "15 GBP" },
+      { "mercado": "Estados Unidos", "importe": "24 USD" },
+      { "mercado": "Resto de países", "importe": "el equivalente al monto publicado en GBP" }
+    ],
+    "cambiosYReembolsos": "NO aplican gastos de gestión para cambios y reembolsos de billetes en redención."
+  },
+  "cargoTarjetaCorporativa": {
+    "confianza": "verbatim",
+    "mercados": ["Reino Unido", "Alemania", "Irlanda", "Países Bajos", "Eslovenia", "Finlandia"],
+    "canal": "compras a través de iberia.com",
+    "importe": "entre 0,9% y 2,70% por pasajero",
+    "topeMaximo": "35 EUR (30 GBP en Reino Unido)",
+    "exentos": "Billetes en redención de Avios y el resto de pagos de servicios opcionales (cambios, reserva de asiento anticipada, equipaje adicional, equipajes especiales, etc.)."
+  },
+  "rutasOSP": {
+    "confianza": "verbatim",
+    "nota": "Obligación de Servicio Público (España). Cargo de 6 EUR.",
+    "grupos": [
+      { "rutas": ["IBZ-PMI", "MAH-PMI", "IBZ-MAH"], "clases": ["A", "O", "Q"] },
+      { "rutas": ["LEI-SVQ", "BCN-BJZ", "BJZ-MAD"], "clases": ["A", "O"] },
+      { "rutas": ["MAD-MAH (de noviembre a abril)", "LEI-MLN", "GRX-MLN", "MLN-SVQ"], "clases": ["A", "O", "Q", "N"] }
+    ],
+    "bonificacion": "Los gastos de compra y cambio, incluidos los de rutas OSP, están sujetos a la bonificación con el mismo criterio de topes que el descuento de residentes y/o familia numerosa, sobre el monto ya subvencionado."
+  },
+  "cargosEnOficinaDeVentaDeBilletes": {
+    "confianza": "verbatim",
+    "nota": "Importes DISTINTOS a los de la tabla general cuando la gestión se hace en oficina de venta de billetes.",
+    "tabla": [
+      { "pais": "Chile", "compra": "75 USD", "cambio": "75 USD", "reembolso": "75 USD" },
+      { "pais": "Ecuador", "compra": "80 USD", "cambio": "40 USD", "reembolso": "40 USD" },
+      { "pais": "Guatemala", "compra": "35 USD", "cambio": "40 USD", "reembolso": "40 USD" },
+      { "pais": "Perú", "compra": "40 USD", "cambio": "40 USD", "reembolso": "40 USD" }
+    ]
+  },
+  "tabla": {
+    "confianza": "verbatim",
+    "columnas": ["compraOficinaOTelefono", "compraOnline", "cambioOficinaOTelefono", "reembolsoOficinaOTelefono"],
+    "paises": [
+      { "pais": "Alemania", "recorrido": "Todos", "compra": "45 €", "online": "Gratuito", "cambio": "30 €", "reembolso": "30 €", "notas": [3] },
+      { "pais": "Argelia", "recorrido": "Corto Radio Turista", "compra": "2500 DZD", "online": "—", "cambio": "—", "reembolso": "1000 DZD" },
+      { "pais": "Argelia", "recorrido": "Corto Radio Business", "compra": "4000 DZD", "online": "—", "cambio": "—", "reembolso": "1000 DZD" },
+      { "pais": "Argelia", "recorrido": "Largo Radio Turista", "compra": "4000 DZD", "online": "—", "cambio": "—", "reembolso": "1000 DZD" },
+      { "pais": "Argelia", "recorrido": "Largo Radio Business", "compra": "6000 DZD", "online": "—", "cambio": "—", "reembolso": "1000 DZD" },
+      { "pais": "Argentina", "recorrido": "Todos", "compra": "90 USD", "online": "Gratuito", "cambio": "90 USD", "reembolso": "90 USD" },
+      { "pais": "Austria", "recorrido": "Todos", "compra": "35 €", "online": "Gratuito", "cambio": "35 €", "reembolso": "35 €" },
+      { "pais": "Brasil", "recorrido": "Todos", "compra": "35 USD", "online": "Gratuito", "cambio": "35 USD", "reembolso": "35 USD" },
+      { "pais": "Bélgica", "recorrido": "Corto radio", "compra": "30 €", "online": "Gratuito", "cambio": "30 €", "reembolso": "30 €" },
+      { "pais": "Canadá", "recorrido": "Todos", "compra": "35 CAD", "online": "Gratuito", "cambio": "35 CAD", "reembolso": "35 CAD" },
+      { "pais": "Catar", "recorrido": "Todos", "compra": "150 QAR", "online": "Gratuito", "cambio": "150 QAR", "reembolso": "150 QAR" },
+      { "pais": "Chile", "recorrido": "Todos", "compra": "60 USD", "online": "Gratuito", "cambio": "60 USD", "reembolso": "60 USD", "notas": [4] },
+      { "pais": "Colombia", "recorrido": "Todos", "compra": "escalonado — ver escalaColombia", "online": "Gratuito", "cambio": "Gratuito", "reembolso": "Gratuito", "notas": [7] },
+      { "pais": "Costa Rica", "recorrido": "Todos", "compra": "35 USD", "online": "Gratuito", "cambio": "35 USD", "reembolso": "35 USD" },
+      { "pais": "Cuba", "recorrido": "Todos", "compra": "Gratuito", "online": "Gratuito", "cambio": "15 USD", "reembolso": "Gratuito" },
+      { "pais": "Dinamarca", "recorrido": "Todos", "compra": "500 DKK", "online": "Gratuito", "cambio": "250 DKK", "reembolso": "250 DKK" },
+      { "pais": "Ecuador", "recorrido": "Todos", "compra": "80 USD", "online": "Gratuito", "cambio": "80 USD", "reembolso": "80 USD", "notas": [4] },
+      { "pais": "Egipto", "recorrido": "Todos", "compra": "250 EGP", "online": "Gratuito", "cambio": "250 EGP", "reembolso": "250 EGP" },
+      { "pais": "El Salvador", "recorrido": "Todos", "compra": "35 USD", "online": "Gratuito", "cambio": "35 USD", "reembolso": "35 USD" },
+      { "pais": "España", "recorrido": "Tarifas Puente Aéreo Confort, Flexible o Business", "compra": "35 €", "online": "Gratuito", "cambio": "35 €", "reembolso": "Gratuito", "notas": [6] },
+      { "pais": "España", "recorrido": "Rutas bajo Obligación de Servicio Público (OSP)", "compra": "Desde 0 € y hasta 6 €", "online": "Gratuito", "cambio": "Desde 0 € y hasta 6 €", "reembolso": "Desde 0 € y hasta 6 €", "notas": [5, 6] },
+      { "pais": "España", "recorrido": "Resto de rutas", "compra": "35 €", "online": "Gratuito", "cambio": "35 €", "reembolso": "35 €", "notas": [6] },
+      { "pais": "Estados Unidos", "recorrido": "Todos", "compra": "35 USD", "online": "Gratuito", "cambio": "35 USD", "reembolso": "35 USD" },
+      { "pais": "Francia", "recorrido": "Todos", "compra": "30 €", "online": "Gratuito", "cambio": "30 €", "reembolso": "30 €" },
+      { "pais": "Grecia", "recorrido": "Todos", "compra": "45 €", "online": "Gratuito", "cambio": "30 €", "reembolso": "30 €" },
+      { "pais": "Guinea", "recorrido": "Todos", "compra": "Gratuito", "online": "Gratuito", "cambio": "Gratuito", "reembolso": "Gratuito" },
+      { "pais": "Guatemala", "recorrido": "Todos", "compra": "35 USD", "online": "Gratuito", "cambio": "35 USD", "reembolso": "35 USD", "notas": [4] },
+      { "pais": "Holanda", "recorrido": "Todos", "compra": "40 €", "online": "Gratuito", "cambio": "30 €", "reembolso": "30 €", "notas": [3] },
+      { "pais": "Italia", "recorrido": "Todos", "compra": "20 €", "online": "Gratuito", "cambio": "30 €", "reembolso": "30 €" },
+      { "pais": "Irlanda", "recorrido": "Todos", "compra": "15 €", "online": "Gratuito", "cambio": "30 €", "reembolso": "30 €", "notas": [3] },
+      { "pais": "Israel", "recorrido": "Todos", "compra": "50 USD", "online": "Gratuito", "cambio": "50 USD", "reembolso": "50 USD" },
+      { "pais": "Japón", "recorrido": "Todos", "compra": "6000 JPY", "online": "Gratuito", "cambio": "6000 JPY", "reembolso": "6000 JPY" },
+      { "pais": "México", "recorrido": "Todos", "compra": "35 USD", "online": "Gratuito", "cambio": "35 USD", "reembolso": "35 USD" },
+      { "pais": "Nigeria", "recorrido": "Todos", "compra": "35 USD", "online": "Gratuito", "cambio": "35 USD", "reembolso": "35 USD" },
+      { "pais": "Marruecos", "recorrido": "Todos", "compra": "400 MAD", "online": "Gratuito", "cambio": "300 MAD", "reembolso": "300 MAD" },
+      { "pais": "Polonia", "recorrido": "Todos", "compra": "100 PLN", "online": "Gratuito", "cambio": "120 PLN", "reembolso": "120 PLN" },
+      { "pais": "Portugal", "recorrido": "Todos", "compra": "35 €", "online": "Gratuito", "cambio": "35 €", "reembolso": "35 €" },
+      { "pais": "Panamá", "recorrido": "Todos", "compra": "35 USD", "online": "Gratuito", "cambio": "35 USD", "reembolso": "35 USD" },
+      { "pais": "Paraguay", "recorrido": "Todos", "compra": "35 USD", "online": "Gratuito", "cambio": "35 USD", "reembolso": "35 USD" },
+      { "pais": "Perú", "recorrido": "Todos", "compra": "35 USD", "online": "Gratuito", "cambio": "35 USD", "reembolso": "35 USD", "notas": [4] },
+      { "pais": "Puerto Rico", "recorrido": "Todos", "compra": "35 USD", "online": "Gratuito", "cambio": "35 USD", "reembolso": "35 USD" },
+      { "pais": "República Checa", "recorrido": "Todos", "compra": "750 CZK", "online": "Gratuito", "cambio": "750 CZK", "reembolso": "750 CZK" },
+      { "pais": "República Dominicana", "recorrido": "Todos", "compra": "35 USD", "online": "Gratuito", "cambio": "35 USD", "reembolso": "35 USD" },
+      { "pais": "Reino Unido", "recorrido": "Todos", "compra": "10 GBP", "online": "Gratuito", "cambio": "30 GBP", "reembolso": "30 GBP", "notas": [3] },
+      { "pais": "Rumanía", "recorrido": "Todos", "compra": "25 €", "online": "Gratuito", "cambio": "30 €", "reembolso": "30 €" },
+      { "pais": "Rusia", "recorrido": "Todos", "compra": "35 €", "online": "Gratuito", "cambio": "35 €", "reembolso": "35 €" },
+      { "pais": "Senegal", "recorrido": "Todos", "compra": "35000 XOF", "online": "Gratuito", "cambio": "35000 XOF", "reembolso": "10000 XOF" },
+      { "pais": "Sudáfrica", "recorrido": "Todos", "compra": "300 ZAR", "online": "Gratuito", "cambio": "300 ZAR", "reembolso": "300 ZAR" },
+      { "pais": "Suecia", "recorrido": "Todos", "compra": "500 SEK", "online": "Gratuito", "cambio": "250 SEK", "reembolso": "250 SEK" },
+      { "pais": "Suiza", "recorrido": "Todos", "compra": "80 CHF", "online": "Gratuito", "cambio": "40 CHF", "reembolso": "40 CHF" },
+      { "pais": "Turquía", "recorrido": "Todos", "compra": "35 €", "online": "Gratuito", "cambio": "35 €", "reembolso": "35 €" },
+      { "pais": "Uruguay", "recorrido": "Todos", "compra": "35 USD", "online": "Gratuito", "cambio": "35 USD", "reembolso": "35 USD" },
+      { "pais": "Venezuela", "recorrido": "Todas", "compra": "35 USD", "online": "Gratuito", "cambio": "35 USD", "reembolso": "35 USD" }
+    ]
+  },
+  "escalaColombia": {
+    "confianza": "verbatim",
+    "fuente": "iberia.com (pública)",
+    "escala": [
+      { "hasta": 354, "gastoUSD": 15 },
+      { "hasta": 590, "gastoUSD": 28 },
+      { "hasta": 944, "gastoUSD": 46 },
+      { "desde": 944, "gastoUSD": 95 }
+    ],
+    "cambio": "Gratuito",
+    "reembolso": "Gratuito",
+    "nota7": "Los gastos de emisión por compra en oficina IB o por teléfono se calculan en función del valor de CADA billete adquirido. Si una misma reserva incluye más de un billete, el cálculo se hace de forma individual para cada uno, NO sobre el valor total de la reserva."
+  },
+  "discrepanciaColombia": {
+    "gravedad": "alta",
+    "titulo": "Las cifras de Colombia NO coinciden entre la fuente pública y el manual interno",
+    "publica": [15, 28, 46, 95],
+    "internaManual3043": [17.85, 32.32, 54.74, 113.05],
+    "hipotesis": {
+      "texto": "La cifra interna parece ser la pública MÁS el IVA colombiano del 19%. La aritmética cuadra en 3 de 4 tramos EXACTAMENTE.",
+      "calculo": [
+        "15 × 1,19 = 17,85  ✓ exacto",
+        "28 × 1,19 = 33,32  ✗ el manual dice 32,32 (difiere en 1,00)",
+        "46 × 1,19 = 54,74  ✓ exacto",
+        "95 × 1,19 = 113,05 ✓ exacto"
+      ],
+      "conclusion": "Tres coincidencias exactas de cuatro hacen muy improbable la casualidad. El tramo que falla difiere en exactamente 1,00 — tiene pinta de errata de transcripción en el manual interno (32,32 donde debería decir 33,32).",
+      "confianza": "derivado"
+    },
+    "queHacer": "NO se corrige ninguna de las dos fuentes. Se preservan ambas y se pregunta al instructor: ¿los importes internos incluyen IVA? ¿y el segundo tramo es 32,32 o 33,32?",
+    "confianza": "verbatim"
+  },
+  "otrasDiferenciasConElManualInterno": {
+    "confianza": "verbatim",
+    "nota": "Comparado con #3043 (interno, 15 países LATAM).",
+    "diferencias": [
+      { "pais": "Honduras", "interno": "26,75 USD emisión / 42,80 cambio y reembolso", "publica": "NO aparece en la tabla", "implicacion": "Según la regla pública, un país no listado tendría gasto 0. El manual interno sí lo cobra. Conflicto sin resolver." },
+      { "pais": "Nicaragua", "interno": "25 USD", "publica": "NO aparece en la tabla", "implicacion": "Mismo conflicto que Honduras." },
+      { "pais": "Chile", "interno": "60 USD", "publica": "60 USD, pero 75 USD en oficina de venta de billetes", "implicacion": "El interno no distingue el canal de oficina de billetes." },
+      { "pais": "Ecuador", "interno": "80 USD los tres", "publica": "80 compra, pero en oficina de billetes 40 para cambio y reembolso", "implicacion": "El interno no recoge la rebaja de cambio/reembolso en oficina." },
+      { "pais": "Guatemala", "interno": "35 USD los tres", "publica": "35 compra, 40 cambio y reembolso en oficina de billetes", "implicacion": "Igual que Ecuador." },
+      { "pais": "Perú", "interno": "35 USD los tres", "publica": "35, pero 40 en oficina de billetes", "implicacion": "Igual." }
+    ]
+  },
+  "huecosConocidos": [
+    "¿Los importes del manual interno #3043 incluyen IVA y los públicos no?",
+    "Colombia tramo 2: ¿32,32 o 33,32?",
+    "Honduras y Nicaragua están en el manual interno pero no en la tabla pública. ¿Se cobran o no?",
+    "La tabla pública no dice qué pasa con los países LATAM que el interno sí lista."
+  ]
+}

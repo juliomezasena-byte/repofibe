@@ -38,6 +38,8 @@ for (const f of readdirSync(ORIGEN).filter((f) => f.endsWith('.json'))) {
     salida[f.replace(/\.json$/, '')] = p;
     tablas += 1;
   } else {
+    if (!p.id) throw new Error(`${f}: procedimiento sin id`);
+    if (salida[p.id]) throw new Error(`ID de procedimiento duplicado: ${p.id} (${f})`);
     salida[p.id] = p;
     procedimientos += 1;
     pasos += (p.pasos || []).length;

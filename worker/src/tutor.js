@@ -14,6 +14,34 @@ function esHueco(paso) {
   return paso?.confianza === 'hueco';
 }
 
+function esPasoDePago(paso) {
+  const texto = [paso?.proceso, paso?.comando, paso?.plantilla, paso?.explicacion]
+    .filter(Boolean).join(' ');
+  return /forma de pago|pago del TST|pago del TSM|cargar perfil PCI|realizar el cargo|cobrar con el token|PCI|Travel Pay|\$\$PAY/i.test(texto);
+}
+
+function comandoLaboratorio(paso, comando = '') {
+  if (paso?.simulacion?.comando) return paso.simulacion.comando;
+  const texto = String(comando || '');
+  if (/\$\$PAY\s*:/i.test(texto)) return '$$PAY';
+  if (/^TMI(?:\/M\d+)?\/FP/i.test(texto)) {
+    const tsm = texto.match(/^TMI\/(M\d+)\//i)?.[1];
+    return `TMI/${tsm ? `${tsm}/` : ''}FP-CASH,`;
+  }
+  if (/^FP\b/i.test(texto) && (/(?:MS-TT|VI\d|\{?TOKEN|trama|tramaAutorizadaPCI)/i.test(texto) || esPasoDePago(paso))) {
+    return 'FP CASH,';
+  }
+  return null;
+}
+
+function datosSimulacion(paso, comando = '') {
+  const seguro = comandoLaboratorio(paso, comando);
+  return seguro ? {
+    comando: seguro,
+    aviso: 'SIMULACIÓN LOCAL: usa una forma de pago ficticia. Nunca pegues tarjeta, CVV ni token real.'
+  } : null;
+}
+
 /**
  * Rellena la plantilla del manual con los datos del caso.
  *   'FQN{lineaOfertada}*PE'  +  {lineaOfertada:'02'}  →  'FQN02*PE'
@@ -96,7 +124,15 @@ export function siguientePaso(procedimiento, estado = {}) {
   // 2 · Elegir el siguiente. Si el anterior estaba mal, se repite.
   //     `soloResponder` es cuando el alumno hizo una PREGUNTA sobre el paso
   //     actual: se queda donde está para contestarla, no avanza.
-  const avanzar = !actual || r.veredicto?.correcto || (comandoEscrito === null && !soloResponder);
+  // Si el paso actual estaba esperando datos y el alumno los aporta en un
+  // turno libre, primero hay que construir ese comando. Avanzar por nÃºmero en
+  // ese punto saltarÃ­a, por ejemplo, de AN de solo ida a AN de ida y vuelta.
+  const datosCompletanActual = Boolean(actual?.plantilla && construirComando(actual.plantilla, datos).completo);
+  const noPuedeSaltarHueco = Boolean(actual && esHueco(actual) && !r.veredicto?.correcto);
+  const pasoNoOperativo = Boolean(actual && !actual.comando && !actual.plantilla && !actual.esBloqueante && !esHueco(actual));
+  // Un turno sin comando nunca mueve el cursor. Así no se pueden saltar
+  // pasos de seguridad, huecos PCI ni validaciones de datos por número.
+  const avanzar = !actual || r.veredicto?.correcto;
   const siguiente = avanzar ? pasos[i + 1] : actual;
 
   if (!siguiente) {
@@ -108,6 +144,7 @@ export function siguientePaso(procedimiento, estado = {}) {
   // 3 · Un hueco se declara, no se rellena.
   if (esHueco(siguiente)) {
     r.paso = {
+      simulacion: siguiente.simulacion || null,
       n: siguiente.n,
       sistema: siguiente.sistema,
       proceso: siguiente.proceso,
@@ -125,7 +162,18 @@ export function siguientePaso(procedimiento, estado = {}) {
   if (siguiente.plantilla) {
     const c = construirComando(siguiente.plantilla, datos);
     if (c.completo) comando = c.comando;
-    else faltan = c.faltan;
+    else {
+      faltan = c.faltan;
+      // El texto de ejemplo del manual sirve como referencia interna, pero
+      // nunca debe aparecer como si fuera ejecutable para este caso concreto.
+      comando = null;
+    }
+  }
+
+  const simulacion = datosSimulacion(siguiente, comando || siguiente.comando);
+  if (simulacion) {
+    comando = simulacion.comando;
+    r.avisos.push(simulacion.aviso);
   }
 
   r.paso = {
@@ -139,7 +187,8 @@ export function siguientePaso(procedimiento, estado = {}) {
     opcional: !!siguiente.opcional,
     esBloqueante: !!siguiente.esBloqueante,
     nota: siguiente.nota || null,
-    faltanDatos: faltan
+    faltanDatos: faltan,
+    simulacion: simulacion || siguiente.simulacion || null
   };
 
   // 5 · ¿Hay que cambiar de sistema? Es el paso invisible que nadie enseña.
@@ -168,8 +217,10 @@ export function siguientePaso(procedimiento, estado = {}) {
 export function validarComando(paso, escrito) {
   const limpio = String(escrito || '').trim().toUpperCase().replace(/\s+/g, ' ');
   const normaliza = (s) => String(s || '').trim().toUpperCase().replace(/\s+/g, ' ');
+  const simulacion = datosSimulacion(paso, paso?.comando);
 
   if (esHueco(paso)) {
+    if (simulacion && limpio === normaliza(simulacion.comando)) return { correcto: true, modo: 'laboratorio' };
     return { correcto: false, motivo: 'Este paso no está en el material: no hay comando correcto que comparar.' };
   }
 
@@ -186,7 +237,7 @@ export function validarComando(paso, escrito) {
   }
 
   // 2 · Contra el comando del manual y sus variantes
-  const aceptados = [paso.comando, ...(paso.variantes || [])].filter(Boolean).map(normaliza);
+  const aceptados = [paso.comando, ...(paso.variantes || []), simulacion?.comando].filter(Boolean).map(normaliza);
   if (aceptados.includes(limpio)) return { correcto: true };
 
   // 3 · ¿Es el mismo comando con otros datos? (misma raíz)

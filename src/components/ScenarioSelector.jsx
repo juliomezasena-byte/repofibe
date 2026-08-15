@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Target, CheckCircle2, Circle, RefreshCw, GraduationCap, Dumbbell, Send, Clock, Eye, ChevronDown, ChevronRight, BookOpen } from 'lucide-react';
 import { LearningPath } from './LearningPath';
+import { getPrimaryAction } from '../lib/exerciseSession';
+import { getPreflightDefinition } from '../lib/interactiveExercises';
 
 // Sección desplegable (idea de Juan Pablo: menús desplegables para no abrumar).
 const Collapse = ({ title, icon, children, defaultOpen = true }) => {
@@ -34,6 +36,17 @@ function chipText(command, difficulty) {
   return command; // Principiante
 }
 
+function redactTask(text) {
+  return text
+    .replace(/\b(?:AN|SN)\s+[^,;]+/gi, 'consultar disponibilidad')
+    .replace(/\bSS\s*\d+\s*[A-Z]\s*\d+/gi, 'vender la plaza indicada')
+    .replace(/\bNM\S+/gi, 'ingresar el nombre del pasajero')
+    .replace(/\bAP\S+/gi, 'agregar el contacto')
+    .replace(/\bTK\s*OK\b/gi, 'definir el plazo de emisión')
+    .replace(/\bFX[A-Z0-9/,-]+/gi, 'cotizar la tarifa aplicable')
+    .replace(/\bER\b/gi, 'guardar la reserva');
+}
+
 // Checklist reutilizable (práctica en vivo y resultado de examen).
 const Checklist = ({ feedback }) => (
   <div className="checklist-group" style={{ marginTop: '8px' }}>
@@ -59,6 +72,7 @@ export const ScenarioSelector = ({
   dailyScenarioId,
   activeScenarioId,
   onSelectScenario,
+  freeMode = false,
   evaluationResult,
   onResetScenario,
   examMode = 'practice',
@@ -67,10 +81,26 @@ export const ScenarioSelector = ({
   onToggleExam,
   onDeliver,
   chipStatus = [],
-  onChipTap
+  onChipTap,
+  exerciseSession = null,
+  preflightAnswer = null,
+  onSubmitPreflight,
+  pendingInterpretation = null,
+  interpretationResult = null,
+  onSubmitInterpretation,
+  onContinueAfterInterpretation
 }) => {
   const activeScenario = scenarios.find((s) => s.id === activeScenarioId) || scenarios[0];
   const [showData, setShowData] = useState(false);
+  const [showInterpretationEvidence, setShowInterpretationEvidence] = useState(false);
+  const primaryAction = getPrimaryAction(exerciseSession);
+  const stepLabels = {
+    brief: 'Lee el caso y confirma el objetivo.',
+    ready: primaryAction.intent === 'execute' ? 'Prepara la entrada indicada y ejecútala en la terminal.' : 'Resuelve la acción indicada en la superficie del procedimiento.',
+    interpreting: 'Lee la salida y explica qué significa.',
+    recovery: 'Usa la pista, corrige y vuelve a intentarlo.',
+    complete: 'Caso completado. Practica una variante para transferirlo.'
+  };
 
   // Fichas de datos (verificación descubrible): parsea el enunciado por
   // líneas "ETIQUETA: valor". Genérico — sin migrar el JSON, con fallback
@@ -89,14 +119,102 @@ export const ScenarioSelector = ({
     return () => clearInterval(id);
   }, [examMode]);
 
+  useEffect(() => {
+    setShowInterpretationEvidence(false);
+  }, [exerciseSession?.lastCommand]);
+
   const elapsed = examMode === 'exam' && examStartTs ? now - examStartTs : 0;
+  const preflight = activeScenario ? getPreflightDefinition(activeScenario) : null;
+  const guidedLocked = !freeMode && exerciseSession?.kind === 'scenario' && exerciseSession?.mode === 'guided' && examMode !== 'exam' && !preflightAnswer?.correct;
 
   return (
     <div className="sidebar-panel">
       <div className="panel-title">
         <Target size={20} className="text-crt-green" />
-        <span>Escenarios de Capacitación</span>
+        <span>Práctica de casos</span>
       </div>
+
+      <section className="now-card" aria-labelledby="now-card-title">
+        <div className="now-card-kicker">CASO ABIERTO · {exerciseSession?.station === 'amadeus' ? 'TERMINAL' : 'MANUAL'}</div>
+        <h2 id="now-card-title">{exerciseSession?.title || activeScenario?.title || 'Elige un caso para empezar'}</h2>
+        <div className="now-card-step">
+          <span>AHORA</span>
+          <strong>{stepLabels[exerciseSession?.currentStep] || 'Elige un ejercicio para cargar el primer paso.'}</strong>
+        </div>
+        {exerciseSession?.currentStep === 'interpreting' && exerciseSession.lastCommand && (
+          <code className="now-card-command">{exerciseSession.lastCommand}</code>
+        )}
+      </section>
+
+      {!freeMode && exerciseSession?.kind === 'scenario' && ['brief', 'ready'].includes(exerciseSession.currentStep) && !pendingInterpretation && preflight && (
+        <section className={`decision-card ${preflightAnswer?.correct ? 'decision-correct' : ''}`} aria-labelledby="decision-title">
+          <span className="decision-kicker">PIENSA ANTES DE ESCRIBIR</span>
+          <h3 id="decision-title">{preflight.question}</h3>
+          <div className="decision-options">
+            {preflight.options.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                className={`decision-option ${preflightAnswer && preflightAnswer.optionId === option.id ? (option.correct ? 'selected-correct' : 'selected-wrong') : ''}`}
+                onClick={() => onSubmitPreflight?.(option.id)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+          {preflightAnswer && (
+            <p className={`decision-feedback ${preflightAnswer.correct ? 'ok' : 'wrong'}`}>
+              {preflightAnswer.correct
+                ? 'Correcto. Ahora lleva esa decisión a la terminal.'
+                : 'Todavía no. Vuelve al objetivo y revisa el primer paso del caso.'}
+            </p>
+          )}
+        </section>
+      )}
+
+      {pendingInterpretation && (
+        <section className={`interpretation-card ${interpretationResult?.correct ? 'interpretation-correct' : ''}`} aria-labelledby="interpretation-title">
+          <div className="interpretation-kicker">LEE LA SALIDA · PASO DE RAZONAMIENTO</div>
+          <h3 id="interpretation-title">{pendingInterpretation.question}</h3>
+          {exerciseSession?.lastCommand && <code className="interpretation-command">{exerciseSession.lastCommand}</code>}
+          {exerciseSession?.lastOutput && (
+            <div className="interpretation-evidence">
+              <button
+                type="button"
+                className="interpretation-evidence-toggle"
+                onClick={() => setShowInterpretationEvidence((current) => !current)}
+              >
+                {showInterpretationEvidence ? 'Ocultar evidencia' : 'Ver la evidencia usada para responder'}
+              </button>
+              {showInterpretationEvidence && <pre className="interpretation-output">{exerciseSession.lastOutput}</pre>}
+            </div>
+          )}
+          <div className="interpretation-options">
+            {pendingInterpretation.options.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                className="interpretation-option"
+                disabled={interpretationResult?.correct}
+                onClick={() => onSubmitInterpretation && onSubmitInterpretation(option.id)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+          {interpretationResult && (
+            <div className={`interpretation-feedback ${interpretationResult.correct ? 'ok' : 'wrong'}`} role="status">
+              <strong>{interpretationResult.correct ? 'Interpretación correcta' : 'Aún no'}</strong>
+              <span>{interpretationResult.feedback}</span>
+              {interpretationResult.correct && (
+                <button type="button" className="interpretation-continue" onClick={onContinueAfterInterpretation}>
+                  Continuar con el caso
+                </button>
+              )}
+            </div>
+          )}
+        </section>
+      )}
 
       {curriculum?.nodes?.length > 0 && (
         <LearningPath
@@ -181,7 +299,7 @@ export const ScenarioSelector = ({
                 {dataFields.filter((f) => f.label === 'TAREA').map((f, i) => (
                   <div key={i} className="scn-tarea">
                     <span className="scn-tarea-etiqueta">Lo que tienes que hacer</span>
-                    <p className="scn-tarea-texto">{f.value}</p>
+                    <p className="scn-tarea-texto">{guidedLocked ? redactTask(f.value) : f.value}</p>
                   </div>
                 ))}
                 <button className="link-btn" style={{ marginTop: '8px' }} onClick={() => setShowData((v) => !v)}>
@@ -196,11 +314,21 @@ export const ScenarioSelector = ({
             )}
           </Collapse>
 
-          <Collapse
-            title={activeScenario.difficulty === 'Avanzado' ? 'Flujo (nivel avanzado)' : 'Pasos sugeridos'}
-            icon={<Target size={14} />}
-            defaultOpen
-          >
+          {freeMode ? (
+            <section className="free-mode-note" aria-label="Modo terminal libre">
+              <strong>TERMINAL LIBRE</strong>
+              <span>Escribe comandos para practicar. No hay una misión impuesta ni una secuencia obligatoria.</span>
+            </section>
+          ) : guidedLocked ? (
+            <section className="flow-locked" aria-label="Pasos protegidos">
+              <strong>Los comandos aparecen después de tu decisión.</strong>
+              <span>Primero identifica qué procedimiento inicia el caso. Si necesitas ayuda, pide una pista.</span>
+            </section>
+          ) : <Collapse
+              title={activeScenario.difficulty === 'Avanzado' ? 'Flujo (nivel avanzado)' : 'Ver comandos del flujo'}
+              icon={<Target size={14} />}
+              defaultOpen={false}
+            >
             {activeScenario.difficulty === 'Avanzado' ? (
               <div style={{ fontSize: '0.72rem', color: '#64748b', lineHeight: '1.5' }}>
                 Nivel avanzado: sin ayudas de comando. Escríbelos de memoria a
@@ -229,7 +357,7 @@ export const ScenarioSelector = ({
             <button onClick={onResetScenario} className="link-btn" style={{ marginTop: '8px' }}>
               <RefreshCw size={12} /> Reiniciar PNR
             </button>
-          </Collapse>
+            </Collapse>}
 
           {evaluationResult && (
             <Collapse title="Checklist detallado" icon={<CheckCircle2 size={14} />} defaultOpen={false}>

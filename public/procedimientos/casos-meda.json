@@ -1,0 +1,26 @@
+{
+  "id": "casos-meda",
+  "titulo": "Casos MEDA #3124",
+  "aerolinea": "IB",
+  "categoria": "servicios",
+  "resumen": "Identificar situaciones que requieren valoración médica, gestionar INCAD y proteger la información de salud.",
+  "aplicaSolo": "Casos con posible necesidad de valoración médica en vuelos Iberia o conexiones aplicables.",
+  "advertencias": [
+    { "nivel": "critico", "texto": "No incluir información sensible de salud en PNR: no usar RM, RC, RX ni texto libre médico.", "confianza": "verbatim" },
+    { "nivel": "critico", "texto": "La autorización MEDA solo vale para los vuelos solicitados originalmente; un cambio de vuelo requiere nueva autorización.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "Las autorizaciones médicas deben solicitarse al menos 48 horas antes de vuelos regulares.", "confianza": "verbatim" },
+    { "nivel": "alto", "texto": "Enviar INCAD no garantiza la aceptación a bordo; Iberia puede pedir información adicional o evaluación médica.", "confianza": "verbatim" }
+  ],
+  "fuente": { "documento": "IberiaNet Lite — #3124 CASOS MEDA", "tipo": "manual-oficial-interno", "recibido": "2026-08-12", "confianzaGlobal": "verbatim" },
+  "requierenValoracion": ["oxígeno a bordo", "hospitalización reciente", "escolta médica", "tratamiento o equipo médico durante el vuelo", "convalecencia de enfermedad grave", "posible empeoramiento durante el vuelo"],
+  "requierenIncad": ["oxígeno", "escolta médica", "incubadora", "cuidados sanitarios durante el vuelo", "diálisis durante el vuelo", "no puede usar mascarilla por razones médicas"],
+  "noRequierenIncad": ["POC", "silla de ruedas", "embarazo sin complicaciones", "enfermedad que no empeorará durante el vuelo"],
+  "pasos": [
+    { "n": 1, "sistema": "generalidades", "proceso": "Clasificar si requiere valoración médica", "comando": null, "explicacion": "Identificar oxígeno, hospitalización, escolta, tratamiento/equipo médico o riesgo de empeoramiento.", "confianza": "verbatim", "esBloqueante": true },
+    { "n": 2, "sistema": "generalidades", "proceso": "Aplicar reglas previas", "comando": null, "explicacion": "Escayola en últimas 24 horas: no puede abordar. Iberia no transporta camillas. Los aviones no tienen enchufes para aparatos médicos. POC propio puede usar FREMEC válido.", "confianza": "verbatim", "esBloqueante": true },
+    { "n": 3, "sistema": "generalidades", "proceso": "Resolver conexión", "comando": null, "explicacion": "Si la primera compañía JBA en una conexión transatlántica es Iberia, Iberia gestiona MEDA para todos los vuelos de conexión.", "confianza": "verbatim", "condicional": "conexion" },
+    { "n": 4, "sistema": "supervisor", "proceso": "Enviar INCAD cuando aplique", "comando": null, "explicacion": "Con ayuda del supervisor, enviar INCAD en el idioma correspondiente; el cliente lo completa con su médico y lo envía a sergadm@iberia.es con al menos 48 horas.", "confianza": "verbatim", "condicional": "requiere-incad", "esBloqueante": true },
+    { "n": 5, "sistema": "generalidades", "proceso": "Informar límites de autorización", "comando": null, "explicacion": "MEDA no garantiza aceptación; los dispositivos deben poder desconectarse si la tripulación lo exige por seguridad.", "confianza": "verbatim" },
+    { "n": 6, "sistema": "proteccion-datos", "proceso": "No guardar diagnóstico en PNR", "comando": null, "explicacion": "Registrar solo la gestión operativa mínima permitida; nunca detalles médicos en RM, RC, RX o texto libre.", "confianza": "verbatim", "esBloqueante": true }
+  ]
+}

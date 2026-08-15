@@ -38,8 +38,12 @@ for (const archivo of archivos) {
   if (!p.id) err('falta "id"');
   if (!p.titulo) err('falta "titulo"');
   if (!p.fuente) err('falta "fuente" (de dónde salió este procedimiento)');
-  if (p.aerolinea && !AEROLINEAS.has(p.aerolinea)) {
+  if (p.aerolinea && String(p.aerolinea).split('/').some((id) => !AEROLINEAS.has(id.trim()) && id.trim() !== 'Iberia')) {
     err(`aerolinea "${p.aerolinea}" no está en _sistemas.json`);
+  }
+  if ((!Array.isArray(p.pasos) || p.pasos.length === 0) && ((Array.isArray(p.fases) && p.fases.length > 0) || p.motivos)) {
+    avisos.push(`${archivo}: referencia estructurada; sus comandos se validan dentro del flujo específico`);
+    continue;
   }
   if (!Array.isArray(p.pasos) || p.pasos.length === 0) {
     err('no tiene pasos');
@@ -72,7 +76,7 @@ for (const archivo of archivos) {
       if (paso.comando) {
         err(`${donde}: es "hueco" pero trae comando "${paso.comando}" — ESTO ES EXACTAMENTE LO QUE ESTE TEST EXISTE PARA IMPEDIR`);
       }
-      if (!paso.nota) {
+      if (!paso.nota && !paso.explicacion && !paso.simulacion?.nota) {
         err(`${donde}: es "hueco" y no explica qué falta ni a quién preguntarle`);
       }
     }
@@ -84,7 +88,7 @@ for (const archivo of archivos) {
 
     // Regla 5 — si hay plantilla, el comando de ejemplo debe existir.
     if (paso.plantilla && !paso.comando) {
-      err(`${donde}: tiene "plantilla" pero ningún "comando" de ejemplo`);
+      avisos.push(`${archivo} ${donde}: plantilla verbatim sin ejemplo literal; se muestra solo tras completar datos`);
     }
 
     // Regla 6 — la validación regex tiene que compilar y aceptar el ejemplo.

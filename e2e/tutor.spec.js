@@ -10,7 +10,16 @@ import { test, expect } from '@playwright/test';
 
 /** Fija el modo antes de cargar la página (el panel lo lee de localStorage). */
 function modoGuiado(page) {
-  return page.addInitScript(() => localStorage.setItem('cryptic-tutor-mode-v1', 'guiado'));
+  return page.addInitScript(() => {
+    localStorage.setItem('cryptic-tutor-mode-v1', 'guiado');
+    localStorage.setItem('cryptic-assistant-mode-v1', 'mision');
+  });
+}
+
+function modoMision(page) {
+  return page.addInitScript(() => {
+    localStorage.setItem('cryptic-assistant-mode-v1', 'mision');
+  });
 }
 
 /** Respuestas del worker, en el orden en que las va pidiendo el panel. */
@@ -58,7 +67,7 @@ test('le puedo ESCRIBIR y me responde, sin inventar comandos', async ({ page }) 
   // Mi mensaje aparece en el hilo al instante
   await expect(page.locator('.tut-burbuja-alumno')).toContainText('hola');
   // Y el coach responde encaminándome, sin soltar ningún comando
-  await expect(page.locator('.tut-burbuja-coach')).toContainText(/qué necesita el pasajero/i);
+  await expect(page.locator('.tut-burbuja-coach').last()).toContainText(/qué necesita el pasajero/i);
 });
 
 test('el árbol pregunta antes de decidir y luego guía paso a paso', async ({ page }) => {
@@ -124,20 +133,19 @@ test('el árbol pregunta antes de decidir y luego guía paso a paso', async ({ p
   await page.getByRole('button', { name: /no, ninguno/i }).click();
 
   // Ya hay paso: se ve el sistema, el comando y de dónde sale
-  await expect(page.getByText('Separar pasajeros (SPLIT)')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Separar pasajeros (SPLIT)' })).toBeVisible();
   await expect(page.getByText('Amadeus', { exact: true })).toBeVisible();
-  await expect(page.getByText('del manual')).toBeVisible();
-  await expect(page.getByText('SP 1', { exact: true })).toBeVisible();
+  await expect(page.getByText('del manual', { exact: true })).toBeVisible();
+  await expect(page.locator('.tut-comando').filter({ hasText: 'SP 1' })).toBeVisible();
 
   // Y el camino explica CÓMO lo sabe
   await expect(page.getByText(/todos los cupones dicen open for use/i)).toBeVisible();
 
-  // Escribe el comando correcto
-  await page.getByLabel('Comando para el tutor').fill('SP 1');
-  await page.getByRole('button', { name: /comprobar/i }).click();
-
-  await expect(page.getByText(/correcto/i)).toBeVisible();
-  await expect(page.getByText('EF', { exact: true })).toBeVisible();
+  // La ejecución ya no se hace en una segunda caja: el tutor entrega el
+  // comando a la única superficie operativa, la terminal del simulador.
+  await expect(page.getByText(/la ejecución ocurre en la terminal/i)).toBeVisible();
+  await expect(page.getByRole('link', { name: /abrir terminal para ejecutarlo/i })).toBeVisible();
+  await expect(page.getByLabel('Comando para el tutor')).toHaveCount(0);
 });
 
 test('a ciegas tapa el comando y NO se destapa al acertar el paso anterior', async ({ page }) => {
@@ -159,6 +167,7 @@ test('a ciegas tapa el comando y NO se destapa al acertar el paso anterior', asy
   ]);
 
   // Sin tocar nada: el modo por defecto ya es "a ciegas"
+  await modoMision(page);
   await page.goto('/tutor');
   await page.getByRole('button', { name: /cambiar un vuelo/i }).click();
 
@@ -170,12 +179,10 @@ test('a ciegas tapa el comando y NO se destapa al acertar el paso anterior', asy
   await page.getByRole('button', { name: /revelar/i }).click();
   await expect(page.getByText('SP 1', { exact: true })).toBeVisible();
 
-  // Y ahora lo que fallaba: acertar el paso anterior NO destapa el siguiente
-  await page.getByLabel('Comando para el tutor').fill('SP 1');
-  await page.getByRole('button', { name: /comprobar/i }).click();
-
-  await expect(page.getByText(/correcto/i)).toBeVisible();
-  await expect(page.locator('.tut-comando-enmascarado')).toBeVisible();
+  // El tutor no tiene una segunda ejecución: el comando se pasa al terminal.
+  await expect(page.getByText(/la ejecución ocurre en la terminal/i)).toBeVisible();
+  await expect(page.getByRole('link', { name: /abrir terminal para ejecutarlo/i })).toBeVisible();
+  await expect(page.locator('.tut-comando').filter({ hasText: 'SP 1' })).toBeVisible();
   await expect(page.getByText('SP1-2', { exact: true })).toHaveCount(0);
 });
 
@@ -199,10 +206,11 @@ test('un paso sin documentar NO da comando inventado', async ({ page }) => {
     }
   ]);
 
+  await modoMision(page);
   await page.goto('/tutor');
   await page.getByRole('button', { name: /devuelvan el dinero/i }).click();
 
-  await expect(page.getByText('sin documentar')).toBeVisible();
+  await expect(page.getByText('sin documentar', { exact: true })).toBeVisible();
   await expect(page.getByText(/no te lo inventes/i)).toBeVisible();
   // Y no aparece ninguna caja de comando que copiar
   await expect(page.locator('.tut-comando')).toHaveCount(0);
@@ -251,6 +259,7 @@ test('pegar el billete se confirma en pantalla y ahorra la pregunta', async ({ p
   });
 
   await modoGuiado(page);
+  await modoMision(page);
   await page.goto('/tutor');
   await page.getByRole('button', { name: /cambiar un vuelo/i }).click();
   await expect(page.getByText(/¿el pasajero ya ha volado algún tramo\?/i)).toBeVisible();
@@ -263,7 +272,7 @@ test('pegar el billete se confirma en pantalla y ahorra la pregunta', async ({ p
   // Se ve QUÉ leyó: sin esto, pegar parecía no hacer nada
   await expect(page.locator('.tut-leido')).toContainText(/OPTIMA/);
   await expect(page.locator('.tut-leido')).toContainText(/nada volado/);
-  await expect(page.getByText('RT KFQQV', { exact: true })).toBeVisible();
+  await expect(page.locator('.tut-comando').filter({ hasText: 'RT KFQQV' })).toBeVisible();
 
   // Y la pantalla viaja al worker para que el árbol no la olvide
   expect(peticiones[1].caso.pantallas).toEqual(['►DTR:TN 0752527441266·']);
@@ -283,6 +292,7 @@ test('avisa del salto entre Amadeus y Resiber', async ({ page }) => {
     }
   ]);
 
+  await modoMision(page);
   await page.goto('/tutor');
   await page.getByRole('button', { name: /añadir un servicio/i }).click();
 
