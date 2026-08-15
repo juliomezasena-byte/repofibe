@@ -40,7 +40,7 @@ export function Tutor({ mode = 'guided' }) {
   };
 
   return (
-    <main className="tutor-workspace">
+    <main className={`tutor-workspace tutor-workspace-${mode}`}>
       <aside className="procedure-space" aria-label="Paso del manual">
         <div className="procedure-space-kicker">{isFreeMode ? 'TUTOR LIBRE' : 'TUTOR GUIADO'}</div>
         <h2>{estadoTutor?.titulo || (mission ? 'Mision lista para practicar' : isFreeMode ? 'Escribe tu caso para empezar' : 'Sin procedimiento seleccionado')}</h2>
