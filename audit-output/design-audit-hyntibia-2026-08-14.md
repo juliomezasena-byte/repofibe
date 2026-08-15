@@ -54,4 +54,4 @@ Corrección: etiquetas `Tutor`/`Usted`, auto-scroll, estado de redacción y ataj
 - Pruebas de continuidad e IA determinista: correctas.
 - 8 pruebas E2E de rutas y tutor: correctas.
 - 2 pruebas de regresión nuevas del tutor: correctas.
-
+- Suite E2E completa: 24/29 correctas. Las 5 fallas están fuera del tutor modificado: chips del simulador, un flujo interactivo, una ruta antigua de aprendizaje y el role play.
