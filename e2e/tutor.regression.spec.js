@@ -60,4 +60,37 @@ test.describe('Tutor conversacional', () => {
     await expect.poll(() => requests.length).toBe(2);
     expect(requests[1].caso.datos).toMatchObject({ origen: 'BOG', destino: 'MAD' });
   });
+
+  test('tipifica con tres datos confirmados sin enviar PII ni llamar al servidor', async ({ page }) => {
+    let requests = 0;
+    await page.route('**/tutor/paso', async (route) => {
+      requests += 1;
+      await route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: 'no_debe_llamarse' }) });
+    });
+
+    await page.goto('/tutor/libre');
+    await page.getByRole('button', { name: 'Tipificar caso' }).click();
+    await expect(page.getByText(/¿Cuál fue el motivo del contacto?/i)).toBeVisible();
+
+    const input = page.getByRole('textbox', { name: 'Escríbele al tutor' });
+    const enviar = page.getByRole('button', { name: 'Enviar mensaje al tutor' });
+
+    await input.fill('Nombre: Ana Pérez; PNR: ABC123; solicitó cambiar la fecha del vuelo.');
+    await enviar.click();
+    await expect(page.getByText(/¿Qué gestión realizaste?/i)).toBeVisible();
+
+    await input.fill('Se revisaron las condiciones y se ofreció una nueva fecha.');
+    await enviar.click();
+    await expect(page.getByText(/¿Cuál fue el resultado final?/i)).toBeVisible();
+
+    await input.fill('La alternativa quedó pendiente de pago.');
+    await enviar.click();
+
+    const salida = page.locator('.tut-burbuja-coach').last();
+    await expect(salida).toContainText('TIPIFICACIÓN DEL CASO');
+    await expect(salida).toContainText('La alternativa quedó pendiente de pago.');
+    await expect(salida).not.toContainText('Ana Pérez');
+    await expect(salida).not.toContainText('ABC123');
+    expect(requests).toBe(0);
+  });
 });
