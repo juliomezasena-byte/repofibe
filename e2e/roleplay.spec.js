@@ -1,16 +1,18 @@
 import { test, expect } from '@playwright/test';
 
 test('el agente completa una llamada de práctica y ve el feedback', async ({ page }) => {
-  await page.route('**/roleplay/turn', (route) =>
-    route.fulfill({
+  await page.route('**/roleplay/turn', (route) => {
+    expect(new URL(route.request().url()).pathname).toBe('/roleplay/turn');
+    return route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({ passengerReply: 'Buenos días, quisiera saber el estado de mi vuelo.' })
-    })
-  );
+    });
+  });
 
-  await page.route('**/roleplay/evaluate', (route) =>
-    route.fulfill({
+  await page.route('**/roleplay/evaluate', (route) => {
+    expect(new URL(route.request().url()).pathname).toBe('/roleplay/evaluate');
+    return route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({
@@ -18,8 +20,8 @@ test('el agente completa una llamada de práctica y ve el feedback', async ({ pa
         strengths: ['Saludo correcto'],
         improvements: ['Podría confirmar más datos del pasajero']
       })
-    })
-  );
+    });
+  });
 
   await page.goto('/roleplay');
   await page.getByRole('button', { name: /iniciar llamada/i }).click();

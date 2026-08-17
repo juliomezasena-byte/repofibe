@@ -4,13 +4,22 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const buildEntry = path.join(ROOT, 'scripts', 'build-e2e.mjs');
 const serverEntry = path.join(ROOT, 'scripts', 'e2e-static-server.mjs');
 const playwrightEntry = path.join(ROOT, 'node_modules', '@playwright', 'test', 'cli.js');
-const server = spawn(process.execPath, [serverEntry, 'dist-test', '4173'], {
-  cwd: ROOT,
-  stdio: 'inherit',
-  windowsHide: true
-});
+let server = null;
+
+function runNode(entry, args = []) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [entry, ...args], {
+      cwd: ROOT,
+      stdio: 'inherit',
+      windowsHide: true
+    });
+    child.on('error', reject);
+    child.on('exit', (code, signal) => resolve(code ?? (signal ? 1 : 0)));
+  });
+}
 
 function waitForServer(timeoutMs = 10000) {
   const deadline = Date.now() + timeoutMs;
@@ -33,7 +42,7 @@ function waitForServer(timeoutMs = 10000) {
 }
 
 function stopServer() {
-  if (server.exitCode !== null) return;
+  if (!server || server.exitCode !== null) return;
   server.kill('SIGTERM');
   setTimeout(() => {
     if (server.exitCode === null) server.kill();
@@ -41,6 +50,17 @@ function stopServer() {
 }
 
 try {
+  const buildResult = await runNode(buildEntry);
+  if (buildResult !== 0) {
+    process.exitCode = buildResult;
+    throw new Error(`La compilacion E2E termino con codigo ${buildResult}`);
+  }
+
+  server = spawn(process.execPath, [serverEntry, 'dist-e2e', '4173'], {
+    cwd: ROOT,
+    stdio: 'inherit',
+    windowsHide: true
+  });
   await waitForServer();
   const result = await new Promise((resolve, reject) => {
     const runner = spawn(process.execPath, [playwrightEntry, 'test', ...process.argv.slice(2)], {

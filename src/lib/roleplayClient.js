@@ -1,6 +1,12 @@
-const WORKER_URL = import.meta.env.VITE_ROLEPLAY_WORKER_URL;
+const CONFIGURED_WORKER_URL = import.meta.env.VITE_ROLEPLAY_WORKER_URL;
+const WORKER_URL = CONFIGURED_WORKER_URL || (
+  import.meta.env.MODE === 'test' && typeof window !== 'undefined' ? window.location.origin : null
+);
 
 async function post(path, idToken, body) {
+  if (!WORKER_URL) {
+    throw new Error('El roleplay no esta configurado en este entorno. Falta VITE_ROLEPLAY_WORKER_URL.');
+  }
   const res = await fetch(`${WORKER_URL}${path}`, {
     method: 'POST',
     headers: {

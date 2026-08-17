@@ -1,6 +1,6 @@
-// Sirve la salida aislada que `build:e2e` prepara antes de lanzar Playwright.
-// El modo evita inyectar VITE_E2E_MOCK_AUTH en Windows gestionado, donde esa
-// variable hacía que esbuild no pudiera resolver el vite.config.js.
+// Compila y sirve una salida aislada antes de lanzar Playwright. La variable
+// de autenticación simulada se pasa al proceso de Vite, nunca al build que se
+// publica en producción.
 import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
@@ -35,7 +35,7 @@ function run(command, args, options = {}) {
 // `dist-flow-test` falla en algunos equipos Windows gestionados porque el
 // proceso de esbuild intenta resolverlo como una ruta fuera del workspace.
 // `dist-e2e` ya es la salida aislada del runner y no se publica en Firebase.
-const SALIDA = 'dist-test';
+const SALIDA = 'dist-e2e';
 let activeChild = null;
 
 function stop() {
@@ -47,7 +47,9 @@ process.on('SIGTERM', stop);
 process.on('SIGINT', stop);
 
 async function main() {
+  const build = resolve(ROOT, 'scripts', 'build-e2e.mjs');
   const staticServer = resolve(ROOT, 'scripts', 'e2e-static-server.mjs');
+  await run(process.execPath, [build], { shell: false });
   await run(process.execPath, [staticServer, SALIDA, '4173'], { shell: false });
 }
 

@@ -19,7 +19,7 @@
     "rag:build": "node scripts/construir-indice-rag.mjs",
     "bot:build": "node scripts/construir-bot-hyntibia.mjs",
     "bot:test": "node scripts/construir-bot-hyntibia.mjs && node scripts/test-bot-hyntibia.js && node scripts/test-bot-navegador.mjs",
-    "build:e2e": "npm run build -- --mode test --outDir dist-test",
+    "build:e2e": "node scripts/build-e2e.mjs",
     "test:e2e": "node scripts/run-e2e.mjs"
   },
   "dependencies": {
