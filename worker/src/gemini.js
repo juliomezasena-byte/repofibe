@@ -145,20 +145,20 @@ export async function generateTutorText(apiKey, model, prompt) {
  * hyntibia.com.co/api/gemini, y el puente usa la cuenta de servicio por detrás.
  * Mismas salidas estructuradas (el puente aplica el mismo responseSchema).
  */
-export async function generateIntentClassificationServidor(endpoint, prompt, etiquetas) {
+export async function generateIntentClassificationServidor(endpoint, prompt, etiquetas, claveHash = '') {
   const res = await fetch(endpoint, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-Bot-Clave': claveHash },
     body: JSON.stringify({ prompt, modo: 'clasificacion', etiquetas })
   });
   if (!res.ok) throw new Error(`puente clasificación ${res.status}`);
   return res.json(); // { intencion, confianza }
 }
 
-export async function generateTutorTextServidor(endpoint, prompt) {
+export async function generateTutorTextServidor(endpoint, prompt, claveHash = '') {
   const res = await fetch(endpoint, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-Bot-Clave': claveHash },
     body: JSON.stringify({ prompt, modo: 'tutor' })
   });
   if (!res.ok) throw new Error(`puente tutor ${res.status}`);
@@ -170,10 +170,10 @@ export async function generateTutorTextServidor(endpoint, prompt) {
  * 'pregunta': el servidor busca en el índice del manual y Vertex responde SOLO
  * con eso, citando la fuente. Para dudas de examen, PIDs, "¿qué es X?", etc.
  */
-export async function preguntarServidor(endpoint, prompt) {
+export async function preguntarServidor(endpoint, prompt, claveHash = '') {
   const res = await fetch(endpoint, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-Bot-Clave': claveHash },
     body: JSON.stringify({ prompt, modo: 'pregunta' })
   });
   if (!res.ok) throw new Error(`puente pregunta ${res.status}`);

@@ -34,7 +34,7 @@ async function redactarConGemini({ env, prompt, paso = null }) {
     // El puente del servidor (Vertex de pago) tiene prioridad; si no, Google directo.
     const seguro = redactarTextoSensible(prompt);
     const llamada = env.GEMINI_ENDPOINT
-      ? generateTutorTextServidor(env.GEMINI_ENDPOINT, seguro)
+      ? generateTutorTextServidor(env.GEMINI_ENDPOINT, seguro, env.PUBLIC_BOT_HASH || '')
       : generateTutorText(env.GEMINI_API_KEY, env.GEMINI_MODEL, seguro);
     const respuesta = await Promise.race([
       llamada,
