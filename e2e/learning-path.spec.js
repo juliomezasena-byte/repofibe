@@ -7,7 +7,7 @@ test.describe('Ruta guiada de aprendizaje', () => {
     // El menú se rediseñó: la tarjeta es 'Ruta PNR (Lecciones)' con etiqueta
     // 'Simulador PNR' (antes 'Guiado', que se confundía con el Tutor IA).
     await page.getByRole('link', { name: /Ruta PNR/ }).click();
-    await expect(page).toHaveURL(/\/guia$/);
+    await expect(page).toHaveURL(/\/ejercicios$/);
     await expect(page.getByText('GUÍA DE APRENDIZAJE')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Aprende Amadeus practicando' })).toBeVisible();
     await expect(page.getByRole('button', { name: /Comenzar lección/ })).toBeVisible();

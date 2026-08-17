@@ -9,6 +9,7 @@ test.describe('Chips de comandos', () => {
   test('tocar un chip escribe el comando en el input, no lo ejecuta', async ({ page }) => {
     await page.goto('/simulador');
     await page.locator('.decision-card .decision-option').first().click();
+    await page.getByRole('button', { name: /Ver comandos del flujo/ }).click();
     // Nivel 1 es Principiante -> chips con comando completo.
     await page.locator('.work-chip').nth(1).click(); // chip 02 = SS1Y1
     await expect(page.locator('.cmd-input')).toHaveValue('SS1Y1');
@@ -19,6 +20,7 @@ test.describe('Chips de comandos', () => {
   test('un comando equivalente con espacios marca el chip ✔ (compact)', async ({ page }) => {
     await page.goto('/simulador');
     await page.locator('.decision-card .decision-option').first().click();
+    await page.getByRole('button', { name: /Ver comandos del flujo/ }).click();
     await page.fill('.cmd-input', 'SN 12 APR MEX SDQ');
     await page.press('.cmd-input', 'Enter');
     // El chip 01 (SN 12 APR MEX SDQ) queda done.

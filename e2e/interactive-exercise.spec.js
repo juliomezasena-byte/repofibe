@@ -33,6 +33,7 @@ test('el modo guiado bloquea la terminal y oculta la solucion hasta la decision'
 
   await page.locator('.decision-card .decision-option').first().click();
   await expect(input).toBeEnabled();
+  await page.getByRole('button', { name: /Ver comandos del flujo/ }).click();
   await expect(page.getByRole('button', { name: '01 SN 12 APR MEX SDQ' })).toBeVisible();
 
   await input.fill('SN 12 APR MEX SDQ\nSS1Y1');
