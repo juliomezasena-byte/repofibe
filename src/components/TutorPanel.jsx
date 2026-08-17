@@ -4,6 +4,7 @@ import { pedirPaso } from '../lib/tutorClient';
 import { getExercisesByCategory } from '../lib/procedureExercises';
 import { useAppContext } from '../context/AppContext';
 import { Link } from 'react-router-dom';
+import { procesarTurnoTipificacion } from '../lib/tipificacion';
 
 const SISTEMAS = {
   amadeus: { nombre: 'Amadeus', clase: 'tut-sis-amadeus' },
@@ -45,6 +46,7 @@ export function TutorPanel({ onStateChange = null, routeMode = 'free' }) {
     }
   ]);
   const [mensaje, setMensaje] = useState('');
+  const [tipificacion, setTipificacion] = useState(null);
   // El modo vive en localStorage y lo comparte con /guia. Antes solo se LEÍA
   // aquí y el interruptor estaba en la otra página: si te atascabas a ciegas,
   // no sabías cómo salir sin irte del tutor.
@@ -248,6 +250,27 @@ export function TutorPanel({ onStateChange = null, routeMode = 'free' }) {
   function enviarMensaje(textoForzado = null) {
     const texto = (textoForzado ?? mensaje).trim();
     if (!texto || ocupado) return;
+
+    const turnoTipificacion = procesarTurnoTipificacion({
+      consulta: texto,
+      estado: tipificacion,
+      contexto: {
+        intencion: caso?.intencion,
+        procedimientoId: estado?.procedimientoId,
+        pasoActual: paso?.n
+      }
+    });
+    if (turnoTipificacion.manejado) {
+      setTipificacion(turnoTipificacion.estado);
+      setChat((c) => [
+        ...c,
+        { rol: 'alumno', texto },
+        { rol: 'coach', texto: turnoTipificacion.explicacion }
+      ]);
+      setMensaje('');
+      return;
+    }
+
     setChat((c) => [...c, { rol: 'alumno', texto }]);
     // Si aún no hay procedimiento, este texto puede encaminar (o saludar) →
     // reinicia. Si ya hay un paso activo, es una pregunta sobre él → no lo
@@ -266,6 +289,7 @@ export function TutorPanel({ onStateChange = null, routeMode = 'free' }) {
     setMostrarPegar(false);
     setError(null);
     setRedactando(false);
+    setTipificacion(null);
     peticionRef.current += 1;
     setChat([{
       rol: 'coach',

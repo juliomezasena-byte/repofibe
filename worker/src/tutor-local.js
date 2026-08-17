@@ -23,6 +23,7 @@ import { entenderIntencion } from './clasificador.js';
 import { detectarIntencion } from './coach.js';
 import { generateIntentClassification, generateIntentClassificationServidor, preguntarServidor, aprenderServidor } from './gemini.js';
 import { redactarTextoSensible } from './redactar.js';
+import { procesarTurnoTipificacion } from '../../src/lib/tipificacion.js';
 import mapaIntenciones from '../scripts/mapa-intenciones.json' with { type: 'json' };
 
 const ETIQUETAS = Object.keys(mapaIntenciones);
@@ -54,10 +55,33 @@ function esPreguntaLibre(texto) {
 export async function responderLocal(payload = {}) {
   const endpoint = (payload && payload.geminiEndpoint) || null;
   const geminiKey = (payload && payload.geminiKey) || null;
+  const claveHash = (payload && payload.claveHash) || '';
 
   // `caso:{}` blindado: responderCoachPublico revienta si caso llega null junto
   // a un procedimientoId. En el navegador siempre mandamos un objeto.
   const caso = { ...(payload && payload.caso) };
+  const consulta = payload && (payload.consulta || payload.texto || payload.mensaje);
+
+  // La tipificación es estructuración, no razonamiento. Se hace localmente con
+  // tres campos confirmados y sin enviar PII ni gastar una llamada de modelo.
+  const turnoTipificacion = procesarTurnoTipificacion({
+    consulta,
+    estado: caso.tipificacion,
+    contexto: {
+      intencion: caso.intencion,
+      procedimientoId: payload && payload.procedimientoId,
+      pasoActual: payload && payload.pasoActual
+    }
+  });
+  if (turnoTipificacion.manejado) {
+    return {
+      explicacion: turnoTipificacion.explicacion,
+      esRespuestaLibre: true,
+      esTipificacion: true,
+      tipificacion: turnoTipificacion.estado,
+      decision: null
+    };
+  }
 
   // ── Sin IA (ni puente ni llave): determinista, gratis, sin red ───────────
   if (!endpoint && !geminiKey) {
@@ -72,13 +96,12 @@ export async function responderLocal(payload = {}) {
 
   // Clasificador: por el puente (servidor/Vertex) o directo (llave).
   const generar = endpoint
-    ? (prompt, etiquetas) => conTimeout(generateIntentClassificationServidor(endpoint, prompt, etiquetas), 15000)
+    ? (prompt, etiquetas) => conTimeout(generateIntentClassificationServidor(endpoint, prompt, etiquetas, claveHash), 15000)
     : (prompt, etiquetas) => conTimeout(generateIntentClassification(geminiKey, modelo, prompt, etiquetas), 12000);
 
   // 1 · ENTENDER al novato antes de que el árbol decida. Solo cuando aporta:
   //     hay texto libre, aún no hay procedimiento ni intención, y no se pegó una
   //     pantalla (esa se lee sola, sin gastar IA).
-  const consulta = payload && (payload.consulta || payload.texto || payload.mensaje);
   const hayPantalla = !!(caso.pantallas && caso.pantallas.length) || !!caso.pantalla;
 
   // Estado del turno que el router puede modificar.
@@ -102,7 +125,7 @@ export async function responderLocal(payload = {}) {
   // toca el estado, así el alumno sigue donde iba).
   if (endpoint && consulta && !hayPantalla && !payload.comandoEscrito && esPreguntaLibre(consulta)) {
     try {
-      const rag = await conTimeout(preguntarServidor(endpoint, redactarTextoSensible(consulta)), 25000);
+      const rag = await conTimeout(preguntarServidor(endpoint, redactarTextoSensible(consulta), claveHash), 25000);
       if (rag && rag.explicacion) {
         const cita = Array.isArray(rag.fuentes) && rag.fuentes.length
           ? `\n\n📚 *Fuente: ${rag.fuentes.join(' · ')}*` : '';
