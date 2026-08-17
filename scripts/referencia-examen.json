@@ -1,0 +1,85 @@
+[
+  {
+    "titulo": "Gastos de gestión por país (LATAM)",
+    "estado": "verificado",
+    "fuente": {
+      "documento": "iberia.com — Gastos de gestión de billetes",
+      "tipo": "fuente-publica-oficial",
+      "recibido": "2026-08-08",
+      "ubicacion": "public/procedimientos/_gastos-gestion-mundial.json · tabla.paises",
+      "verificadoPor": "repofibe-auditoria-2026-08-16",
+      "confianza": "verbatim"
+    },
+    "texto": "Tabla de gastos de gestión LATAM (emisión / cambio / reembolso), en USD. Argentina: 90 / 90 / 90. Chile: 60 / 60 / 60. Colombia: emisión por rangos de Fare (menor o igual a 354 USD = 17.85 USD; menor o igual a 590 = 32.32 USD; menor o igual a 944 = 54.74 USD; mayor a 944 = 113.05 USD), el CAMBIO y el REEMBOLSO en Colombia son GRATUITOS. Costa Rica: 35 / 35 / 35. Guatemala: 35 / 35 / 35. México: 35 / 35 / 35. Ecuador: 80 / 80 / 80. El Salvador: 35 / 35 / 35. Honduras: 26.75 / 42.80 / 42.80. Nicaragua: 25 / 25 / 25. Panamá: 35 / 35 / 35. Perú: 35 / 35 / 35. Rep. Dominicana: 35 / 35 / 35. Uruguay: 35 / 35 / 35. Venezuela: 35 / 35 / 35."
+  },
+  {
+    "titulo": "Gasto de gestión Colombia — cuándo se suma YQ",
+    "estado": "verificado",
+    "fuente": {
+      "documento": "IberiaNet Lite — #3043 0.2 LATAM",
+      "tipo": "manual-oficial-interno",
+      "recibido": "2026-08-08",
+      "ubicacion": "public/procedimientos/gastos-gestion-latam.json · reglasCriticas/colombia",
+      "verificadoPor": "repofibe-auditoria-2026-08-16",
+      "confianza": "verbatim"
+    },
+    "texto": "Para calcular el gasto de gestión en COLOMBIA: cuando el itinerario NO origina en Colombia se suma el valor de la tarifa base (FARE) MÁS el impuesto YQ, y con ese total se busca el rango. Cuando el itinerario SÍ origina en Colombia se usa solo la tarifa base (FARE) SIN impuestos. La tasa YQ NO se incluye para calcular el rango cuando el vuelo origina en Colombia. Rangos Colombia emisión: hasta 354 USD = 17.85 USD; hasta 590 = 32.32 USD; hasta 944 = 54.74 USD; más de 944 = 113.05 USD."
+  },
+  {
+    "titulo": "Oficinas de emisión y moneda por país (LATAM)",
+    "estado": "verificado",
+    "fuente": {
+      "documento": "IberiaNet Lite — #3043 0.2 LATAM",
+      "tipo": "manual-oficial-interno",
+      "recibido": "2026-08-08",
+      "ubicacion": "public/procedimientos/gastos-gestion-latam.json · oficinasEmision",
+      "verificadoPor": "repofibe-auditoria-2026-08-16",
+      "confianza": "verbatim"
+    },
+    "texto": "Oficina de emisión en Amadeus y moneda de cobro por país: Argentina BUE001 (ARS). Chile SCL001 (CLP). Colombia BOG001 (COP). Costa Rica SJO001 (CRC). Guatemala GUA001 (GTQ). México MEX001 (MXN). Ecuador UIO001 (USD). El Salvador, Honduras, Nicaragua, Panamá y Venezuela usan PTY001. Perú LIM001. Rep. Dominicana SDQ001. Uruguay MVD001. Estados Unidos y Puerto Rico MIA001."
+  },
+  {
+    "titulo": "Tasa Q1 (impuesto de la penalidad/diferencia)",
+    "estado": "pendiente",
+    "motivoPendiente": "No aparece en procedimientos canónicos ni en el OCR disponible; confirmar con instructor y aportar página/captura.",
+    "texto": "La tasa Q1 es el impuesto equivalente al 30% de la penalidad (o de la diferencia de tarifa cuando aplica). Se calcula con la transacción DF: DF PENALIDAD P 30 (por ejemplo DF 190 P 30 calcula el 30% de 190). El resultado es el impuesto Q1."
+  },
+  {
+    "titulo": "Tasa ZK (pago en efectivo / depósito bancario — Argentina)",
+    "estado": "pendiente",
+    "motivoPendiente": "El OCR solo confirma condiciones generales del depósito; no respalda el 5% ni la fórmula indicada.",
+    "texto": "La tasa ZK es del 5%. Aplica en Argentina cuando el pasajero paga por DEPÓSITO o TRANSFERENCIA bancaria (pago en efectivo / casos sensibles). Se calcula como el 5% de la suma de (diferencia de FARE + diferencia de la tasa YQ). Debe agregarse el gasto de gestión (SF) y cumplir condiciones: no aplica a LEVEL ni código compartido, pago máximo en 24 horas, vuelos a más de 72 horas de la salida."
+  },
+  {
+    "titulo": "Descuentos país — Panamá",
+    "estado": "verificado",
+    "fuente": {
+      "documento": "Iberianet Lite — #3064 2. DESCUENTOS PANAMA",
+      "tipo": "manual-oficial-interno",
+      "recibido": "2026-08-12",
+      "ubicacion": "public/procedimientos/descuento-panama.json",
+      "verificadoPor": "repofibe-auditoria-2026-08-16",
+      "confianza": "verbatim"
+    },
+    "texto": "Descuento país Panamá (mercado PTY001, solo reservas en USD): descuento del 25% en el Fare para tercera edad / jubilados (mujeres desde 55 años, hombres desde 60 años), se cotiza con RCD (FXX/FF-TARIFA/RCD). No es acumulable con otros descuentos. Es obligatorio agregar los DOCS para validar la fecha de nacimiento. Panamá NO maneja descuento por discapacidad ni por jóvenes."
+  },
+  {
+    "titulo": "Descuentos país — Ecuador",
+    "estado": "verificado",
+    "fuente": {
+      "documento": "Iberianet Lite — #3065 3. DESCUENTOS ECUADOR",
+      "tipo": "manual-oficial-interno",
+      "recibido": "2026-08-12",
+      "ubicacion": "public/procedimientos/descuento-ecuador.json",
+      "verificadoPor": "repofibe-auditoria-2026-08-16",
+      "confianza": "verbatim"
+    },
+    "texto": "Descuento país Ecuador (mercado UIO001, solo reservas en USD, solo residentes ecuatorianos): discapacidad 50% con carnet CONADIS, se cotiza con RDIS y SOLO se puede generar reserva ON HOLD (Back Office finaliza el pago; el cliente envía el CONADIS a ventadirectalatam@iberia.com). Jóvenes entre 12 y 24 años 25%, se cotiza con RZZ. Adulto mayor de 65 años 50%, se cotiza con RCD. No acumulables con otros descuentos."
+  },
+  {
+    "titulo": "Reembolsos que aplican solo en Colombia",
+    "estado": "pendiente",
+    "motivoPendiente": "No aparece en procedimientos canónicos ni en el OCR disponible; requiere fuente legal/operativa vigente.",
+    "texto": "En Colombia NO aplica el reembolso por compromiso de calidad como en los demás países. En Colombia existen dos tipos de reembolso propios del mercado: 1) Derecho de Retracto y 2) Ley de Desistimiento (o de retracto/desistimiento). Estos aplican únicamente para el mercado de Colombia."
+  }
+]

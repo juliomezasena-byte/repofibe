@@ -20,5 +20,6 @@ dist/
 test-results/
 playwright-report/
 .gstack/
+.rag-build/
 
 dist-e2e/

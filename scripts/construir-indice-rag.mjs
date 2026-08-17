@@ -14,13 +14,17 @@
  * Sin embeddings: cada fragmento guarda su texto y su FUENTE (el título del
  * manual) para citar. La búsqueda léxica vive en la función del servidor.
  */
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { prepararReferenciasRag } from './lib/referencias-rag.mjs';
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 const PROCS = JSON.parse(readFileSync(join(RAIZ, 'worker', 'src', 'procedimientos.generated.json'), 'utf8'));
-const DESTINO = join(RAIZ, '..', 'hyntibia llsm', 'HYNTIBIA', 'hyntibia-dashboard', 'functions', 'rag-indice.json');
+const destinoArg = process.argv.find((arg) => arg.startsWith('--destino='));
+const DESTINO = destinoArg
+  ? resolve(process.cwd(), destinoArg.slice('--destino='.length))
+  : join(RAIZ, '.rag-build', 'rag-indice.json');
 
 const RUIDO = new Set(['confianza', 'apariciones', 'comoSeDeduce', 'color', 'medidoCon', 'nivel', 'capturas', 'enlacesOficiales']);
 
@@ -103,6 +107,20 @@ if (existsSync(OCR)) {
   console.log(`  + OCR: ${nImg} imágenes → ${nChunkOcr} fragmentos`);
 }
 
+// 6 · Referencia curada del examen (tablas que los manuales tienen en imágenes
+//     o que no estaban en el texto: gastos de gestión LATAM, Q1, ZK, descuentos
+//     país, oficinas/moneda, ley de retracto Colombia).
+const REF = join(RAIZ, 'scripts', 'referencia-examen.json');
+const referencias = JSON.parse(readFileSync(REF, 'utf8'));
+const { verificadas, pendientes } = prepararReferenciasRag(referencias);
+chunks.push(...verificadas);
+console.log(`  + referencia de examen: ${verificadas.length} verificadas`);
+if (pendientes.length) {
+  console.warn(`  ! referencia de examen: ${pendientes.length} pendientes EXCLUIDAS del índice`);
+  pendientes.forEach((ref) => console.warn(`    - ${ref.titulo}: ${ref.motivo}`));
+}
+
+mkdirSync(dirname(DESTINO), { recursive: true });
 writeFileSync(DESTINO, JSON.stringify({ generado: new Date().toISOString(), n: chunks.length, chunks }));
 const kb = Math.round(JSON.stringify(chunks).length / 1024);
 console.log(`✓ rag-indice.json · ${chunks.length} fragmentos · ${kb} KB`);
